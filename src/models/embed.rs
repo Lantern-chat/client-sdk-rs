@@ -141,7 +141,7 @@ pub struct EmbedField {
     name: SmolStr,
     value: SmolStr,
 
-    #[serde(default, skip_serializing_if = "crate::is_false")]
+    #[serde(default, skip_serializing_if = "is_false")]
     inline: bool,
 }
 

@@ -4,7 +4,7 @@ use super::*;
 pub struct MessageCreateForm {
     pub content: SmolStr,
 
-    #[serde(default, skip_serializing_if = "crate::is_false")]
+    #[serde(default, skip_serializing_if = "is_false")]
     pub tts: bool,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
