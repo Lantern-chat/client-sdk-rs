@@ -10,10 +10,6 @@ license = "GPL-3.0-only"
 [dependencies]
 timestamp = { package = "iso8061-timestamp", version = "0.1" }
 
-reqwest = { version = "0.11.9", optional = true }
-
-postgres-types = { version = "0.2.1", optional = true }
-bytes = { version = "1", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_shims = { version = "0.2", features = ["std", "mime", "bitflags"] }
@@ -28,7 +24,18 @@ hashbrown = "0.12"
 # Maybe?
 # typescript-definitions = { git = "https://github.com/storyscript/typescript-definitions" }
 
+postgres-types = { version = "0.2.1", optional = true }
+bytes = { version = "1", optional = true }
+
+reqwest = { version = "0.11.9", optional = true }
+
+tokio-tungstenite = { version = "0.16.1", optional = true }
+miniz_oxide = { version = "0.5", optional = true }
+rmp-serde = { version = "1", optional = true }
+
 [features]
 pg = ["postgres-types", "bytes"]
+client = ["reqwest"]
+gateway = ["tokio-tungstenite", "miniz_oxide", "rmp-serde"]
 
 [dev-dependencies]
