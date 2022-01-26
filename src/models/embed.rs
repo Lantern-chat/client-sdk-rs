@@ -50,7 +50,7 @@ pub struct Embed {
 
     /// HTML and similar objects
     ///
-    /// See: https://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
+    /// See: <https://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/>
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub object: Option<EmbedMedia>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
