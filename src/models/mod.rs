@@ -19,11 +19,12 @@ pub mod role;
 pub mod room;
 pub mod session;
 pub mod sf;
+pub mod thread;
 pub mod user;
 
 pub use self::{
     embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*, prefs::*,
-    presence::*, role::*, room::*, session::*, sf::*, user::*,
+    presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
 };
 
 #[allow(unused)]

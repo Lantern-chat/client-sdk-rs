@@ -13,6 +13,9 @@ bitflags::bitflags! {
 
         /// Private rooms are those where @everyone cannot view them
         const PRIVATE = 1 << 6;
+
+        /// Forum-style room
+        const FORUM   = 1 << 7;
     }
 }
 

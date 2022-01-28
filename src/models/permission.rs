@@ -136,9 +136,16 @@ impl Permission {
         stream: StreamPermissions::empty(),
     };
 
+    pub const READ_MESSAGES: Self = Permission {
+        party: PartyPermissions::empty(),
+        room: RoomPermissions::READ_MESSAGES,
+        stream: StreamPermissions::empty(),
+    };
+
     pub const PACKED_ALL: u64 = Self::ALL.pack();
     pub const PACKED_ADMIN: u64 = Self::ADMIN.pack();
     pub const PACKED_VIEW_ROOM: u64 = Self::VIEW_ROOM.pack();
+    pub const PACKED_READ_MESSAGES: u64 = Self::READ_MESSAGES.pack();
 
     #[inline]
     pub const fn pack(self) -> u64 {
