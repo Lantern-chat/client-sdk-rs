@@ -21,9 +21,7 @@ bitflags::bitflags! {
 
         const DEFAULT           = Self::CHANGE_NICKNAME.bits;
     }
-}
 
-bitflags::bitflags! {
     /// Permissions that make sense with per-room overrides
     pub struct RoomPermissions: i16 {
         const VIEW_ROOM             = 1 << 0;
@@ -40,6 +38,10 @@ bitflags::bitflags! {
         const USE_SLASH_COMMANDS    = 1 << 11;
         const SEND_TTS_MESSAGES     = 1 << 12;
 
+        /// Allows a user to add new attachments to
+        /// existing messages using the "edit" API
+        const EDIT_NEW_ATTACHMENT   = 1 << 13;
+
         const DEFAULT               = Self::VIEW_ROOM.bits |
                                       Self::READ_MESSAGES.bits |
                                       Self::SEND_MESSAGES.bits |
@@ -49,9 +51,7 @@ bitflags::bitflags! {
                                       Self::ATTACH_FILES.bits |
                                       Self::SEND_TTS_MESSAGES.bits;
     }
-}
 
-bitflags::bitflags! {
     /// Permissions that make sense on stream rooms
     pub struct StreamPermissions: i16 {
         /// Allows a user to broadcast a stream to this room
