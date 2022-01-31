@@ -74,8 +74,7 @@ impl FromStr for Snowflake {
 impl fmt::Display for Snowflake {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut buf = itoa::Buffer::new();
-        f.write_str(buf.format(self.0.get()))
+        f.write_str(itoa::Buffer::new().format(self.0.get()))
     }
 }
 
@@ -120,12 +119,13 @@ mod serde_impl {
     use serde::ser::{Serialize, Serializer};
 
     impl Serialize for Snowflake {
+        #[inline]
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer,
         {
             if serializer.is_human_readable() {
-                serializer.collect_str(self)
+                serializer.serialize_str(itoa::Buffer::new().format(self.0.get()))
             } else {
                 self.0.serialize(serializer)
             }
@@ -146,6 +146,7 @@ mod serde_impl {
                     f.write_str("a 64-bit integer or numeric string")
                 }
 
+                #[inline]
                 fn visit_u64<E: Error>(self, v: u64) -> Result<Self::Value, E> {
                     match NonZeroU64::new(v) {
                         Some(x) => Ok(Snowflake(x)),
