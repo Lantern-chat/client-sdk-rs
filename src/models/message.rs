@@ -49,7 +49,8 @@ pub struct Message {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub edited_at: Option<Timestamp>,
 
-    pub content: SmolStr,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<SmolStr>,
 
     pub flags: MessageFlags,
 
