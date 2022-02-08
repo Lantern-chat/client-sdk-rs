@@ -8,14 +8,23 @@ pub(crate) mod sealed {
 
 use crate::models::Permission;
 
+/// Client Command, tells the client to perform specific actions
 pub trait Command: sealed::Sealed + serde::Serialize {
+    /// Object returned from the server as the result of a command
     type Result;
 
+    /// HTTP Method used to execute the command
     const METHOD: Method;
-    const PERMS: Permission;
+    /// Base permissions required to execute command
+    const BASE_PERMS: Permission;
 
     /// Serialize/format the URI path (with query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
+
+    /// Computes required permissions based on command content
+    fn perms(&self) -> Permission {
+        Self::BASE_PERMS
+    }
 }
 
 // Macro to autogenerate most command trait implementations.
@@ -41,18 +50,40 @@ macro_rules! command {
             $head:tt $(/ $tail:tt)* $(? $($($query_alias:literal)? $query:ident)&+ )?
         )
         // permissions
-        where $($kind:ident::$perm:ident)|*
+        $(where $($kind:ident::$perm:ident)|+)?
         // fields
-        $({
-            $( $(#[$field_meta:meta])* $field_vis:vis $field_name:ident: $field_ty:ty ),* $(,)*
-        })?
+        {
+            $(
+                $(#[$field_meta:meta])*
+                $field_vis:vis $field_name:ident: $field_ty:ty $(
+                    // conditional additional permissions
+                    where $($field_kind:ident::$field_perm:ident)|+ if $cb:expr
+                )?
+
+            ),* $(,)*
+        }
     )*) => {$(
         impl $crate::api::command::sealed::Sealed for $name {}
         impl $crate::api::command::Command for $name {
             type Result = $result;
 
             const METHOD: http::Method = http::Method::$method;
-            const PERMS: Permission = crate::perms!($($kind::$perm)|*);
+            const BASE_PERMS: Permission = crate::perms!($($($kind::$perm)|+)?);
+
+            fn perms(&self) -> Permission {
+                #[allow(unused_mut)]
+                let mut base = Self::BASE_PERMS;
+
+                $($(
+                    let cb = $cb;
+
+                    if cb(&self.$field_name) {
+                        base |= crate::perms!($($field_kind::$field_perm)|+)
+                    }
+                )?)*
+
+                base
+            }
 
             fn format_path<W: std::fmt::Write>(&self, mut w: W) -> std::fmt::Result {
                 command!(@seg w, self, [$head] [$(/ $tail)*]);
@@ -63,10 +94,13 @@ macro_rules! command {
 
                     const LEN: usize = 0 $(+ (stringify!($query), 1).1)*;
 
-                    // preallocate with number of equal signs + lengths of keys
-                    let mut encoder = UrlEncodedSerializer::new(String::with_capacity(
-                        LEN $(+ [$($query_alias,)? stringify!($query)][0].len())*
-                    ));
+                    // preallocate with ?, number of equal signs, plus lengths of keys and separators
+                    let mut buffer = String::with_capacity(
+                        1 + LEN $(+ 1 + [$($query_alias,)? stringify!($query)][0].len())*
+                    );
+                    buffer.push_str("?");
+
+                    let mut encoder = UrlEncodedSerializer::for_suffix(buffer, 1);
                     let serializer = serde_urlencoded::Serializer::new(&mut encoder);
 
                     let mut s = serializer.serialize_struct(stringify!($name), LEN).map_err(|_| std::fmt::Error)?;
@@ -76,8 +110,7 @@ macro_rules! command {
 
                     let params = encoder.finish();
 
-                    if !params.is_empty() {
-                        w.write_str("?")?;
+                    if params.len() > 1 {
                         w.write_str(&params)?;
                     }
                 )?
@@ -89,7 +122,7 @@ macro_rules! command {
         $(#[$meta])*
         #[derive(Debug, Serialize)]
         pub struct $name {
-            $( $($(#[$field_meta])* $field_vis $field_name: $field_ty),* )?
+            $($(#[$field_meta])* $field_vis $field_name: $field_ty),*
         }
     )*};
 }

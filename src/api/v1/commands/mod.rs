@@ -12,8 +12,9 @@ command! {
 
         #[serde(skip_serializing_if = "Option::is_none")]
         pub parent: Option<Snowflake>,
+
         #[serde(skip_serializing_if = "Vec::is_empty")]
-        pub attachments: Vec<Snowflake>,
+        pub attachments: Vec<Snowflake> where Room::ATTACH_FILES if |a: &[_]| !a.is_empty(),
     }
 
     struct GetMessage -> Message: GET("rooms" / room_id / "messages" / msg_id) where Room::READ_MESSAGES {
