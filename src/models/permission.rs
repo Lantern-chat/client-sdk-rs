@@ -1,5 +1,22 @@
 use super::*;
 
+pub mod aliases {
+    pub use super::{PartyPermissions, RoomPermissions, StreamPermissions};
+    pub use super::{PartyPermissions as Party, RoomPermissions as Room, StreamPermissions as Stream};
+}
+
+#[macro_export]
+macro_rules! perms {
+    ($kind:ident::$perm:ident $(| $rkind:ident::$rperm:ident)*) => {{
+        use $crate::models::permission::aliases::*;
+
+        // enforce const
+        const VALUE: $crate::models::Permission = $kind::$perm.as_permission()$(.union($rkind::$rperm.as_permission()))*;
+
+        VALUE
+    }}
+}
+
 bitflags::bitflags! {
     /// Permissions that make sense with party-wide roles
     pub struct PartyPermissions: i16 {
@@ -96,6 +113,36 @@ pub struct Permission {
     pub stream: StreamPermissions,
 }
 
+impl PartyPermissions {
+    pub const fn as_permission(self) -> Permission {
+        Permission {
+            party: self,
+            room: RoomPermissions::empty(),
+            stream: StreamPermissions::empty(),
+        }
+    }
+}
+
+impl RoomPermissions {
+    pub const fn as_permission(self) -> Permission {
+        Permission {
+            party: PartyPermissions::empty(),
+            room: self,
+            stream: StreamPermissions::empty(),
+        }
+    }
+}
+
+impl StreamPermissions {
+    pub const fn as_permission(self) -> Permission {
+        Permission {
+            party: PartyPermissions::empty(),
+            room: RoomPermissions::empty(),
+            stream: self,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Overwrite {
     /// Role or user ID
@@ -124,28 +171,30 @@ impl Permission {
         stream: StreamPermissions::all(),
     };
 
+    //pub const ADMIN: Self = perms!(Party::ADMINISTRATOR);
+
     pub const ADMIN: Self = Permission {
         party: PartyPermissions::ADMINISTRATOR,
         room: RoomPermissions::empty(),
         stream: StreamPermissions::empty(),
     };
 
-    pub const VIEW_ROOM: Self = Permission {
-        party: PartyPermissions::empty(),
-        room: RoomPermissions::VIEW_ROOM,
-        stream: StreamPermissions::empty(),
-    };
-
-    pub const READ_MESSAGES: Self = Permission {
-        party: PartyPermissions::empty(),
-        room: RoomPermissions::READ_MESSAGES,
-        stream: StreamPermissions::empty(),
-    };
+    pub const VIEW_ROOM: Self = perms!(Room::VIEW_ROOM);
+    pub const READ_MESSAGES: Self = perms!(Room::READ_MESSAGES);
 
     pub const PACKED_ALL: u64 = Self::ALL.pack();
     pub const PACKED_ADMIN: u64 = Self::ADMIN.pack();
     pub const PACKED_VIEW_ROOM: u64 = Self::VIEW_ROOM.pack();
     pub const PACKED_READ_MESSAGES: u64 = Self::READ_MESSAGES.pack();
+
+    #[inline]
+    pub const fn union(self, other: Self) -> Self {
+        Permission {
+            room: self.room.union(other.room),
+            party: self.party.union(other.party),
+            stream: self.stream.union(other.stream),
+        }
+    }
 
     #[inline]
     pub const fn pack(self) -> u64 {
