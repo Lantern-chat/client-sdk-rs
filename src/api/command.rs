@@ -8,7 +8,10 @@ pub(crate) mod sealed {
 
 use crate::models::Permission;
 
-/// Client Command, tells the client to perform specific actions
+/// Client Command, tells the client to perform specific requests
+///
+/// A "Command" is a mid-level abstract around REST endpoints and their bodies. Not perfect,
+/// but zero/low-cost and simple. Other abstractions can be built on top of it.
 pub trait Command: sealed::Sealed + serde::Serialize {
     /// Object returned from the server as the result of a command
     type Result;
@@ -27,7 +30,7 @@ pub trait Command: sealed::Sealed + serde::Serialize {
     }
 }
 
-// Macro to autogenerate most command trait implementations.
+// Macro to autogenerate most Command trait implementations.
 macro_rules! command {
     // munchers
     (@seg $w:expr, $this:expr, [$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
@@ -65,6 +68,23 @@ macro_rules! command {
                 )?
 
             ),* $(,)*
+
+            $(
+                ; // need to terminate the previous expressions
+
+                // separate body struct that will be flattened
+                $(#[$body_meta:meta])*
+                struct $body_name:ident {
+                    $(
+
+                        $(#[$body_field_meta:meta])*
+                        $body_field_vis:vis $body_field_name:ident: $body_field_ty:ty $(
+                            where $($body_field_kind:ident::$body_field_perm:ident)|+ if $body_field_cond:expr
+                        )?
+
+                    ),* $(,)*
+                }
+            )?
         }
     )*) => {$(
         impl $crate::api::command::sealed::Sealed for $name {}
@@ -78,7 +98,13 @@ macro_rules! command {
             fn perms(&self) -> Permission {
                 let mut base = Self::BASE_PERMS;
 
-                let $name { $(ref $field_name),* } = self;
+                let $name {
+                    $(ref $field_name,)*
+
+                    $(
+                        body: $body_name { $(ref $body_field_name),* }
+                    )?
+                } = self;
 
                 $($(
                     if $cond {
@@ -126,7 +152,48 @@ macro_rules! command {
         $(#[$meta])*
         #[derive(Debug, Serialize)]
         pub struct $name {
-            $($(#[$field_meta])* $field_vis $field_name: $field_ty),*
+            $($(#[$field_meta])* $field_vis $field_name: $field_ty, )*
+
+            $(
+                #[serde(flatten)]
+                pub body: $body_name,
+            )?
+        }
+
+        $(
+            $(#[$body_meta])*
+            #[derive(Debug, Serialize, Deserialize)]
+            pub struct $body_name {
+                $( $(#[$body_field_meta])* $body_field_vis $body_field_name: $body_field_ty ),*
+            }
+
+            impl std::ops::Deref for $name {
+                type Target = $body_name;
+
+                #[inline]
+                fn deref(&self) -> &Self::Target {
+                    &self.body
+                }
+            }
+
+            impl std::ops::DerefMut for $name {
+                #[inline]
+                fn deref_mut(&mut self) -> &mut Self::Target {
+                    &mut self.body
+                }
+            }
+        )?
+
+        impl $name {
+            pub const fn new(
+                $($field_name: $field_ty,)*
+                $( $($body_field_name: $body_field_ty),* )?
+            ) -> Self {
+                $name {
+                    $($field_name,)*
+                    $( body: $body_name { $($body_field_name),* } )?
+                }
+            }
         }
     )*};
 }

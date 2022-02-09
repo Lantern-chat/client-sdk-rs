@@ -1,3 +1,7 @@
+/**! API definitions
+ *
+ */
+
 #[macro_use]
 pub mod command;
 
