@@ -10,8 +10,8 @@ use crate::models::Permission;
 
 /// Client Command, tells the client to perform specific requests
 ///
-/// A "Command" is a mid-level abstract around REST endpoints and their bodies. Not perfect,
-/// but zero/low-cost and simple. Other abstractions can be built on top of it.
+/// A "Command" is a mid-level abstraction around REST endpoints and their bodies. Not perfect,
+/// but zero-cost and simple. Other abstractions can be built on top of it.
 pub trait Command: sealed::Sealed + serde::Serialize {
     /// Object returned from the server as the result of a command
     type Result;

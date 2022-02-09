@@ -1,8 +1,8 @@
-/**! API definitions
- *
- */
+//! API Definitions
 
 #[macro_use]
-pub mod command;
+mod command;
 
-pub mod v1;
+pub use command::Command;
+
+pub mod commands;
