@@ -30,17 +30,21 @@ pub trait Command: sealed::Sealed + serde::Serialize {
 // Macro to autogenerate most command trait implementations.
 macro_rules! command {
     // munchers
-    (@seg $w:expr, $this:expr, [$value:literal] [/ $next:tt $(/ $tail:tt)*]) => {
-        $w.write_str(concat!($value, "/"))?;
+    (@seg $w:expr, $this:expr, [$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
+        command!(@seg $w, $this, [$($value,)+ $next] [$(/ $tail)*]);
+    };
+
+    (@seg $w:expr, $this:expr, [$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
+        $w.write_str(concat!($("/", $value),+))?;
         command!(@seg $w, $this, [$next] [$(/ $tail)*]);
     };
 
     (@seg $w:expr, $this:expr, [$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
-        write!($w, "{}/", $this.$value)?;
+        write!($w, "/{}", $this.$value)?;
         command!(@seg $w, $this, [$next] [$(/ $tail)*]);
     };
 
-    (@seg $w:expr, $this:expr, [$value:literal] []) => { $w.write_str($value)?; };
+    (@seg $w:expr, $this:expr, [$($value:literal),*] []) => { $w.write_str(concat!($("/", $value),*))?; };
     (@seg $w:expr, $this:expr, [$value:ident] []) => { write!($w, "{}", $this.$value)?; };
 
     // entry point
