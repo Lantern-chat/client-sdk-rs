@@ -61,7 +61,7 @@ macro_rules! command {
                 $(#[$field_meta:meta])*
                 $field_vis:vis $field_name:ident: $field_ty:ty $(
                     // conditional additional permissions
-                    where $($field_kind:ident::$field_perm:ident)|+ if $cb:expr
+                    where $($field_kind:ident::$field_perm:ident)|+ if $cond:expr
                 )?
 
             ),* $(,)*
@@ -74,14 +74,14 @@ macro_rules! command {
             const METHOD: http::Method = http::Method::$method;
             const BASE_PERMS: Permission = crate::perms!($($($kind::$perm)|+)?);
 
+            #[allow(unused_mut, unused_variables)]
             fn perms(&self) -> Permission {
-                #[allow(unused_mut)]
                 let mut base = Self::BASE_PERMS;
 
-                $($(
-                    let cb = $cb;
+                let $name { $(ref $field_name),* } = self;
 
-                    if cb(&self.$field_name) {
+                $($(
+                    if $cond {
                         base |= crate::perms!($($field_kind::$field_perm)|+)
                     }
                 )?)*
