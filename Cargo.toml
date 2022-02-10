@@ -30,6 +30,10 @@ bytes = { version = "1", optional = true }
 
 rmp-serde = { version = "1", optional = true }
 
+url = { version = "2", optional = true }
+thiserror = { version = "1", optional = true }
+mime = { version = "0.3", optional = true }
+headers = { version = "0.3", optional = true }
 reqwest = { version = "0.11.9", optional = true }
 http = { version = "0.2.6", optional = true }
 serde_urlencoded = { version = "0.7.1", optional = true }
@@ -40,9 +44,13 @@ miniz_oxide = { version = "0.5", optional = true }
 
 [features]
 pg = ["postgres-types", "bytes"]
-client = ["reqwest", "http", "serde_urlencoded", "form_urlencoded", "rmp-serde"]
-gateway = ["tokio-tungstenite", "miniz_oxide", "rmp-serde"]
+api = ["http"] # required for Method
 
-default = ["client"]
+client = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "thiserror", "url"]
+gateway = ["tokio-tungstenite", "miniz_oxide", "thiserror"]
+
+msgpack = ["rmp-serde"]
+
+default = ["api", "client", "msgpack"]
 
 [dev-dependencies]

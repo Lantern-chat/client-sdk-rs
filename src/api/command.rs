@@ -8,6 +8,13 @@ pub(crate) mod sealed {
 
 use crate::models::Permission;
 
+bitflags::bitflags! {
+    pub struct CommandFlags: u8 {
+        const AUTHORIZED    = 1 << 0;
+        const HAS_BODY      = 1 << 1;
+    }
+}
+
 /// Client Command, tells the client to perform specific requests
 ///
 /// A "Command" is a mid-level abstraction around REST endpoints and their bodies. Not perfect,
@@ -22,6 +29,8 @@ pub trait Command: sealed::Sealed {
 
     /// HTTP Method used to execute the command
     const METHOD: Method;
+
+    const FLAGS: CommandFlags;
 
     /// Serialize/format the REST path (without query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
@@ -39,6 +48,7 @@ pub trait Command: sealed::Sealed {
     fn perms(&self) -> Permission;
 
     /// Insert any additional headers required to perform this command
+    #[inline(always)]
     fn add_headers(&self, _map: &mut HeaderMap) {}
 }
 
@@ -62,10 +72,18 @@ macro_rules! command {
     (@seg $w:expr, $this:expr, [$($value:literal),*] []) => { $w.write_str(concat!($("/", $value),*))?; };
     (@seg $w:expr, $this:expr, [$value:ident] []) => { write!($w, "{}", $this.$value)?; };
 
+    (@STRUCT struct) => {};
+
     // entry point
     ($(
+        // meta
+        $(#[$meta:meta])*
+
+        // two symbols to differentiate auth and noauth commands (keyword struct verified in @STRUCT)
+        $(+$auth_struct:ident)? $(-$noauth_struct:ident)?
+
         // name, result and HTTP method
-        $(#[$meta:meta])* struct $name:ident -> $result:ty: $method:ident(
+        $name:ident -> $result:ty: $method:ident(
             $head:tt $(/ $tail:tt)*
         )
         // permissions
@@ -103,11 +121,19 @@ macro_rules! command {
             )?
         }
     )*) => {$(
+        // verify presence of exactly one `struct` without prefix
+        command!(@STRUCT $($auth_struct)? $($noauth_struct)?);
+
         impl $crate::api::command::sealed::Sealed for $name {}
         impl $crate::api::command::Command for $name {
             type Result = $result;
 
             const METHOD: http::Method = http::Method::$method;
+
+            const FLAGS: CommandFlags = CommandFlags::empty()
+                $(.union((stringify!($body_name), CommandFlags::HAS_BODY).1))?
+                $(.union((stringify!($auth_struct), CommandFlags::AUTHORIZED).1))?
+            ;
 
             #[allow(unused_mut, unused_variables)]
             fn perms(&self) -> Permission {
@@ -132,6 +158,7 @@ macro_rules! command {
                 base
             }
 
+            #[inline]
             fn format_path<W: std::fmt::Write>(&self, mut w: W) -> std::fmt::Result {
                 command!(@seg w, self, [$head] [$(/ $tail)*]);
 
@@ -152,6 +179,7 @@ macro_rules! command {
             )?
 
             $(
+                #[inline(always)]
                 fn add_headers(&self, map: &mut http::HeaderMap) {
                     $(
                         map.insert($header_name, http::HeaderValue::from_maybe_shared(self.$header_field.to_string()).unwrap());
