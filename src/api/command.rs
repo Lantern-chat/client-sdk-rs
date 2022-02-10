@@ -1,6 +1,6 @@
 use std::fmt;
 
-use http::Method;
+use http::{HeaderMap, Method};
 
 pub(crate) mod sealed {
     pub trait Sealed {}
@@ -12,22 +12,34 @@ use crate::models::Permission;
 ///
 /// A "Command" is a mid-level abstraction around REST endpoints and their bodies. Not perfect,
 /// but zero-cost and simple. Other abstractions can be built on top of it.
-pub trait Command: sealed::Sealed + serde::Serialize {
+///
+/// A command consists of three parts: the URL, the "body", and headers.
+///
+/// For the case of `GET`/`OPTIONS` commands, the body becomes query parameters.
+pub trait Command: sealed::Sealed {
     /// Object returned from the server as the result of a command
-    type Result;
+    type Result: serde::de::DeserializeOwned;
 
     /// HTTP Method used to execute the command
     const METHOD: Method;
-    /// Base permissions required to execute command
-    const BASE_PERMS: Permission;
 
-    /// Serialize/format the URI path (with query)
+    /// Serialize/format the REST path (without query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
 
-    /// Computes required permissions based on command content
-    fn perms(&self) -> Permission {
-        Self::BASE_PERMS
+    fn serialize_body<S: serde::Serializer>(&self, ser: S) -> Result<S::Ok, S::Error> {
+        serde::Serialize::serialize(&(), ser)
     }
+
+    /// Hint given to preallocate body size, only used for query strings
+    fn body_size_hint(&self) -> usize {
+        0
+    }
+
+    /// Computes required permissions
+    fn perms(&self) -> Permission;
+
+    /// Insert any additional headers required to perform this command
+    fn add_headers(&self, _map: &mut HeaderMap) {}
 }
 
 // Macro to autogenerate most Command trait implementations.
@@ -54,10 +66,14 @@ macro_rules! command {
     ($(
         // name, result and HTTP method
         $(#[$meta:meta])* struct $name:ident -> $result:ty: $method:ident(
-            $head:tt $(/ $tail:tt)* $(? $($($query_alias:literal)? $query:ident)&+ )?
+            $head:tt $(/ $tail:tt)*
         )
         // permissions
         $(where $($kind:ident::$perm:ident)|+)?
+
+        // HTTP Headers
+        $($($(#[$header_meta:meta])* $header_name:literal => $header_vis:vis $header_field:ident: $header_ty:ty),+ $(,)*)?
+
         // fields
         {
             $(
@@ -92,14 +108,15 @@ macro_rules! command {
             type Result = $result;
 
             const METHOD: http::Method = http::Method::$method;
-            const BASE_PERMS: Permission = crate::perms!($($($kind::$perm)|+)?);
 
             #[allow(unused_mut, unused_variables)]
             fn perms(&self) -> Permission {
-                let mut base = Self::BASE_PERMS;
+                let mut base = crate::perms!($($($kind::$perm)|+)?);
 
                 let $name {
                     $(ref $field_name,)*
+
+                    $( $(ref $header_field,)* )?
 
                     $(
                         body: $body_name { $(ref $body_field_name),* }
@@ -118,44 +135,40 @@ macro_rules! command {
             fn format_path<W: std::fmt::Write>(&self, mut w: W) -> std::fmt::Result {
                 command!(@seg w, self, [$head] [$(/ $tail)*]);
 
-                $(
-                    use form_urlencoded::Serializer as UrlEncodedSerializer;
-                    use serde::ser::{Serializer, SerializeStruct};
-
-                    const LEN: usize = 0 $(+ (stringify!($query), 1).1)*;
-
-                    // preallocate with ?, number of equal signs, plus lengths of keys and separators
-                    let mut buffer = String::with_capacity(
-                        1 + LEN $(+ 1 + [$($query_alias,)? stringify!($query)][0].len())*
-                    );
-                    buffer.push_str("?");
-
-                    let mut encoder = UrlEncodedSerializer::for_suffix(buffer, 1);
-                    let serializer = serde_urlencoded::Serializer::new(&mut encoder);
-
-                    let mut s = serializer.serialize_struct(stringify!($name), LEN).map_err(|_| std::fmt::Error)?;
-                    $( s.serialize_field([$($query_alias,)? stringify!($query)][0], &self.$query).map_err(|_| std::fmt::Error)?;)*
-
-                    s.end().map_err(|_| std::fmt::Error)?;
-
-                    let params = encoder.finish();
-
-                    if params.len() > 1 {
-                        w.write_str(&params)?;
-                    }
-                )?
-
                 Ok(())
             }
+
+            $(
+                #[inline]
+                fn serialize_body<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+                    <$body_name as serde::Serialize>::serialize(&self.body, s)
+                }
+
+                #[inline]
+                fn body_size_hint(&self) -> usize {
+                    // ?value= &another=
+                    0 $(+ 3 + stringify!($body_field_name).len())*
+                }
+            )?
+
+            $(
+                fn add_headers(&self, map: &mut http::HeaderMap) {
+                    $(
+                        map.insert($header_name, http::HeaderValue::from_maybe_shared(self.$header_field.to_string()).unwrap());
+                    )+
+                }
+            )?
         }
 
         $(#[$meta])*
-        #[derive(Debug, Serialize)]
+        #[derive(Debug)]
         pub struct $name {
             $($(#[$field_meta])* $field_vis $field_name: $field_ty, )*
 
+            $( $($(#[$header_meta])* $header_vis $header_field: $header_ty, )* )?
+
             $(
-                #[serde(flatten)]
+                /// Body to be serialized as request body or query parameters (if GET)
                 pub body: $body_name,
             )?
         }
@@ -185,15 +198,109 @@ macro_rules! command {
         )?
 
         impl $name {
+            #[doc = "Construct new instance from individual fields"]
             pub const fn new(
                 $($field_name: $field_ty,)*
+                $( $($header_field: $header_ty,)* )?
                 $( $($body_field_name: $body_field_ty),* )?
             ) -> Self {
                 $name {
                     $($field_name,)*
+
+                    $( $($header_field,)* )?
+
                     $( body: $body_name { $($body_field_name),* } )?
                 }
             }
         }
     )*};
 }
+
+/*
+// Experimental/incomplete alternate format, might reuse parts of it later
+macro_rules! command2 {
+    (
+        // name, result and HTTP method
+        $(#[$meta:meta])* struct $name:ident -> $result:ty: $method:ident(
+            $($path:tt)* // will parse later
+        )
+        // permissions
+        $(where $($kind:ident::$perm:ident)|+)?
+
+        // HTTP Headers
+        $($($(#[$header_meta:meta])* $header_name:literal => $header_vis:vis $header_field:ident: $header_ty:ty),+ $(,)*)?
+
+        $({
+            $(
+                $(#[$field_meta:meta])*
+                $field_vis:vis $field_name:ident: $field_ty:ty $(
+                    // conditional additional permissions
+                    where $($field_kind:ident::$field_perm:ident)|+ if $cond:expr
+                )?
+            ),+ $(,)*
+        })?
+    ) => {
+        $(
+            paste::paste! {
+                #[doc = "Body struct for [" $name "]"]
+                #[derive(Debug, Serialize, Deserialize)]
+                pub struct [<$name Body>] {
+                    $( $(#[$field_meta])* $field_vis $field_name: $field_ty ),+
+                }
+            }
+        )?
+
+        $(
+            paste::paste! {
+                #[doc = "Header struct for [" $name "]"]
+                #[derive(Debug)]
+                pub struct [<$name Headers>] {
+                    $($(#[$header_meta])* $header_vis $header_field: $header_ty),+
+                }
+            }
+        )?
+
+        pub struct $name {
+
+        }
+
+        //impl $crate::api::command::sealed::Sealed for $name {}
+
+        // type TEST = command2!(@BODY_TY $name: $($($field_name),+)?);
+    };
+
+    (@BODY_TY $name:ident: $($field_name:ident),+) => {paste::paste!([<$name Body>])};
+    (@BODY_TY $name:ident: ) => {()};
+
+    // final case
+    (
+        @BODY $(#[$meta:meta])* struct $name:ident {
+            $($(#[$field_meta:meta])* $field_vis:vis $field_name:ident: $field_ty:ty),*
+        }
+        [] []
+    ) => {
+        $(#[$meta:meta])*
+        pub struct $name {
+            $( $(#[$field_meta])* $field_vis $field_name: $field_ty ),*
+        }
+    };
+
+    (
+        @BODY $(#[$meta:meta])* struct $name:ident {
+            $($(#[$field_meta:meta])* $field_vis:vis $field_name:ident: $field_ty:ty),*
+        }
+        [$($param_name:ident: $param_ty:ty),+ $(/ $rest_params:tt)*]
+        [$($rest_headers:tt)*]
+    ) => {
+        command2! {
+            @BODY
+            $(#[$meta:meta])*
+            struct $name {
+                $( $(#[$field_meta])* $field_vis $field_name: $field_ty ),*
+            }
+            [$($param_name:ident: $param_ty:ty),+]
+            [$($rest:tt)*]
+        }
+    };
+}
+*/

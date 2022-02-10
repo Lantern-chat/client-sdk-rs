@@ -3,7 +3,7 @@ use super::*;
 command! {
     /// Create message command
     struct CreateMessage -> Message: POST("rooms" / room_id / "messages") where Room::SEND_MESSAGES {
-        #[serde(skip)] pub room_id: Snowflake,
+        pub room_id: Snowflake,
 
         ; struct CreateMessageBody {
             #[serde(default)]
@@ -18,8 +18,8 @@ command! {
     }
 
     struct EditMessage -> Message: PATCH("rooms" / room_id / "messages" / msg_id) where Room::SEND_MESSAGES {
-        #[serde(skip)] pub room_id: Snowflake,
-        #[serde(skip)] pub msg_id: Snowflake,
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
 
         ; struct EditMessageBody {
             #[serde(default)]
@@ -31,13 +31,12 @@ command! {
     }
 
     struct GetMessage -> Message: GET("rooms" / room_id / "messages" / msg_id) where Room::READ_MESSAGES {
-        room_id: Snowflake,
-        msg_id: Snowflake,
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
     }
 
     struct StartTyping -> (): POST("rooms" / room_id / "typing") where Room::SEND_MESSAGES {
-        #[serde(skip)]
-        room_id: Snowflake,
+        pub room_id: Snowflake,
     }
 }
 
@@ -50,8 +49,8 @@ pub enum MessageSearch {
 }
 
 command! {
-    struct GetMessages -> Vec<Message>: GET("rooms" / room_id / "messages" ? thread & query & limit) where Room::READ_MESSAGES {
-        #[serde(skip)] pub room_id: Snowflake,
+    struct GetMessages -> Vec<Message>: GET("rooms" / room_id / "messages") where Room::READ_MESSAGES {
+        pub room_id: Snowflake,
 
         ; #[derive(Default)] struct GetMessagesQuery {
             #[serde(flatten)]
