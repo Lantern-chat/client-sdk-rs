@@ -7,5 +7,5 @@ pub mod models;
 #[cfg(feature = "api")]
 pub mod api;
 
-#[cfg(feature = "client")]
-pub mod client;
+#[cfg(feature = "driver")]
+pub mod driver;

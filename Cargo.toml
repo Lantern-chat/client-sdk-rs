@@ -50,9 +50,16 @@ api = ["http"] # required for Method
 
 _internal_common = ["num-traits", "thiserror", "enum-primitive-derive"]
 
-client = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "_internal_common"]
+# Low-level command execution
+driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "_internal_common"]
+
+# High-level client library
+client = ["driver"]
+
+# Realtime gateway support
 gateway = ["tokio-tungstenite", "miniz_oxide", "_internal_common"]
 
+# Efficient MessagePack Encoding
 msgpack = ["rmp-serde"]
 
 default = ["api", "client", "msgpack"]

@@ -16,7 +16,7 @@ pub enum Encoding {
 }
 
 #[derive(Clone)]
-pub struct Client {
+pub struct Driver {
     pub inner: reqwest::Client,
     pub encoding: Encoding,
     pub uri: &'static str,
@@ -24,7 +24,7 @@ pub struct Client {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum ClientError {
+pub enum DriverError {
     #[error("Reqwest Error: {0}")]
     ReqwestError(#[from] reqwest::Error),
 
@@ -51,28 +51,28 @@ pub enum ClientError {
     #[error("Invalid Bearer Token")]
     InvalidBearerToken,
 
-    #[error("Client Error: {0:?}")]
+    #[error("Api Error: {0:?}")]
     ApiError(ApiError),
 
-    #[error("Generic Client Error: {0}")]
-    GenericClientError(http::StatusCode),
+    #[error("Generic Driver Error: {0}")]
+    GenericDriverError(http::StatusCode),
 }
 
-impl Client {
-    pub fn new(uri: &'static str) -> Result<Self, ClientError> {
+impl Driver {
+    pub fn new(uri: &'static str) -> Result<Self, DriverError> {
         let client = reqwest::Client::builder()
-            .user_agent("Mozilla/5.0 (compatible; Lantern Client SDK)")
+            .user_agent("Mozilla/5.0 (compatible; Lantern Driver SDK)")
             .gzip(true)
             .deflate(true)
             .brotli(true)
             .http2_adaptive_window(true)
             .build()?;
 
-        Ok(Self::new_with_client(uri, client))
+        Ok(Self::new_from_raw(uri, client))
     }
 
-    pub fn new_with_client(uri: &'static str, client: reqwest::Client) -> Self {
-        Client {
+    pub fn new_from_raw(uri: &'static str, client: reqwest::Client) -> Self {
+        Driver {
             inner: client,
             uri,
             encoding: Encoding::Json,
@@ -84,7 +84,7 @@ impl Client {
         self.token = token;
     }
 
-    pub async fn execute<CMD: Command>(&self, cmd: CMD) -> Result<CMD::Result, ClientError> {
+    pub async fn execute<CMD: Command>(&self, cmd: CMD) -> Result<CMD::Result, DriverError> {
         let mut path = format!("{}/api/v1/", self.uri);
 
         // likely inlined, simple
@@ -143,7 +143,7 @@ impl Client {
                     req.headers_mut()
                         .typed_insert(match headers::Authorization::bearer(token) {
                             Ok(header) => header,
-                            Err(_) => return Err(ClientError::InvalidBearerToken),
+                            Err(_) => return Err(DriverError::InvalidBearerToken),
                         });
                 }
                 None => panic!("Cannot execute authorized command without auth token!"),
@@ -158,8 +158,8 @@ impl Client {
 
         if !status.is_success() {
             return Err(match deserialize_ct(&body, ct) {
-                Ok(api_error) => ClientError::ApiError(api_error),
-                Err(_) => ClientError::GenericClientError(status),
+                Ok(api_error) => DriverError::ApiError(api_error),
+                Err(_) => DriverError::GenericDriverError(status),
             });
         }
 
@@ -173,7 +173,7 @@ impl Client {
     }
 }
 
-fn deserialize_ct<T>(body: &[u8], ct: Option<ContentType>) -> Result<T, ClientError>
+fn deserialize_ct<T>(body: &[u8], ct: Option<ContentType>) -> Result<T, DriverError>
 where
     T: serde::de::DeserializeOwned,
 {
