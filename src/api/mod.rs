@@ -1,5 +1,7 @@
 //! API Definitions
 
+pub mod error;
+
 #[macro_use]
 mod command;
 

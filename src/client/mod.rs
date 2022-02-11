@@ -3,7 +3,7 @@ use http::Method;
 use reqwest::{Request, Url};
 
 use crate::{
-    api::{Command, CommandFlags},
+    api::{error::ApiError, Command, CommandFlags},
     models::SmolToken,
 };
 
@@ -51,7 +51,12 @@ pub enum ClientError {
 
     #[error("Invalid Bearer Token")]
     InvalidBearerToken,
-    //ClientError {}
+
+    #[error("Client Error: {0:?}")]
+    ApiError(ApiError),
+
+    #[error("Generic Client Error: {0}")]
+    GenericClientError(http::StatusCode),
 }
 
 impl Client {
@@ -113,23 +118,30 @@ impl Client {
         }
 
         if CMD::FLAGS.contains(CommandFlags::AUTHORIZED) {
-            if let Some(ref token) = self.token {
-                req.headers_mut()
-                    .typed_insert(match headers::Authorization::bearer(token) {
-                        Ok(header) => header,
-                        Err(_) => return Err(ClientError::InvalidBearerToken),
-                    });
-            } else {
-                panic!("Cannot execute authorized command without auth token!");
+            match self.token {
+                Some(ref token) => {
+                    req.headers_mut()
+                        .typed_insert(match headers::Authorization::bearer(token) {
+                            Ok(header) => header,
+                            Err(_) => return Err(ClientError::InvalidBearerToken),
+                        });
+                }
+                None => panic!("Cannot execute authorized command without auth token!"),
             }
         }
 
         let response = self.inner.execute(req).await?;
 
-        // TODO: Handle errors
-
+        let status = response.status();
         let ct = response.headers().typed_get::<ContentType>();
         let body = response.bytes().await?;
+
+        if !status.is_success() {
+            return Err(match deserialize_ct(&body, ct) {
+                Ok(api_error) => ClientError::ApiError(api_error),
+                Err(_) => ClientError::GenericClientError(status),
+            });
+        }
 
         if body.len() == 0 || std::mem::size_of::<CMD::Result>() == 0 {
             // if Result is a zero-size type, this is likely optimized away entirely.
@@ -137,26 +149,33 @@ impl Client {
             return Ok(serde_json::from_slice(b"{}").unwrap());
         }
 
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        enum BodyType {
-            Json,
+        deserialize_ct(&body, ct)
+    }
+}
 
-            #[cfg(feature = "msgpack")]
-            MsgPack,
-        }
-
-        let mut kind = BodyType::Json;
+fn deserialize_ct<T>(body: &[u8], ct: Option<ContentType>) -> Result<T, ClientError>
+where
+    T: serde::de::DeserializeOwned,
+{
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum BodyType {
+        Json,
 
         #[cfg(feature = "msgpack")]
-        if ct == Some(ContentType::from(mime::APPLICATION_MSGPACK)) {
-            kind = BodyType::MsgPack;
-        }
-
-        Ok(match kind {
-            BodyType::Json => serde_json::from_slice(&body)?,
-
-            #[cfg(feature = "msgpack")]
-            BodyType::MsgPack => rmp_serde::from_slice(&body)?,
-        })
+        MsgPack,
     }
+
+    let mut kind = BodyType::Json;
+
+    #[cfg(feature = "msgpack")]
+    if ct == Some(ContentType::from(mime::APPLICATION_MSGPACK)) {
+        kind = BodyType::MsgPack;
+    }
+
+    Ok(match kind {
+        BodyType::Json => serde_json::from_slice(body)?,
+
+        #[cfg(feature = "msgpack")]
+        BodyType::MsgPack => rmp_serde::from_slice(body)?,
+    })
 }
