@@ -36,7 +36,7 @@ url = { version = "2", optional = true }
 thiserror = { version = "1", optional = true }
 mime = { version = "0.3", optional = true }
 headers = { version = "0.3", optional = true }
-reqwest = { version = "0.11.9", optional = true }
+reqwest = { version = "0.11.9", optional = true, features = ["gzip", "deflate", "brotli"] }
 http = { version = "0.2.6", optional = true }
 serde_urlencoded = { version = "0.7.1", optional = true }
 form_urlencoded = { version = "1.0.1", optional = true }
@@ -58,3 +58,4 @@ msgpack = ["rmp-serde"]
 default = ["api", "client", "msgpack"]
 
 [dev-dependencies]
+tokio = { version = "1", features = ["full"] }

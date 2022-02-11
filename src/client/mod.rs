@@ -19,8 +19,7 @@ pub enum Encoding {
 pub struct Client {
     pub inner: reqwest::Client,
     pub encoding: Encoding,
-    pub domain: &'static str,
-    pub secure: bool,
+    pub uri: &'static str,
     pub token: Option<SmolToken>,
 }
 
@@ -60,12 +59,33 @@ pub enum ClientError {
 }
 
 impl Client {
+    pub fn new(uri: &'static str) -> Result<Self, ClientError> {
+        let client = reqwest::Client::builder()
+            .user_agent("Mozilla/5.0 (compatible; Lantern Client SDK)")
+            .gzip(true)
+            .deflate(true)
+            .brotli(true)
+            .http2_adaptive_window(true)
+            .build()?;
+
+        Ok(Self::new_with_client(uri, client))
+    }
+
+    pub fn new_with_client(uri: &'static str, client: reqwest::Client) -> Self {
+        Client {
+            inner: client,
+            uri,
+            encoding: Encoding::Json,
+            token: None,
+        }
+    }
+
+    pub fn set_token(&mut self, token: Option<SmolToken>) {
+        self.token = token;
+    }
+
     pub async fn execute<CMD: Command>(&self, cmd: CMD) -> Result<CMD::Result, ClientError> {
-        let mut path = format!(
-            "http{}://{}/api/v1/",
-            if self.secure { "s" } else { "" },
-            self.domain
-        );
+        let mut path = format!("{}/api/v1/", self.uri);
 
         // likely inlined, simple
         cmd.format_path(&mut path)?;
