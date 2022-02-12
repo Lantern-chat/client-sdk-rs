@@ -19,7 +19,7 @@ impl Client {
         filename: impl Into<SmolStr>,
         mime: Option<mime::Mime>,
         file: &mut tokio::fs::File,
-        progress: impl FnMut(u64),
+        progress: impl FnMut(u64, u64),
     ) -> Result<Snowflake, ClientError> {
         let meta = file.metadata().await?;
 
@@ -47,7 +47,7 @@ impl Client {
         &self,
         meta: CreateFileBody,
         file: impl AsyncRead,
-        mut progress: impl FnMut(u64),
+        mut progress: impl FnMut(u64, u64),
     ) -> Result<Snowflake, ClientError> {
         let file_size = meta.size as u64;
         let file_id = self.driver().execute(CreateFile { body: meta }).await?;
@@ -64,21 +64,30 @@ impl Client {
             // keep the buffer topped up at BUFFER_SIZE
             buffer.reserve(BUFFER_SIZE - buffer.capacity());
 
-            if 0 == file.read_buf(&mut buffer).await? {
+            // fill buffer
+            while buffer.len() < buffer.capacity() {
+                if 0 == file.read_buf(&mut buffer).await? {
+                    break;
+                }
+            }
+
+            if buffer.len() == 0 {
                 break;
             }
+
+            let offset = read;
 
             read += buffer.len() as u64;
 
             let mut crc32 = crc32fast::Hasher::new();
             crc32.update(&buffer);
 
-            let offset = self
+            let new_offset = self
                 .driver()
-                .patch_file(file_id, crc32.finalize(), read, buffer.split().freeze().into())
+                .patch_file(file_id, crc32.finalize(), offset, buffer.split().freeze().into())
                 .await?;
 
-            if offset != read {
+            if new_offset != read {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::UnexpectedEof,
                     "Upload request returned unexpected offset",
@@ -86,7 +95,7 @@ impl Client {
                 .into());
             }
 
-            progress(read);
+            progress(read, file_size);
         }
 
         if file_size != read {

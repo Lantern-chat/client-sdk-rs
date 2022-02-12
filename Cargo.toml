@@ -37,7 +37,7 @@ url = { version = "2", optional = true }
 thiserror = { version = "1", optional = true }
 mime = { version = "0.3", optional = true }
 headers = { version = "0.3", optional = true }
-reqwest = { version = "0.11.9", optional = true, features = ["gzip", "deflate", "brotli"] }
+reqwest = { version = "0.11.9", optional = true, default_features = false, features = ["gzip", "deflate", "brotli"] }
 http = { version = "0.2.6", optional = true }
 serde_urlencoded = { version = "0.7.1", optional = true }
 form_urlencoded = { version = "1.0.1", optional = true }
@@ -45,17 +45,17 @@ arc-swap = { version = "1.5", optional = true }
 base64 = { version = "0.13.0", optional = true }
 tokio = { version = "1", optional = true, default_features = false, features = ["io-util"] }
 
-tokio-tungstenite = { version = "0.16.1", optional = true }
+tokio-tungstenite = { version = "0.16.1", optional = true, default_features = false }
 miniz_oxide = { version = "0.5", optional = true }
 
 [features]
-pg = ["postgres-types", "bytes"]
-api = ["http"] # required for Method
-
 _internal_common = ["num-traits", "thiserror", "enum-primitive-derive"]
 
+pg = ["postgres-types", "bytes"]
+api = ["http", "_internal_common"] # required for Method
+
 # Low-level command execution
-driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "_internal_common"]
+driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64"]
 
 # High-level client library
 client = ["driver", "arc-swap", "crc32fast", "tokio", "bytes"]
@@ -67,7 +67,12 @@ gateway = ["tokio-tungstenite", "miniz_oxide", "_internal_common"]
 # Efficient MessagePack Encoding
 msgpack = ["rmp-serde"]
 
-default = ["api", "client", "msgpack", "fs"]
+# Various TLS
+native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
+rustls-tls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots", "reqwest/rustls-tls-native-roots"]
+rustls-tls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls-webpki-roots"]
+
+default = ["api", "driver", "client", "gateway", "fs", "native-tls"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

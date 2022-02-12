@@ -163,6 +163,7 @@ impl Driver {
     }
 }
 
+#[allow(unused_variables)]
 fn deserialize_ct<T>(body: &[u8], ct: Option<ContentType>) -> Result<T, DriverError>
 where
     T: serde::de::DeserializeOwned,
@@ -175,6 +176,7 @@ where
         MsgPack,
     }
 
+    #[allow(unused_mut)]
     let mut kind = BodyType::Json;
 
     #[cfg(feature = "msgpack")]

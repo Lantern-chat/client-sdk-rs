@@ -1,7 +1,7 @@
 use super::*;
 
 command! {
-    +struct CreateFile -> Snowflake: POST("files") {
+    +struct CreateFile -> Snowflake: POST("file") {
         ; struct CreateFileBody {
             pub filename: SmolStr,
 
@@ -21,9 +21,9 @@ command! {
         }
     }
 
-    +struct GetFilesystemStatus -> FilesystemStatus: OPTIONS("files") {}
+    +struct GetFilesystemStatus -> FilesystemStatus: OPTIONS("file") {}
 
-    +struct GetFileStatus -> FileStatus: HEAD("files" / file_id) {
+    +struct GetFileStatus -> FileStatus: HEAD("file" / file_id) {
         pub file_id: Snowflake,
     }
 }
