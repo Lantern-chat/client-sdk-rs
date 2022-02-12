@@ -13,6 +13,12 @@ pub enum ClientError {
 
     #[error("Api Error: {0:?}")]
     ApiError(crate::api::error::ApiError),
+
+    #[error("File Too Large")]
+    FileTooLarge,
+
+    #[error("Not a file")]
+    NotAFile,
 }
 
 impl From<DriverError> for ClientError {

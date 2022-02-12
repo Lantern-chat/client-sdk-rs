@@ -59,6 +59,7 @@ driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "m
 
 # High-level client library
 client = ["driver", "arc-swap", "crc32fast", "tokio", "bytes"]
+fs = ["tokio/fs"]
 
 # Realtime gateway support
 gateway = ["tokio-tungstenite", "miniz_oxide", "_internal_common"]
@@ -66,7 +67,7 @@ gateway = ["tokio-tungstenite", "miniz_oxide", "_internal_common"]
 # Efficient MessagePack Encoding
 msgpack = ["rmp-serde"]
 
-default = ["api", "client", "msgpack"]
+default = ["api", "client", "msgpack", "fs"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
