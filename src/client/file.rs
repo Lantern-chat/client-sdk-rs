@@ -52,13 +52,22 @@ impl Client {
         let file_size = meta.size as u64;
         let file_id = self.raw_driver().execute(CreateFile { body: meta }).await?;
 
-        // TODO: Retrieve chunk size from server?
-        let mut buffer = BytesMut::with_capacity(1024 * 1024 * 8); // 8MiB
+        // TODO: Retrieve chunk size from server? Or set it from Client?
+        const BUFFER_SIZE: usize = 1024 * 1024 * 8; // 8MiB
+
+        let mut buffer = BytesMut::new();
         let mut read = 0;
 
         tokio::pin!(file);
 
-        while 0 != file.read_buf(&mut buffer).await? {
+        loop {
+            // keep the buffer topped up at BUFFER_SIZE
+            buffer.reserve(BUFFER_SIZE - buffer.capacity());
+
+            if 0 == file.read_buf(&mut buffer).await? {
+                break;
+            }
+
             read += buffer.len() as u64;
 
             let mut crc32 = crc32fast::Hasher::new();
