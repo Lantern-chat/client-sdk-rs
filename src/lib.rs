@@ -9,3 +9,6 @@ pub mod api;
 
 #[cfg(feature = "driver")]
 pub mod driver;
+
+#[cfg(feature = "client")]
+pub mod client;

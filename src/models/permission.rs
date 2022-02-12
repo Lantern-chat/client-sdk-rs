@@ -7,6 +7,8 @@ pub mod aliases {
 
 #[macro_export]
 macro_rules! perms {
+    () => { $crate::models::Permission::empty() };
+
     ($kind:ident::$perm:ident $(| $rkind:ident::$rperm:ident)*) => {{
         use $crate::models::permission::aliases::*;
 
