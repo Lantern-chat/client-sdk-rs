@@ -7,8 +7,11 @@ use headers::{
 use http::Method;
 use reqwest::{Request, Url};
 
+mod error;
+pub use error::DriverError;
+
 use crate::{
-    api::{error::ApiError, Command, CommandFlags},
+    api::{Command, CommandFlags},
     models::{SmolToken, Snowflake},
 };
 
@@ -27,51 +30,6 @@ pub struct Driver {
     pub(crate) uri: Arc<String>,
     pub(crate) auth: Option<Arc<Authorization<Bearer>>>,
 }
-
-#[derive(Debug, thiserror::Error)]
-pub enum DriverError {
-    #[error("Reqwest Error: {0}")]
-    ReqwestError(#[from] reqwest::Error),
-
-    #[error("Format Error")]
-    FormatError(#[from] std::fmt::Error),
-
-    #[error("Url Parse Error: {0}")]
-    UrlParseError(#[from] url::ParseError),
-
-    #[error("Url Encoding Error: {0}")]
-    UrlEncodingError(#[from] serde_urlencoded::ser::Error),
-
-    #[error("JSON Error: {0}")]
-    JsonError(#[from] serde_json::Error),
-
-    #[cfg(feature = "msgpack")]
-    #[error("MsgPack Encode Error: {0}")]
-    MsgPackEncodeError(#[from] rmp_serde::encode::Error),
-
-    #[cfg(feature = "msgpack")]
-    #[error("MsgPack Decode Error: {0}")]
-    MsgPackDecodeError(#[from] rmp_serde::decode::Error),
-
-    #[error("Api Error: {0:?}")]
-    ApiError(ApiError),
-
-    #[error("Generic Driver Error: {0}")]
-    GenericDriverError(http::StatusCode),
-
-    #[error("Missing Authorization")]
-    MissingAuthorization,
-
-    #[error("Parse Int Error: {0}")]
-    ParseIntError(#[from] std::num::ParseIntError),
-
-    #[error("Header Parse Error: {0}")]
-    HeaderParseError(#[from] http::header::ToStrError),
-}
-
-#[derive(Debug, thiserror::Error)]
-#[error("InvalidBearerToken")]
-pub struct InvalidBearerToken;
 
 pub(crate) fn generic_client() -> reqwest::ClientBuilder {
     reqwest::Client::builder()
@@ -104,11 +62,11 @@ impl Driver {
         }
     }
 
-    pub fn set_token(&mut self, token: Option<SmolToken>) -> Result<(), InvalidBearerToken> {
+    pub fn set_token(&mut self, token: Option<SmolToken>) -> Result<(), DriverError> {
         self.auth = match token {
             Some(token) => match Authorization::bearer(&token) {
                 Ok(auth) => Some(Arc::new(auth)),
-                Err(_) => return Err(InvalidBearerToken),
+                Err(_) => return Err(DriverError::InvalidBearerToken),
             },
             None => None,
         };

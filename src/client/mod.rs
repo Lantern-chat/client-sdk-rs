@@ -4,9 +4,12 @@ use arc_swap::{ArcSwap, ArcSwapOption};
 use headers::authorization::{Authorization, Bearer};
 
 use crate::{
-    driver::{Driver, Encoding, InvalidBearerToken},
+    driver::{Driver, Encoding},
     models::SmolToken,
 };
+
+mod error;
+pub use error::ClientError;
 
 struct ClientInner {
     inner: reqwest::Client,
@@ -31,12 +34,12 @@ impl ClientInner {
 }
 
 impl Client {
-    pub fn set_token(&self, token: Option<SmolToken>) -> Result<(), InvalidBearerToken> {
+    pub fn set_token(&self, token: Option<SmolToken>) -> Result<(), ClientError> {
         self.0.auth.store(match token {
             None => None,
             Some(token) => match Authorization::bearer(&token) {
                 Ok(auth) => Some(Arc::new(auth)),
-                Err(_) => return Err(InvalidBearerToken),
+                Err(_) => return Err(ClientError::InvalidBearerToken),
             },
         });
 
