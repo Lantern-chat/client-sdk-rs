@@ -2,6 +2,9 @@ use crate::driver::DriverError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ClientError {
+    #[error("IO Error: {0}")]
+    IOError(#[from] std::io::Error),
+
     #[error("Driver Error: {0}")]
     DriverError(DriverError),
 

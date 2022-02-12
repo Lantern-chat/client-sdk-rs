@@ -11,6 +11,8 @@ use crate::{
 mod error;
 pub use error::ClientError;
 
+mod file;
+
 struct ClientInner {
     inner: reqwest::Client,
     auth: ArcSwapOption<Authorization<Bearer>>,
@@ -55,7 +57,8 @@ impl Client {
     }
 
     /// Constructs a raw [Driver] instance with the current configuration. Changes to the Client configuration
-    /// will not be reflected in the created driver, and a new one must be constructed.
+    /// will not be reflected in the created driver, and a new one must be constructed. This operation is cheap.
+    #[inline]
     pub fn raw_driver(&self) -> Driver {
         self.0.driver()
     }
