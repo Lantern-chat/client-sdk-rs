@@ -50,7 +50,7 @@ impl Client {
         mut progress: impl FnMut(u64),
     ) -> Result<Snowflake, ClientError> {
         let file_size = meta.size as u64;
-        let file_id = self.raw_driver().execute(CreateFile { body: meta }).await?;
+        let file_id = self.driver().execute(CreateFile { body: meta }).await?;
 
         // TODO: Retrieve chunk size from server? Or set it from Client?
         const BUFFER_SIZE: usize = 1024 * 1024 * 8; // 8MiB
@@ -74,7 +74,7 @@ impl Client {
             crc32.update(&buffer);
 
             let offset = self
-                .raw_driver()
+                .driver()
                 .patch_file(file_id, crc32.finalize(), read, buffer.split().freeze().into())
                 .await?;
 

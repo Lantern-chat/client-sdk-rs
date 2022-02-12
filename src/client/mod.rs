@@ -56,10 +56,12 @@ impl Client {
         self.0.preferred_encoding.store(Arc::new(encoding));
     }
 
-    /// Constructs a raw [Driver] instance with the current configuration. Changes to the Client configuration
-    /// will not be reflected in the created driver, and a new one must be constructed. This operation is cheap.
+    /// Constructs a [Driver] instance with the current configuration. Changes to the Client configuration
+    /// will not be reflected in the created Driver, and a new one must be constructed.
+    ///
+    /// This operation is decently cheap. (A few atomic loads)
     #[inline]
-    pub fn raw_driver(&self) -> Driver {
+    pub fn driver(&self) -> Driver {
         self.0.driver()
     }
 
