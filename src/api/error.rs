@@ -4,12 +4,13 @@ use enum_primitive_derive::Primitive;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiError {
-    pub code: u16,
+    pub code: ApiErrorCode,
     pub message: Cow<'static, str>,
 }
 
 #[rustfmt::skip]
 #[derive(Debug, Primitive, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[repr(u16)]
 pub enum ApiErrorCode {
     // Server errors
@@ -68,4 +69,7 @@ pub enum ApiErrorCode {
     Conflict                 = 40409,
     RequestEntityTooLarge    = 40413,
     ChecksumMismatch         = 40460,
+
+    #[serde(other)]
+    Unknown = 1,
 }
