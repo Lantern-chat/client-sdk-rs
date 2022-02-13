@@ -46,27 +46,27 @@ impl Client {
     pub async fn upload_stream(
         &self,
         meta: CreateFileBody,
-        file: impl AsyncRead,
+        stream: impl AsyncRead,
         mut progress: impl FnMut(u64, u64),
     ) -> Result<Snowflake, ClientError> {
         let file_size = meta.size as u64;
         let file_id = self.driver().execute(CreateFile { body: meta }).await?;
 
         // TODO: Retrieve chunk size from server? Or set it from Client?
-        const BUFFER_SIZE: usize = 1024 * 1024 * 8; // 8MiB
+        const CHUNK_SIZE: usize = 1024 * 1024 * 8; // 8MiB
 
         let mut buffer = BytesMut::new();
         let mut read = 0;
 
-        tokio::pin!(file);
+        tokio::pin!(stream);
 
         loop {
-            // keep the buffer topped up at BUFFER_SIZE
-            buffer.reserve(BUFFER_SIZE - buffer.capacity());
+            // keep the buffer topped up at CHUNK_SIZE
+            buffer.reserve(CHUNK_SIZE - buffer.capacity());
 
             // fill buffer
             while buffer.len() < buffer.capacity() {
-                if 0 == file.read_buf(&mut buffer).await? {
+                if 0 == stream.read_buf(&mut buffer).await? {
                     break;
                 }
             }
