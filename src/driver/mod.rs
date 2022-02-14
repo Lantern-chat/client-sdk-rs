@@ -43,24 +43,16 @@ impl Driver {
     }
 
     pub fn new(uri: Arc<String>) -> Result<Self, DriverError> {
-        Self::new_from_raw(uri, generic_client().build()?, None)
+        Ok(Self::new_from_raw(uri, generic_client().build()?))
     }
 
-    pub fn new_from_raw(
-        uri: Arc<String>,
-        client: reqwest::Client,
-        auth: Option<AuthToken>,
-    ) -> Result<Self, DriverError> {
-        let mut driver = Driver {
+    pub fn new_from_raw(uri: Arc<String>, client: reqwest::Client) -> Self {
+        Driver {
             inner: client,
             uri,
             encoding: Encoding::Json,
             auth: None,
-        };
-
-        driver.set_token(auth)?;
-
-        Ok(driver)
+        }
     }
 
     pub fn set_token(&mut self, token: Option<AuthToken>) -> Result<(), DriverError> {
