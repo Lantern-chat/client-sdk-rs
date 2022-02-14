@@ -37,16 +37,16 @@ command! {
         pub file_id: Snowflake,
     }
 
-    +struct SetUserPrefs -> (): PATCH("user" / "@me" / "prefs") {
-        ; struct SetUserPrefsBody {
+    +struct UpdateUserPrefs -> (): PATCH("user" / "@me" / "prefs") {
+        ; struct UpdateUserPrefsBody {
             #[serde(flatten)]
             prefs: UserPreferences,
         }
     }
 }
 
-impl From<UserPreferences> for SetUserPrefsBody {
-    fn from(prefs: UserPreferences) -> SetUserPrefsBody {
-        SetUserPrefsBody { prefs }
+impl From<UserPreferences> for UpdateUserPrefsBody {
+    fn from(prefs: UserPreferences) -> UpdateUserPrefsBody {
+        UpdateUserPrefsBody { prefs }
     }
 }
