@@ -3,8 +3,7 @@
 use smol_str::SmolStr;
 use timestamp::Timestamp;
 
-pub type SmolToken = arrayvec::ArrayString<28>;
-
+pub mod auth;
 pub mod embed;
 pub mod emote;
 pub mod file;
@@ -23,8 +22,8 @@ pub mod thread;
 pub mod user;
 
 pub use self::{
-    embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*, prefs::*,
-    presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
+    auth::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,
+    prefs::*, presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
 };
 
 #[allow(unused)]

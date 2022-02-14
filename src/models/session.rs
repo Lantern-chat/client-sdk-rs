@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Session {
     /// Auth token encoded as base-64
-    pub auth: SmolToken,
+    pub auth: BearerToken,
     /// Expiration timestamp encoded with RFC 3339
     pub expires: Timestamp,
 }

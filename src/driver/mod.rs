@@ -12,7 +12,7 @@ pub use error::DriverError;
 
 use crate::{
     api::{Command, CommandFlags},
-    models::{SmolToken, Snowflake},
+    models::{BearerToken, Snowflake},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -62,7 +62,7 @@ impl Driver {
         }
     }
 
-    pub fn set_token(&mut self, token: Option<SmolToken>) -> Result<(), DriverError> {
+    pub fn set_token(&mut self, token: Option<BearerToken>) -> Result<(), DriverError> {
         self.auth = match token {
             Some(token) => match Authorization::bearer(&token) {
                 Ok(auth) => Some(Arc::new(auth)),

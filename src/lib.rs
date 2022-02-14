@@ -1,6 +1,10 @@
 #[macro_use]
 extern crate serde;
 
+pub mod util {
+    pub mod fixed;
+}
+
 #[macro_use]
 pub mod models;
 

@@ -5,7 +5,7 @@ use headers::authorization::{Authorization, Bearer};
 
 use crate::{
     driver::{Driver, Encoding},
-    models::SmolToken,
+    models::BearerToken,
 };
 
 mod error;
@@ -36,7 +36,7 @@ impl ClientInner {
 }
 
 impl Client {
-    pub fn set_token(&self, token: Option<SmolToken>) -> Result<(), ClientError> {
+    pub fn set_token(&self, token: Option<BearerToken>) -> Result<(), ClientError> {
         self.0.auth.store(match token {
             None => None,
             Some(token) => match Authorization::bearer(&token) {
