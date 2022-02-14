@@ -24,9 +24,14 @@ pub enum ClientError {
 impl From<DriverError> for ClientError {
     fn from(err: DriverError) -> ClientError {
         match err {
-            DriverError::InvalidBearerToken => ClientError::InvalidBearerToken,
             DriverError::ApiError(err) => ClientError::ApiError(err),
             _ => ClientError::DriverError(err),
         }
+    }
+}
+
+impl From<reqwest::Error> for ClientError {
+    fn from(err: reqwest::Error) -> ClientError {
+        ClientError::DriverError(DriverError::ReqwestError(err))
     }
 }

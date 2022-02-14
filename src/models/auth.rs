@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use super::*;
 
 use crate::util::fixed::FixedStr;
@@ -5,7 +7,13 @@ use crate::util::fixed::FixedStr;
 pub type BearerToken = FixedStr<28>;
 pub type BotToken = FixedStr<64>;
 
-const MAX_LENGTH: usize = 68; // ("Bearer ".len() + 28).max("Bot ".len() + 64)
+const BEARER_PREFIX: &str = "Bearer ";
+const BOT_PREFIX: &str = "Bot ";
+
+const BEARER_HEADER_LENGTH: usize = BEARER_PREFIX.len() + BearerToken::LEN;
+const BOT_HEADER_LENGTH: usize = BOT_PREFIX.len() + BotToken::LEN;
+
+const MAX_LENGTH: usize = BOT_HEADER_LENGTH; // We know this one is larger...
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(untagged)]
@@ -14,11 +22,15 @@ pub enum AuthToken {
     Bot(BotToken),
 }
 
+#[derive(Debug, thiserror::Error)]
+#[error("Invalid Auth Token")]
+pub struct InvalidAuthToken;
+
 impl AuthToken {
     pub fn raw_header(&self) -> arrayvec::ArrayString<{ MAX_LENGTH }> {
         let (prefix, value) = match self {
-            AuthToken::Bearer(ref token) => ("Bearer ", token.as_ref()),
-            AuthToken::Bot(ref token) => ("Bot ", token.as_ref()),
+            AuthToken::Bearer(ref token) => (BEARER_PREFIX, token.as_ref()),
+            AuthToken::Bot(ref token) => (BOT_PREFIX, token.as_ref()),
         };
 
         let mut buffer = arrayvec::ArrayString::new();
@@ -32,6 +44,22 @@ impl AuthToken {
     #[cfg(feature = "http")]
     pub fn headervalue(&self) -> Result<http::HeaderValue, http::header::InvalidHeaderValue> {
         http::HeaderValue::from_str(&self.raw_header())
+    }
+}
+
+impl FromStr for AuthToken {
+    type Err = InvalidAuthToken;
+
+    fn from_str(value: &str) -> Result<Self, InvalidAuthToken> {
+        if value.len() == BEARER_HEADER_LENGTH && value.starts_with(BEARER_PREFIX) {
+            return Ok(AuthToken::Bearer(BearerToken::new(&value[BEARER_PREFIX.len()..])));
+        }
+
+        if value.len() == BOT_HEADER_LENGTH && value.starts_with(BOT_PREFIX) {
+            return Ok(AuthToken::Bot(BotToken::new(&value[BOT_PREFIX.len()..])));
+        }
+
+        Err(InvalidAuthToken)
     }
 }
 

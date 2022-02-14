@@ -32,8 +32,8 @@ pub enum DriverError {
     #[error("Missing Authorization")]
     MissingAuthorization,
 
-    #[error("Invalid Bearer Token")]
-    InvalidBearerToken,
+    #[error("Invalid Header Value: {0}")]
+    InvalidHeaderValue(#[from] http::header::InvalidHeaderValue),
 
     #[error("Parse Int Error: {0}")]
     ParseIntError(#[from] std::num::ParseIntError),

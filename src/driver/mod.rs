@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use headers::{
-    authorization::{Authorization, Bearer, Credentials},
-    ContentType, HeaderMapExt,
-};
+use headers::{ContentType, HeaderMapExt, HeaderValue};
 use http::Method;
 use reqwest::{Request, Url};
 
@@ -12,7 +9,7 @@ pub use error::DriverError;
 
 use crate::{
     api::{Command, CommandFlags},
-    models::{BearerToken, Snowflake},
+    models::{AuthToken, Snowflake},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -28,7 +25,7 @@ pub struct Driver {
     pub(crate) inner: reqwest::Client,
     pub(crate) encoding: Encoding,
     pub(crate) uri: Arc<String>,
-    pub(crate) auth: Option<Arc<Authorization<Bearer>>>,
+    pub(crate) auth: Option<Arc<HeaderValue>>,
 }
 
 pub(crate) fn generic_client() -> reqwest::ClientBuilder {
@@ -46,28 +43,29 @@ impl Driver {
     }
 
     pub fn new(uri: Arc<String>) -> Result<Self, DriverError> {
-        Ok(Self::new_from_raw(uri, generic_client().build()?, None))
+        Self::new_from_raw(uri, generic_client().build()?, None)
     }
 
     pub fn new_from_raw(
         uri: Arc<String>,
         client: reqwest::Client,
-        auth: Option<Arc<Authorization<Bearer>>>,
-    ) -> Self {
-        Driver {
+        auth: Option<AuthToken>,
+    ) -> Result<Self, DriverError> {
+        let mut driver = Driver {
             inner: client,
             uri,
             encoding: Encoding::Json,
-            auth,
-        }
+            auth: None,
+        };
+
+        driver.set_token(auth)?;
+
+        Ok(driver)
     }
 
-    pub fn set_token(&mut self, token: Option<BearerToken>) -> Result<(), DriverError> {
+    pub fn set_token(&mut self, token: Option<AuthToken>) -> Result<(), DriverError> {
         self.auth = match token {
-            Some(token) => match Authorization::bearer(&token) {
-                Ok(auth) => Some(Arc::new(auth)),
-                Err(_) => return Err(DriverError::InvalidBearerToken),
-            },
+            Some(token) => Some(Arc::new(token.headervalue()?)),
             None => None,
         };
 
@@ -76,7 +74,9 @@ impl Driver {
 
     fn add_auth_header(&self, req: &mut Request) -> Result<(), DriverError> {
         match self.auth {
-            Some(ref auth) => req.headers_mut().typed_insert((**auth).clone()),
+            Some(ref auth) => {
+                req.headers_mut().insert("Authorization", (**auth).clone());
+            }
             None => return Err(DriverError::MissingAuthorization),
         }
 
@@ -210,7 +210,7 @@ impl Driver {
         let response = self
             .inner
             .patch(path)
-            .header("Authorization", auth.0.encode())
+            .header("Authorization", auth)
             .header("Upload-Offset", offset)
             .header(
                 "Upload-Checksum",

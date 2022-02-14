@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use arc_swap::{ArcSwap, ArcSwapOption};
-use headers::authorization::{Authorization, Bearer};
+use headers::HeaderValue;
 
 use crate::{
-    driver::{Driver, Encoding},
-    models::BearerToken,
+    driver::{generic_client, Driver, DriverError, Encoding},
+    models::AuthToken,
 };
 
 mod error;
@@ -15,7 +15,7 @@ mod file;
 
 struct ClientInner {
     inner: reqwest::Client,
-    auth: ArcSwapOption<Authorization<Bearer>>,
+    auth: ArcSwapOption<HeaderValue>,
     uri: ArcSwap<String>,
     preferred_encoding: ArcSwap<Encoding>,
 }
@@ -36,20 +36,33 @@ impl ClientInner {
 }
 
 impl Client {
-    pub fn set_token(&self, token: Option<BearerToken>) -> Result<(), ClientError> {
+    pub fn new(uri: String) -> Result<Self, ClientError> {
+        Ok(Self::from_client(generic_client().build()?, uri))
+    }
+
+    pub fn from_client(client: reqwest::Client, uri: String) -> Self {
+        Client(Arc::new(ClientInner {
+            inner: client,
+            auth: ArcSwapOption::empty(),
+            uri: ArcSwap::from_pointee(uri),
+            preferred_encoding: ArcSwap::from_pointee(Encoding::Json),
+        }))
+    }
+
+    pub fn set_auth(&self, token: Option<AuthToken>) -> Result<(), ClientError> {
         self.0.auth.store(match token {
             None => None,
-            Some(token) => match Authorization::bearer(&token) {
-                Ok(auth) => Some(Arc::new(auth)),
-                Err(_) => return Err(ClientError::InvalidBearerToken),
-            },
+            Some(token) => Some(Arc::new(match token.headervalue() {
+                Ok(header) => header,
+                Err(e) => return Err(ClientError::DriverError(DriverError::from(e))),
+            })),
         });
 
         Ok(())
     }
 
-    pub fn set_auth(&self, auth: Option<Authorization<Bearer>>) {
-        self.0.auth.store(auth.map(Arc::new));
+    pub fn set_uri(&self, uri: &str) {
+        self.0.uri.store(Arc::new(uri.to_owned()))
     }
 
     pub fn set_preferred_encoding(&self, encoding: Encoding) {
@@ -63,15 +76,5 @@ impl Client {
     #[inline]
     pub fn driver(&self) -> Driver {
         self.0.driver()
-    }
-
-    /// Consumes a [Driver] to initialize the Client
-    pub fn from_driver(driver: Driver) -> Self {
-        Client(Arc::new(ClientInner {
-            inner: driver.inner,
-            auth: ArcSwapOption::new(driver.auth),
-            uri: ArcSwap::new(driver.uri),
-            preferred_encoding: ArcSwap::new(Arc::new(driver.encoding)),
-        }))
     }
 }
