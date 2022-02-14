@@ -16,3 +16,9 @@ pub mod driver;
 
 #[cfg(feature = "client")]
 pub mod client;
+
+#[cfg(feature = "gateway")]
+pub mod gateway;
+
+#[cfg(feature = "framework")]
+pub mod framework;
