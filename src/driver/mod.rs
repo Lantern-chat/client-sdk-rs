@@ -24,7 +24,7 @@ pub enum Encoding {
 pub struct Driver {
     pub(crate) inner: reqwest::Client,
     pub(crate) encoding: Encoding,
-    pub(crate) uri: Arc<String>,
+    pub(crate) uri: Arc<str>,
     pub(crate) auth: Option<Arc<HeaderValue>>,
 }
 
@@ -38,15 +38,15 @@ pub(crate) fn generic_client() -> reqwest::ClientBuilder {
 }
 
 impl Driver {
-    pub fn new_static(uri: &'static str) -> Result<Self, DriverError> {
-        Self::new(Arc::new(uri.to_owned()))
+    pub fn new(uri: &str) -> Result<Self, DriverError> {
+        Self::new_shared(Arc::from(uri))
     }
 
-    pub fn new(uri: Arc<String>) -> Result<Self, DriverError> {
+    pub fn new_shared(uri: Arc<str>) -> Result<Self, DriverError> {
         Ok(Self::new_from_raw(uri, generic_client().build()?))
     }
 
-    pub fn new_from_raw(uri: Arc<String>, client: reqwest::Client) -> Self {
+    pub fn new_from_raw(uri: Arc<str>, client: reqwest::Client) -> Self {
         Driver {
             inner: client,
             uri,

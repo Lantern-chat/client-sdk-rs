@@ -16,7 +16,7 @@ mod file;
 struct ClientInner {
     inner: reqwest::Client,
     auth: ArcSwapOption<HeaderValue>,
-    uri: ArcSwap<String>,
+    uri: Arc<str>,
     preferred_encoding: ArcSwap<Encoding>,
 }
 
@@ -29,22 +29,22 @@ impl ClientInner {
         Driver {
             inner: self.inner.clone(),
             auth: self.auth.load_full(),
-            uri: self.uri.load_full(),
+            uri: self.uri.clone(),
             encoding: **self.preferred_encoding.load(),
         }
     }
 }
 
 impl Client {
-    pub fn new(uri: String) -> Result<Self, ClientError> {
+    pub fn new(uri: &str) -> Result<Self, ClientError> {
         Ok(Self::from_client(generic_client().build()?, uri))
     }
 
-    pub fn from_client(client: reqwest::Client, uri: String) -> Self {
+    pub fn from_client(client: reqwest::Client, uri: &str) -> Self {
         Client(Arc::new(ClientInner {
             inner: client,
             auth: ArcSwapOption::empty(),
-            uri: ArcSwap::from_pointee(uri),
+            uri: Arc::from(uri),
             preferred_encoding: ArcSwap::from_pointee(Encoding::Json),
         }))
     }
@@ -59,10 +59,6 @@ impl Client {
         });
 
         Ok(())
-    }
-
-    pub fn set_uri(&self, uri: &str) {
-        self.0.uri.store(Arc::new(uri.to_owned()))
     }
 
     pub fn set_preferred_encoding(&self, encoding: Encoding) {
