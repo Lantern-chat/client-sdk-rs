@@ -43,6 +43,14 @@ impl GatewayConnection {
             return Poll::Ready(Ok(Pin::new(socket)));
         }
 
+        self.poll_project_socket_cold(cx)
+    }
+
+    #[inline(never)]
+    fn poll_project_socket_cold(
+        &mut self,
+        cx: &mut Context,
+    ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         if self.connecting.is_none() {
             if self.closed.load(Ordering::SeqCst) {
                 return Poll::Ready(Err(GatewayError::Disconnected));
@@ -68,10 +76,9 @@ impl GatewayConnection {
         }
     }
 
-    #[inline(never)]
-    fn cold_reconnect(&mut self, cx: &mut Context) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
+    fn reconnect(&mut self, cx: &mut Context) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         self.socket = None;
-        self.poll_project_socket(cx)
+        self.poll_project_socket_cold(cx)
     }
 }
 
@@ -93,7 +100,7 @@ impl Stream for GatewayConnection {
             _ => return Poll::Ready(res),
         }
 
-        assert!(self.cold_reconnect(cx).is_pending());
+        assert!(self.reconnect(cx).is_pending());
         Poll::Pending
     }
 }
@@ -105,7 +112,7 @@ impl Sink<ClientMsg> for GatewayConnection {
         match self.poll_project_socket(cx) {
             Poll::Pending => Poll::Pending,
             Poll::Ready(Err(e)) if e.is_close() => {
-                assert!(self.cold_reconnect(cx).is_pending());
+                assert!(self.reconnect(cx).is_pending());
                 Poll::Pending
             }
             res => res.map_ok(|_| ()),
