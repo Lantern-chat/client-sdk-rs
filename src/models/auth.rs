@@ -1,3 +1,4 @@
+use std::fmt;
 use std::str::FromStr;
 
 use super::*;
@@ -47,10 +48,18 @@ impl AuthToken {
     }
 }
 
+impl fmt::Display for AuthToken {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.raw_header())
+    }
+}
+
 impl FromStr for AuthToken {
     type Err = InvalidAuthToken;
 
-    fn from_str(value: &str) -> Result<Self, InvalidAuthToken> {
+    fn from_str(mut value: &str) -> Result<Self, InvalidAuthToken> {
+        value = value.trim();
+
         if value.len() == BEARER_HEADER_LENGTH && value.starts_with(BEARER_PREFIX) {
             return Ok(AuthToken::Bearer(BearerToken::new(&value[BEARER_PREFIX.len()..])));
         }

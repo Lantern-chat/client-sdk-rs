@@ -15,6 +15,13 @@ impl<const N: usize> AsRef<str> for FixedStr<N> {
     }
 }
 
+impl<const N: usize> AsRef<[u8]> for FixedStr<N> {
+    #[inline(always)]
+    fn as_ref(&self) -> &[u8] {
+        &self.data
+    }
+}
+
 impl<const N: usize> AsMut<str> for FixedStr<N> {
     #[inline(always)]
     fn as_mut(&mut self) -> &mut str {
@@ -51,6 +58,11 @@ impl<const N: usize> FixedStr<N> {
         FixedStr { data: [c as u8; N] }
     }
 
+    /// Create a string of \0 values.
+    pub const unsafe fn zeroized() -> FixedStr<N> {
+        FixedStr { data: [0; N] }
+    }
+
     /// Construct a new [FixedStr] from a `&str`, panics if the length is not exactly correct.
     #[inline]
     pub const fn new(s: &str) -> FixedStr<N> {
@@ -77,18 +89,23 @@ impl<const N: usize> FixedStr<N> {
 
         Ok(Self::new(s))
     }
+
+    #[inline(always)]
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
 }
 
 impl<const N: usize> fmt::Debug for FixedStr<N> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("FixedStr").field(&self.as_ref()).finish()
+        f.debug_tuple("FixedStr").field(&self.as_str()).finish()
     }
 }
 
 impl<const N: usize> fmt::Display for FixedStr<N> {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self.as_ref(), f)
+        fmt::Display::fmt(self.as_str(), f)
     }
 }
 
@@ -104,8 +121,7 @@ mod serde {
     impl<const N: usize> Serialize for FixedStr<N> {
         #[inline]
         fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-            // serialize as str
-            self.as_ref().serialize(serializer)
+            self.as_str().serialize(serializer)
         }
     }
 

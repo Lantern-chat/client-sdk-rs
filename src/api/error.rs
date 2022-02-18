@@ -48,7 +48,7 @@ pub enum ApiErrorCode {
     HeaderParseError         = 40016,
     MissingFilename          = 40017,
     MissingMime              = 40018,
-    AuthTokenParseError      = 40019,
+    AuthTokenError           = 40019,
     Base64DecodeError        = 40020,
     BodyDeserializeError     = 40021,
     QueryParseError          = 40022,
