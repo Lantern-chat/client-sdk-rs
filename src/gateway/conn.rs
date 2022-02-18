@@ -12,6 +12,11 @@ use super::{GatewayError, GatewaySocket};
 
 /// Gateway connection that provides automatic reconnect
 /// functionality as part of the [Sink]/[Stream] APIs.
+///
+/// However, it does not automatically perform the [Hello](ServerMsg::Hello)/[Identify](ClientMsg::Identify) handshake.
+///
+/// Upon reconnecting the underlying websocket, the server will send
+/// a [Hello](ServerMsg::Hello) event to initiate the handshake.
 pub struct GatewayConnection {
     client: Client,
     closed: AtomicBool,
@@ -34,6 +39,7 @@ impl GatewayConnection {
         futures::future::poll_fn(move |cx| self.poll_project_socket(cx).map_ok(|_| ())).await
     }
 
+    /// Acquire a pinned projection of the socket, or poll the connecting future.
     fn poll_project_socket(
         &mut self,
         cx: &mut Context,
@@ -46,11 +52,13 @@ impl GatewayConnection {
         self.poll_project_socket_cold(cx)
     }
 
+    /// Poll the connecting future to acquire a new socket over time
     #[inline(never)]
     fn poll_project_socket_cold(
         &mut self,
         cx: &mut Context,
     ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
+        // if there is no connecting future, set one up
         if self.connecting.is_none() {
             if self.closed.load(Ordering::SeqCst) {
                 return Poll::Ready(Err(GatewayError::Disconnected));
@@ -146,7 +154,7 @@ impl Sink<ClientMsg> for GatewayConnection {
             // kind of done its job at this point...
             Err(GatewayError::Disconnected) => return Poll::Ready(Ok(())),
             Ok(socket) => socket,
-            err => return Poll::Ready(err).map_ok(|_| ()),
+            Err(e) => return Poll::Ready(Err(e)),
         };
 
         let res = socket.poll_close(cx);

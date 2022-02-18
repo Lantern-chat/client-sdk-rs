@@ -196,9 +196,6 @@ pub mod message {
 
     use serde::de::{self, Deserialize, Deserializer, MapAccess, Visitor};
 
-    pub use client::Message as ClientMsg;
-    pub use server::Message as ServerMsg;
-
     #[inline]
     fn is_default<T>(value: &T) -> bool
     where
@@ -208,58 +205,77 @@ pub mod message {
     }
 
     macro_rules! decl_msgs {
-        ($($code:expr => $opcode:ident $(:$Default:ident)? {
-            $( $(#[$field_meta:meta])* $field:ident : $ty:ty),*$(,)?
-        }),*$(,)?) => {paste::paste!{
+        (
+            $(#[$meta:meta])*
+            enum $name:ident {
+                $($code:expr => $opcode:ident $(:$Default:ident)? {
+                    $( $(#[$field_meta:meta])* $field:ident : $ty:ty),*$(,)?
+                }),*$(,)*
+            }
+        ) => {paste::paste!{
+            #[doc = "OpCodes for [" $name "]"]
             #[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
             #[repr(u8)]
-            pub enum Opcode {
+            pub enum [<$name Opcode>] {
                 $($opcode = $code,)*
             }
 
-            pub mod payloads { use super::*; $(
-                #[derive(Debug, Serialize, Deserialize)]
-                $(#[derive($Default, PartialEq, Eq)])?
-                pub struct [<$opcode Payload>] {
-                    $($(#[$field_meta])* pub $field : $ty,)*
-                }
-            )*}
+            pub mod [<$name:snake _payloads>] {
+                use super::*;
 
-            #[derive(Debug, Serialize)]
-            #[serde(untagged)] // custom tagging
-            pub enum Message {$(
-                $opcode {
-                    #[serde(rename = "o")]
-                    op: Opcode,
-
-                    #[serde(rename = "p")]
-                    $(#[serde(skip_serializing_if = "" [< is_ $Default:lower >] "" )])?
-                    payload: payloads::[<$opcode Payload>],
-                },)*
-            }
-
-            impl Message {
                 $(
-                    #[inline]
-                    pub const fn [<$opcode:lower>](payload: payloads::[<$opcode Payload>]) -> Message {
-                        Message::$opcode { op: Opcode::$opcode, payload }
-                    }
-
-                    #[inline]
-                    pub fn [<new_ $opcode:lower>]($($field: impl Into<$ty>),*) -> Message {
-                        Message::$opcode { op: Opcode::$opcode, payload: payloads::[<$opcode Payload>] { $($field: $field.into()),* }}
+                    #[derive(Debug, Serialize, Deserialize)]
+                    $(#[derive($Default, PartialEq, Eq)])?
+                    pub struct [<$opcode Payload>] {
+                        $($(#[$field_meta])* pub $field : $ty,)*
                     }
                 )*
             }
 
-            impl<'de> Deserialize<'de> for Message {
+            $(#[$meta])*
+            #[derive(Debug, Serialize)]
+            #[serde(untagged)] // custom tagging
+            pub enum $name {$(
+                #[doc = "See [" [<new_ $opcode:snake>] "](" $name "::" [<new_ $opcode:snake>] ") for an easy way to create this message"]
+                $opcode {
+                    #[serde(rename = "o")]
+                    op: [<$name Opcode>],
+
+                    #[serde(rename = "p")]
+                    $(#[serde(skip_serializing_if = "" [< is_ $Default:lower >] "" )])?
+                    payload: [<$name:snake _payloads>]::[<$opcode Payload>],
+                },)*
+            }
+
+            impl $name {
+                $(
+                    #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from raw payload struct"]
+                    #[inline]
+                    pub const fn [<$opcode:snake>](payload: [<$name:snake _payloads>]::[<$opcode Payload>]) -> Self {
+                        $name::$opcode { op: [<$name Opcode>]::$opcode, payload }
+                    }
+
+                    #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from payload fields"]
+                    #[inline]
+                    pub fn [<new_ $opcode:snake>]($($field: impl Into<$ty>),*) -> Self {
+                        $name::$opcode {
+                            op: [<$name Opcode>]::$opcode,
+                            payload: [<$name:snake _payloads>]::[<$opcode Payload>] {
+                                $($field: $field.into()),*
+                            }
+                        }
+                    }
+                )*
+            }
+
+            impl<'de> Deserialize<'de> for $name {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                 where
                     D: Deserializer<'de>
                 {
                     use std::fmt;
 
-                    #[derive(Deserialize)]
+                    #[derive(Clone, Copy, Deserialize)]
                     enum Field {
                         #[serde(rename = "o")]
                         Opcode,
@@ -271,13 +287,13 @@ pub mod message {
                     struct MessageVisitor;
 
                     impl<'de> Visitor<'de> for MessageVisitor {
-                        type Value = Message;
+                        type Value = $name;
 
                         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                            formatter.write_str("struct Message")
+                            formatter.write_str(concat!("struct ", stringify!($name)))
                         }
 
-                        fn visit_map<V>(self, mut map: V) -> Result<Message, V::Error>
+                        fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
                         where
                             V: MapAccess<'de>,
                         {
@@ -288,7 +304,7 @@ pub mod message {
 
                             match opcode {
                                 $(
-                                    Opcode::$opcode => Ok(Message::$opcode {
+                                    [<$name Opcode>]::$opcode => Ok($name::$opcode {
                                         op: opcode,
                                         payload: match map.next_entry()? {
                                             Some((Field::Payload, payload)) => payload,
@@ -302,28 +318,29 @@ pub mod message {
                         }
                     }
 
-                    deserializer.deserialize_struct("Message", &["o", "p"], MessageVisitor)
+                    deserializer.deserialize_struct(stringify!($name), &["o", "p"], MessageVisitor)
                 }
             }
         }}
     }
 
-    pub mod server {
-        use super::*;
+    use std::sync::Arc;
 
-        use std::sync::Arc;
+    use crate::models::{
+        commands::{Identify, SetPresence},
+        events::*,
+        Intent, Message as RoomMessage, Party, PartyMember, Role, User, UserPresence,
+    };
 
-        use crate::models::{
-            events::*, Intent, Message as RoomMessage, Party, PartyMember, Role, User, UserPresence,
-        };
+    type Room = (); // TODO
 
-        type Room = (); // TODO
-
-        // TODO: Check that this enum doesn't grow too large, allocate large payloads like Ready
-        decl_msgs! {
+    // TODO: Check that this enum doesn't grow too large, allocate large payloads like Ready
+    decl_msgs! {
+        /// Messages send from the server to the client
+        enum ServerMsg {
             0 => Hello { #[serde(flatten)] inner: Hello },
 
-            1 => HeartbeatACK: Default {},
+            1 => HeartbeatAck: Default {},
             2 => Ready { #[serde(flatten)] inner: Box<Ready> },
             3 => InvalidSession: Default {},
 
@@ -362,59 +379,11 @@ pub mod message {
             27 => TypingStart { #[serde(flatten)] t: Box<TypingStart> },
             28 => UserUpdate { user: Arc<User> }
         }
-
-        impl Message {
-            #[rustfmt::skip]
-            pub fn matching_intent(&self) -> Option<Intent> {
-                Some(match *self {
-                    Message::PartyCreate { .. } |
-                    Message::PartyDelete { .. } |
-                    Message::PartyUpdate { .. } |
-                    Message::RoleCreate { .. } |
-                    Message::RoleDelete { .. } |
-                    Message::RoleUpdate { .. } |
-                    Message::RoomPinsUpdate { .. } |
-                    Message::RoomCreate { .. } |
-                    Message::RoomDelete { .. } |
-                    Message::RoomUpdate { .. } => Intent::PARTIES,
-
-                    Message::MemberAdd { .. } |
-                    Message::MemberRemove { .. } |
-                    Message::MemberUpdate { .. } => Intent::PARTY_MEMBERS,
-
-                    Message::MemberBan {..} | Message::MemberUnban {..} => Intent::PARTY_BANS,
-
-                    Message::MessageCreate { .. } |
-                    Message::MessageDelete { .. } |
-                    Message::MessageUpdate { .. } => Intent::MESSAGES,
-
-                    Message::MessageReactionAdd { .. } |
-                    Message::MessageReactionRemove { .. } |
-                    Message::MessageReactionRemoveAll { .. } |
-                    Message::MessageReactionRemoveEmote { .. } => Intent::MESSAGE_REACTIONS,
-
-                    Message::PresenceUpdate { .. } => Intent::PRESENCE,
-                    Message::TypingStart { .. } => Intent::MESSAGE_TYPING,
-
-                    Message::Hello { .. } |
-                    Message::HeartbeatACK { .. } |
-                    Message::Ready { .. } |
-                    Message::InvalidSession { .. } |
-                    Message::UserUpdate { .. } => return None,
-                })
-            }
-        }
     }
 
-    pub mod client {
-        use super::*;
-
-        use crate::models::{
-            commands::{Identify, SetPresence},
-            Intent,
-        };
-
-        decl_msgs! {
+    decl_msgs! {
+        /// Messages sent from the client to the server
+        enum ClientMsg {
             0 => Heartbeat: Default {},
             1 => Identify { #[serde(flatten)] inner: Box<Identify> },
             2 => Resume {
@@ -422,17 +391,59 @@ pub mod message {
             },
             3 => SetPresence { #[serde(flatten)] inner: Box<SetPresence> }
         }
+    }
 
-        #[cfg(test)]
-        mod tests {
-            use std::mem::size_of;
+    impl ServerMsg {
+        #[rustfmt::skip]
+        pub fn matching_intent(&self) -> Option<Intent> {
+            Some(match *self {
+                ServerMsg::PartyCreate { .. } |
+                ServerMsg::PartyDelete { .. } |
+                ServerMsg::PartyUpdate { .. } |
+                ServerMsg::RoleCreate { .. } |
+                ServerMsg::RoleDelete { .. } |
+                ServerMsg::RoleUpdate { .. } |
+                ServerMsg::RoomPinsUpdate { .. } |
+                ServerMsg::RoomCreate { .. } |
+                ServerMsg::RoomDelete { .. } |
+                ServerMsg::RoomUpdate { .. } => Intent::PARTIES,
 
-            use super::*;
+                ServerMsg::MemberAdd { .. } |
+                ServerMsg::MemberRemove { .. } |
+                ServerMsg::MemberUpdate { .. } => Intent::PARTY_MEMBERS,
 
-            #[test]
-            fn test_client_msg_size() {
-                assert_eq!(16, size_of::<Message>());
-            }
+                ServerMsg::MemberBan {..} | ServerMsg::MemberUnban {..} => Intent::PARTY_BANS,
+
+                ServerMsg::MessageCreate { .. } |
+                ServerMsg::MessageDelete { .. } |
+                ServerMsg::MessageUpdate { .. } => Intent::MESSAGES,
+
+                ServerMsg::MessageReactionAdd { .. } |
+                ServerMsg::MessageReactionRemove { .. } |
+                ServerMsg::MessageReactionRemoveAll { .. } |
+                ServerMsg::MessageReactionRemoveEmote { .. } => Intent::MESSAGE_REACTIONS,
+
+                ServerMsg::PresenceUpdate { .. } => Intent::PRESENCE,
+                ServerMsg::TypingStart { .. } => Intent::MESSAGE_TYPING,
+
+                ServerMsg::Hello { .. } |
+                ServerMsg::HeartbeatAck { .. } |
+                ServerMsg::Ready { .. } |
+                ServerMsg::InvalidSession { .. } |
+                ServerMsg::UserUpdate { .. } => return None,
+            })
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use std::mem::size_of;
+
+        use super::*;
+
+        #[test]
+        fn test_client_msg_size() {
+            assert_eq!(16, size_of::<ClientMsg>());
         }
     }
 }
