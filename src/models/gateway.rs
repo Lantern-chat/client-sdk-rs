@@ -227,6 +227,9 @@ pub mod message {
                 use super::*;
 
                 $(
+                    $(#[$variant_meta])*
+                    #[doc = ""]
+                    #[doc = "Payload struct for [" $name "::" $opcode "]"]
                     #[derive(Debug, Serialize, Deserialize)]
                     $(#[derive($Default, PartialEq, Eq)])?
                     pub struct [<$opcode Payload>] {
