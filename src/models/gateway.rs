@@ -208,9 +208,12 @@ pub mod message {
         (
             $(#[$meta:meta])*
             enum $name:ident {
-                $($code:expr => $opcode:ident $(:$Default:ident)? {
-                    $( $(#[$field_meta:meta])* $field:ident : $ty:ty),*$(,)?
-                }),*$(,)*
+                $(
+                    $(#[$variant_meta:meta])*
+                    $code:literal => $opcode:ident $(:$Default:ident)? {
+                        $( $(#[$field_meta:meta])* $field:ident : $ty:ty),*$(,)?
+                    }
+                ),*$(,)*
             }
         ) => {paste::paste!{
             #[doc = "OpCodes for [" $name "]"]
@@ -236,7 +239,9 @@ pub mod message {
             #[derive(Debug, Serialize)]
             #[serde(untagged)] // custom tagging
             pub enum $name {$(
-                #[doc = "See [" [<new_ $opcode:snake>] "](" $name "::" [<new_ $opcode:snake>] ") for an easy way to create this message"]
+                $(#[$variant_meta])*
+                #[doc = ""]
+                #[doc = "See [" [<new_ $opcode:snake>] "](" $name "::" [<new_ $opcode:snake>] ") for an easy way to create this message."]
                 $opcode {
                     #[serde(rename = "o")]
                     op: [<$name Opcode>],
@@ -249,13 +254,17 @@ pub mod message {
 
             impl $name {
                 $(
-                    #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from raw payload struct"]
+                    #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from raw payload struct."]
+                    #[doc = ""]
+                    $(#[$variant_meta])*
                     #[inline]
                     pub const fn [<$opcode:snake>](payload: [<$name:snake _payloads>]::[<$opcode Payload>]) -> Self {
                         $name::$opcode { op: [<$name Opcode>]::$opcode, payload }
                     }
 
-                    #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from payload fields"]
+                    #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from payload fields."]
+                    #[doc = ""]
+                    $(#[$variant_meta])*
                     #[inline]
                     pub fn [<new_ $opcode:snake>]($($field: impl Into<$ty>),*) -> Self {
                         $name::$opcode {
@@ -338,10 +347,14 @@ pub mod message {
     decl_msgs! {
         /// Messages send from the server to the client
         enum ServerMsg {
+            /// The Hello message initialates the gateway session and expects a [ClientMsg::Identify] in return.
             0 => Hello { #[serde(flatten)] inner: Hello },
 
+            /// Acknowledgement of a heartbeat
             1 => HeartbeatAck: Default {},
             2 => Ready { #[serde(flatten)] inner: Box<Ready> },
+
+            /// Sent when the session is no longer valid
             3 => InvalidSession: Default {},
 
             4 => PartyCreate { #[serde(flatten)] inner: Box<Party> },
