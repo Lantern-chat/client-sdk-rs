@@ -46,6 +46,20 @@ impl AuthToken {
     pub fn headervalue(&self) -> Result<http::HeaderValue, http::header::InvalidHeaderValue> {
         http::HeaderValue::from_str(&self.raw_header())
     }
+
+    pub fn from_header(mut value: &str) -> Result<Self, InvalidAuthToken> {
+        value = value.trim();
+
+        if value.len() == BEARER_HEADER_LENGTH && value.starts_with(BEARER_PREFIX) {
+            return Ok(AuthToken::Bearer(BearerToken::new(&value[BEARER_PREFIX.len()..])));
+        }
+
+        if value.len() == BOT_HEADER_LENGTH && value.starts_with(BOT_PREFIX) {
+            return Ok(AuthToken::Bot(BotToken::new(&value[BOT_PREFIX.len()..])));
+        }
+
+        Err(InvalidAuthToken)
+    }
 }
 
 impl fmt::Display for AuthToken {
@@ -60,12 +74,12 @@ impl FromStr for AuthToken {
     fn from_str(mut value: &str) -> Result<Self, InvalidAuthToken> {
         value = value.trim();
 
-        if value.len() == BEARER_HEADER_LENGTH && value.starts_with(BEARER_PREFIX) {
-            return Ok(AuthToken::Bearer(BearerToken::new(&value[BEARER_PREFIX.len()..])));
+        if value.len() == BearerToken::LEN {
+            return Ok(AuthToken::Bearer(BearerToken::new(value)));
         }
 
-        if value.len() == BOT_HEADER_LENGTH && value.starts_with(BOT_PREFIX) {
-            return Ok(AuthToken::Bot(BotToken::new(&value[BOT_PREFIX.len()..])));
+        if value.len() == BotToken::LEN {
+            return Ok(AuthToken::Bot(BotToken::new(value)));
         }
 
         Err(InvalidAuthToken)
