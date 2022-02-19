@@ -2,6 +2,7 @@ use std::future::Future;
 use std::num::NonZeroUsize;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use futures::{FutureExt, Sink, SinkExt, Stream};
@@ -23,32 +24,18 @@ use super::{GatewayError, GatewaySocket};
 /// servers will reconnections will lead to rate-limiting and possibly automated bans.
 pub struct GatewayConnection {
     client: Client,
-    closed: AtomicBool,
     connecting: Option<Pin<Box<dyn Future<Output = Result<GatewaySocket, GatewayError>>>>>,
     socket: Option<GatewaySocket>,
+    control: Arc<GatewayConnectionControl>,
+}
+
+pub struct GatewayConnectionControl {
+    closed: AtomicBool,
     reconnects: AtomicUsize,
     reconnect_limit: AtomicUsize,
 }
 
-impl GatewayConnection {
-    pub fn new(client: Client) -> GatewayConnection {
-        GatewayConnection {
-            client,
-            closed: AtomicBool::new(false),
-            connecting: None,
-            socket: None,
-            reconnects: AtomicUsize::new(0),
-            reconnect_limit: AtomicUsize::new(20),
-        }
-    }
-
-    /// Manually initiate a new connection of the gateway websocket
-    ///
-    /// This does not handle any responses to server events.
-    pub async fn connect(&mut self) -> Result<(), GatewayError> {
-        futures::future::poll_fn(move |cx| self.poll_project_socket(cx).map_ok(|_| ())).await
-    }
-
+impl GatewayConnectionControl {
     /// Resets the connection attempt counter and opens up for new connections.
     pub fn reset(&self) {
         self.reconnects.store(0, Ordering::SeqCst);
@@ -59,6 +46,38 @@ impl GatewayConnection {
     /// the current reconnection counter is above this.
     pub fn set_reconnect_limit(&self, limit: NonZeroUsize) {
         self.reconnect_limit.store(limit.get(), Ordering::SeqCst);
+    }
+
+    /// Prevent reconnecting
+    pub fn noreconnect(&self) {
+        self.closed.store(true, Ordering::SeqCst);
+    }
+}
+
+impl GatewayConnection {
+    pub fn new(client: Client) -> GatewayConnection {
+        GatewayConnection {
+            client,
+            connecting: None,
+            socket: None,
+            control: Arc::new(GatewayConnectionControl {
+                closed: AtomicBool::new(false),
+                reconnects: AtomicUsize::new(0),
+                reconnect_limit: AtomicUsize::new(20),
+            }),
+        }
+    }
+
+    /// Manually initiate a new connection of the gateway websocket
+    ///
+    /// This does not handle any responses to server events.
+    pub async fn connect(&mut self) -> Result<(), GatewayError> {
+        futures::future::poll_fn(move |cx| self.poll_project_socket(cx).map_ok(|_| ())).await
+    }
+
+    /// Get a reference to the control structure
+    pub fn control(&self) -> Arc<GatewayConnectionControl> {
+        self.control.clone()
     }
 
     /// Acquire a pinned projection of the socket, or poll the connecting future.
@@ -82,13 +101,13 @@ impl GatewayConnection {
     ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         // if there is no connecting future, set one up
         if self.connecting.is_none() {
-            if self.closed.load(Ordering::Relaxed) {
+            if self.control.closed.load(Ordering::SeqCst) {
                 return Poll::Ready(Err(GatewayError::Disconnected));
             }
 
-            let limit = self.reconnect_limit.load(Ordering::Relaxed);
-            if self.reconnects.fetch_add(1, Ordering::Relaxed) > limit {
-                self.closed.store(true, Ordering::Relaxed);
+            let limit = self.control.reconnect_limit.load(Ordering::SeqCst);
+            if self.control.reconnects.fetch_add(1, Ordering::SeqCst) > limit {
+                self.control.closed.store(true, Ordering::SeqCst);
 
                 return Poll::Ready(Err(GatewayError::ReconnectLimitExceeded(limit)));
             }
@@ -179,7 +198,7 @@ impl Sink<ClientMsg> for GatewayConnection {
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), GatewayError>> {
         // ensure it won't reconnect automatically
-        self.closed.store(true, Ordering::SeqCst);
+        self.control.closed.store(true, Ordering::SeqCst);
 
         let res = match futures::ready!(self.poll_project_socket(cx)) {
             Ok(socket) => futures::ready!(socket.poll_close(cx)),
