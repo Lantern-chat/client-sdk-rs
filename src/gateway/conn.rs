@@ -1,6 +1,7 @@
 use std::future::Future;
+use std::num::NonZeroUsize;
 use std::pin::Pin;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::task::{Context, Poll};
 
 use futures::{FutureExt, Sink, SinkExt, Stream};
@@ -25,6 +26,8 @@ pub struct GatewayConnection {
     closed: AtomicBool,
     connecting: Option<Pin<Box<dyn Future<Output = Result<GatewaySocket, GatewayError>>>>>,
     socket: Option<GatewaySocket>,
+    reconnects: AtomicUsize,
+    reconnect_limit: AtomicUsize,
 }
 
 impl GatewayConnection {
@@ -34,12 +37,28 @@ impl GatewayConnection {
             closed: AtomicBool::new(false),
             connecting: None,
             socket: None,
+            reconnects: AtomicUsize::new(0),
+            reconnect_limit: AtomicUsize::new(20),
         }
     }
 
-    /// Manually connect the gateway websocket
+    /// Manually initiate a new connection of the gateway websocket
+    ///
+    /// This does not handle any responses to server events.
     pub async fn connect(&mut self) -> Result<(), GatewayError> {
         futures::future::poll_fn(move |cx| self.poll_project_socket(cx).map_ok(|_| ())).await
+    }
+
+    /// Resets the connection attempt counter and opens up for new connections.
+    pub fn reset(&self) {
+        self.reconnects.store(0, Ordering::SeqCst);
+        self.closed.store(false, Ordering::SeqCst);
+    }
+
+    /// Sets the reconnect limit to a non-zero value. Does not immediately disconnect if
+    /// the current reconnection counter is above this.
+    pub fn set_reconnect_limit(&self, limit: NonZeroUsize) {
+        self.reconnect_limit.store(limit.get(), Ordering::SeqCst);
     }
 
     /// Acquire a pinned projection of the socket, or poll the connecting future.
@@ -63,8 +82,15 @@ impl GatewayConnection {
     ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         // if there is no connecting future, set one up
         if self.connecting.is_none() {
-            if self.closed.load(Ordering::SeqCst) {
+            if self.closed.load(Ordering::Relaxed) {
                 return Poll::Ready(Err(GatewayError::Disconnected));
+            }
+
+            let limit = self.reconnect_limit.load(Ordering::Relaxed);
+            if self.reconnects.fetch_add(1, Ordering::Relaxed) > limit {
+                self.closed.store(true, Ordering::Relaxed);
+
+                return Poll::Ready(Err(GatewayError::ReconnectLimitExceeded(limit)));
             }
 
             self.connecting = Some(GatewaySocket::connect(self.client.driver()).boxed());

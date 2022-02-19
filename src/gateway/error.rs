@@ -8,6 +8,9 @@ pub enum GatewayError {
     #[error("Gateway Disconnected")]
     Disconnected,
 
+    #[error("Exceeded Reconnect Limit of {0} Attempts")]
+    ReconnectLimitExceeded(usize),
+
     #[error("Json Error: {0}")]
     JsonError(#[from] serde_json::Error),
 
