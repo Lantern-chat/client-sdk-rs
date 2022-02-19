@@ -1,7 +1,5 @@
 use std::borrow::Cow;
 
-use enum_primitive_derive::Primitive;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiError {
     pub code: ApiErrorCode,
@@ -9,8 +7,9 @@ pub struct ApiError {
 }
 
 #[rustfmt::skip]
-#[derive(Debug, Primitive, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(enum_primitive_derive::Primitive)]
 #[repr(u16)]
 pub enum ApiErrorCode {
     // Server errors

@@ -2,6 +2,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use futures::{Sink, Stream};
+use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
 
 type WebSocket = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
@@ -9,6 +10,7 @@ type WebSocket = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsS
 use crate::driver::{Driver, Encoding};
 use crate::models::gateway::message::{ClientMsg, ServerMsg};
 
+use super::error::GatewayErrorCode;
 use super::GatewayError;
 
 pin_project_lite::pin_project! {
@@ -23,6 +25,7 @@ pin_project_lite::pin_project! {
 
 impl GatewaySocket {
     pub async fn connect(driver: Driver) -> Result<Self, GatewayError> {
+        // TODO: Setup a circuit breaker to run this in a loop until it succeeds
         let (ws, _) = tokio_tungstenite::connect_async(format!(
             "ws{}/api/v1/gateway?compress=true&encoding={}",
             &driver.uri[4..],
@@ -49,15 +52,28 @@ impl GatewaySocket {
         };
 
         if self.compress {
-            body = miniz_oxide::deflate::compress_to_vec_zlib(&body, 6);
+            body = miniz_oxide::deflate::compress_to_vec_zlib(&body, 9);
         }
 
         Ok(WsMessage::Binary(body))
     }
 
     fn decode(&self, msg: WsMessage) -> Result<ServerMsg, GatewayError> {
-        if msg.is_close() {
-            return Err(GatewayError::Disconnected);
+        match &msg {
+            WsMessage::Close(None) => return Err(GatewayError::Disconnected),
+            WsMessage::Close(Some(msg)) => {
+                use num_traits::FromPrimitive;
+
+                if let CloseCode::Library(code) = msg.code {
+                    return Err(match GatewayErrorCode::from_u16(code) {
+                        Some(code) => GatewayError::CloseError(code),
+                        None => GatewayError::CloseError(GatewayErrorCode::UnknownError),
+                    });
+                }
+
+                return Err(GatewayError::Disconnected);
+            }
+            _ => {}
         }
 
         let mut body = msg.into_data();
