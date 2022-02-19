@@ -26,19 +26,6 @@ pub enum GatewayError {
     CloseError(GatewayErrorCode),
 }
 
-impl GatewayError {
-    pub(crate) fn should_reconnect(&self) -> bool {
-        use GatewayErrorCode as C;
-
-        matches!(
-            self,
-            Self::Disconnected
-                | Self::WSError(WSError::AlreadyClosed | WSError::ConnectionClosed)
-                | Self::CloseError(C::UnknownError | C::DecodeError)
-        )
-    }
-}
-
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]

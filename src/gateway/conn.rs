@@ -17,6 +17,9 @@ use super::{GatewayError, GatewaySocket};
 ///
 /// Upon reconnecting the underlying websocket, the server will send
 /// a [Hello](ServerMsg::Hello) event to initiate the handshake.
+///
+/// Any errors that occur will still be passed through, and must be handled appropriately. Spamming
+/// servers will reconnections will lead to rate-limiting and possibly automated bans.
 pub struct GatewayConnection {
     client: Client,
     closed: AtomicBool,
@@ -75,30 +78,15 @@ impl GatewayConnection {
                     self.socket = Some(socket);
                     self.connecting = None;
 
-                    // just assigned, project
-                    Poll::Ready(Ok(Pin::new(self.socket.as_mut().unwrap())))
+                    Poll::Ready(Ok(match self.socket {
+                        // just assigned, project
+                        Some(ref mut socket) => Pin::new(socket),
+                        None => unsafe { std::hint::unreachable_unchecked() },
+                    }))
                 }
             },
             // just checked/assigned, so this path is impossible
             None => unsafe { std::hint::unreachable_unchecked() },
-        }
-    }
-
-    fn reconnect<T>(&mut self, cx: &mut Context) -> Poll<Result<T, GatewayError>> {
-        self.socket = None;
-        assert!(self.poll_project_socket_cold(cx).is_pending());
-        Poll::Pending
-    }
-
-    #[inline]
-    fn maybe_reconnect<T>(
-        &mut self,
-        err: Option<GatewayError>,
-        cx: &mut Context,
-    ) -> Poll<Result<T, GatewayError>> {
-        match err {
-            Some(err) if !err.should_reconnect() => Poll::Ready(Err(err)),
-            _ => self.reconnect(cx),
         }
     }
 }
@@ -107,20 +95,18 @@ impl Stream for GatewayConnection {
     type Item = Result<ServerMsg, GatewayError>;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let socket = match self.poll_project_socket(cx) {
-            Poll::Ready(Ok(socket)) => socket,
+        let res = match self.poll_project_socket(cx) {
+            Poll::Pending => return Poll::Pending,
+            Poll::Ready(Ok(socket)) => futures::ready!(socket.poll_next(cx)),
             Poll::Ready(Err(e)) => return Poll::Ready(Some(Err(e))),
-            Poll::Pending => return Poll::Pending,
         };
 
-        let err = match socket.poll_next(cx) {
-            Poll::Pending => return Poll::Pending,
-            msg @ Poll::Ready(Some(Ok(_))) => return msg,
-            Poll::Ready(Some(Err(err))) => Some(err),
-            Poll::Ready(None) => None,
-        };
+        if let None | Some(Err(_)) = res {
+            // setup for reconnect
+            self.socket = None;
+        }
 
-        self.maybe_reconnect(err, cx).map(Some)
+        Poll::Ready(res)
     }
 }
 
@@ -130,42 +116,44 @@ impl Sink<ClientMsg> for GatewayConnection {
     fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), GatewayError>> {
         match self.poll_project_socket(cx) {
             Poll::Pending => Poll::Pending,
-            Poll::Ready(Err(err)) => self.maybe_reconnect(Some(err), cx),
             Poll::Ready(Ok(socket)) => socket.poll_ready(cx),
+            Poll::Ready(Err(err)) => {
+                self.socket = None; // will reconnect on next poll
+                Poll::Ready(Err(err))
+            }
         }
     }
 
     #[inline]
     fn start_send(mut self: Pin<&mut Self>, item: ClientMsg) -> Result<(), GatewayError> {
         match self.socket {
-            Some(ref mut socket) => socket.start_send_unpin(item),
-
+            Some(ref mut socket) => socket.start_send_unpin(item).map_err(|err| {
+                // if there was an error, immediately drop socket
+                self.socket = None;
+                err
+            }),
             // `start_send` doesn't poll or have a context, so there is no way to initiate the reconnect
             None => Err(GatewayError::Disconnected),
         }
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), GatewayError>> {
-        let socket = match futures::ready!(self.poll_project_socket(cx)) {
-            Ok(socket) => socket,
-            err => return Poll::Ready(err).map_ok(|_| ()),
-        };
-
-        socket.poll_flush(cx)
+        match futures::ready!(self.poll_project_socket(cx)) {
+            Ok(socket) => socket.poll_flush(cx),
+            err => Poll::Ready(err).map_ok(|_| ()),
+        }
     }
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), GatewayError>> {
         // ensure it won't reconnect automatically
         self.closed.store(true, Ordering::SeqCst);
 
-        let socket = match futures::ready!(self.poll_project_socket(cx)) {
+        let res = match futures::ready!(self.poll_project_socket(cx)) {
             // kind of done its job at this point...
             Err(GatewayError::Disconnected) => return Poll::Ready(Ok(())),
-            Ok(socket) => socket,
+            Ok(socket) => socket.poll_close(cx),
             Err(e) => return Poll::Ready(Err(e)),
         };
-
-        let res = socket.poll_close(cx);
 
         // success, fully close internal socket by dropping it
         if let Poll::Ready(Ok(())) = res {
