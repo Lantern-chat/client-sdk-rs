@@ -194,7 +194,7 @@ pub mod message {
 
     use serde_repr::{Deserialize_repr, Serialize_repr};
 
-    use serde::de::{self, Deserialize, Deserializer, MapAccess, Visitor};
+    use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
 
     #[inline]
     fn is_default<T>(value: &T) -> bool
@@ -321,11 +321,38 @@ pub mod message {
                                         payload: match map.next_entry()? {
                                             Some((Field::Payload, payload)) => payload,
                                             $(None => $Default::default(),)?
+
+                                            #[allow(unreachable_patterns)]
                                             _ => return Err(de::Error::missing_field("payload")),
                                         }
                                     }),
                                 )*
                                 // _ => Err(de::Error::custom("Invalid opcode")),
+                            }
+                        }
+
+                        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+                        where
+                            A: SeqAccess<'de>
+                        {
+                            let opcode: [<$name Opcode>] = match seq.next_element()? {
+                                Some(o) => o,
+                                _ => return Err(de::Error::custom("Missing opcode first")),
+                            };
+
+                            match opcode {
+                                $(
+                                    [<$name Opcode>]::$opcode => Ok($name::$opcode {
+                                        op: opcode,
+                                        payload: match seq.next_element()? {
+                                            Some(payload) => payload,
+                                            $(None => $Default::default(),)?
+
+                                            #[allow(unreachable_patterns)]
+                                            _ => return Err(de::Error::missing_field("payload")),
+                                        }
+                                    }),
+                                )*
                             }
                         }
                     }

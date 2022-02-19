@@ -64,7 +64,7 @@ impl GatewayConnection {
                 return Poll::Ready(Err(GatewayError::Disconnected));
             }
 
-            self.connecting = Some(GatewaySocket::connect(self.client.clone()).boxed());
+            self.connecting = Some(GatewaySocket::connect(self.client.driver()).boxed());
         }
 
         match self.connecting {

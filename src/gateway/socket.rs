@@ -6,8 +6,7 @@ use tokio_tungstenite::tungstenite::Message as WsMessage;
 
 type WebSocket = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
 
-use crate::client::Client;
-use crate::driver::Encoding;
+use crate::driver::{Driver, Encoding};
 use crate::models::gateway::message::{ClientMsg, ServerMsg};
 
 use super::GatewayError;
@@ -23,12 +22,37 @@ pin_project_lite::pin_project! {
 }
 
 impl GatewaySocket {
-    pub async fn connect(client: Client) -> Result<Self, GatewayError> {
-        unimplemented!()
+    pub async fn connect(driver: Driver) -> Result<Self, GatewayError> {
+        let (ws, _) = tokio_tungstenite::connect_async(format!(
+            "ws{}/api/v1/gateway?compress=true&encoding={}",
+            &driver.uri[4..],
+            match driver.encoding {
+                Encoding::Json => "json",
+                #[cfg(feature = "msgpack")]
+                Encoding::MsgPack => "msgpack",
+            }
+        ))
+        .await?;
+
+        Ok(GatewaySocket {
+            ws,
+            encoding: driver.encoding,
+            compress: true,
+        })
     }
 
     fn encode(&self, msg: ClientMsg) -> Result<WsMessage, GatewayError> {
-        unimplemented!()
+        let mut body = match self.encoding {
+            Encoding::Json => serde_json::to_vec(&msg)?,
+            #[cfg(feature = "msgpack")]
+            Encoding::MsgPack => rmp_serde::to_vec_named(&msg)?, // TODO: Remove the names when bugs are fixed
+        };
+
+        if self.compress {
+            body = miniz_oxide::deflate::compress_to_vec_zlib(&body, 6);
+        }
+
+        Ok(WsMessage::Binary(body))
     }
 
     fn decode(&self, msg: WsMessage) -> Result<ServerMsg, GatewayError> {
@@ -36,7 +60,20 @@ impl GatewaySocket {
             return Err(GatewayError::Disconnected);
         }
 
-        unimplemented!()
+        let mut body = msg.into_data();
+
+        if self.compress {
+            body = match miniz_oxide::inflate::decompress_to_vec_zlib(&body) {
+                Ok(body) => body,
+                Err(_) => return Err(GatewayError::CompressionError),
+            };
+        }
+
+        Ok(match self.encoding {
+            Encoding::Json => serde_json::from_slice(&body)?,
+            #[cfg(feature = "msgpack")]
+            Encoding::MsgPack => rmp_serde::from_slice(&body)?,
+        })
     }
 }
 
