@@ -62,16 +62,17 @@ impl GatewaySocket {
         match &msg {
             WsMessage::Close(None) => return Err(GatewayError::Disconnected),
             WsMessage::Close(Some(msg)) => {
-                use num_traits::FromPrimitive;
+                return Err(match msg.code {
+                    CloseCode::Library(code) => {
+                        use num_traits::FromPrimitive;
 
-                if let CloseCode::Library(code) = msg.code {
-                    return Err(match GatewayErrorCode::from_u16(code) {
-                        Some(code) => GatewayError::CloseError(code),
-                        None => GatewayError::CloseError(GatewayErrorCode::UnknownError),
-                    });
-                }
-
-                return Err(GatewayError::Disconnected);
+                        GatewayError::CloseError(match GatewayErrorCode::from_u16(code) {
+                            Some(code) => code,
+                            None => GatewayErrorCode::UnknownError,
+                        })
+                    }
+                    _ => GatewayError::Disconnected,
+                });
             }
             _ => {}
         }
