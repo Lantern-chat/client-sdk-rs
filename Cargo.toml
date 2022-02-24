@@ -57,10 +57,10 @@ pg = ["postgres-types", "bytes"]
 api = ["http", "_internal_common"] # required for Method
 
 # Low-level command execution
-driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64"]
+driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes"]
 
 # High-level client library
-client = ["driver", "arc-swap", "crc32fast", "tokio", "bytes"]
+client = ["driver", "arc-swap", "tokio"]
 fs = ["tokio/fs"]
 
 # Realtime gateway support

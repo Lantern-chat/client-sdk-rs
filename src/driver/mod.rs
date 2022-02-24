@@ -188,16 +188,17 @@ impl Driver {
     pub async fn patch_file(
         &self,
         file_id: Snowflake,
-        checksum: u32,
         offset: u64,
-        body: reqwest::Body,
+        chunk: bytes::Bytes,
     ) -> Result<u64, DriverError> {
-        let path = format!("{}/api/v1/file/{}", self.uri, file_id);
-
         let auth = match self.auth {
             Some(ref auth) => (**auth).clone(),
             None => return Err(DriverError::MissingAuthorization),
         };
+
+        let path = format!("{}/api/v1/file/{}", self.uri, file_id);
+
+        let checksum = crc32fast::hash(&chunk);
 
         let response = self
             .inner
@@ -209,7 +210,7 @@ impl Driver {
                 format!("crc32 {}", base64::encode(&checksum.to_be_bytes())),
             )
             .header("Content-Type", "application/offset+octet-stream")
-            .body(body)
+            .body(chunk)
             .send()
             .await?;
 
