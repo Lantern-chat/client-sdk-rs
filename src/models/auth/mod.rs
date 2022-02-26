@@ -6,7 +6,7 @@ use super::*;
 use crate::util::fixed::FixedStr;
 
 pub type BearerToken = FixedStr<28>;
-pub type BotToken = FixedStr<64>;
+pub type BotToken = FixedStr<44>;
 
 const BEARER_PREFIX: &str = "Bearer ";
 const BOT_PREFIX: &str = "Bot ";
@@ -14,8 +14,19 @@ const BOT_PREFIX: &str = "Bot ";
 const BEARER_HEADER_LENGTH: usize = BEARER_PREFIX.len() + BearerToken::LEN;
 const BOT_HEADER_LENGTH: usize = BOT_PREFIX.len() + BotToken::LEN;
 
-const MAX_LENGTH: usize = BOT_HEADER_LENGTH; // We know this one is larger...
+const MAX_LENGTH: usize = {
+    if BEARER_HEADER_LENGTH < BOT_HEADER_LENGTH {
+        BOT_HEADER_LENGTH
+    } else {
+        BEARER_HEADER_LENGTH
+    }
+};
 
+mod bot;
+
+pub use bot::SplitBotToken;
+
+/// Raw base64-encoded auth tokens for users and bots.
 #[derive(Debug, Clone, Serialize)]
 #[serde(untagged)]
 pub enum AuthToken {
@@ -83,6 +94,12 @@ impl FromStr for AuthToken {
         }
 
         Err(InvalidAuthToken)
+    }
+}
+
+impl From<SplitBotToken> for AuthToken {
+    fn from(token: SplitBotToken) -> AuthToken {
+        AuthToken::Bot(token.format())
     }
 }
 
