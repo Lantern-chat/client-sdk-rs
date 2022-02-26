@@ -6,7 +6,7 @@ use super::*;
 use crate::util::fixed::FixedStr;
 
 pub type BearerToken = FixedStr<28>;
-pub type BotToken = FixedStr<44>;
+pub type BotToken = FixedStr<48>;
 
 const BEARER_PREFIX: &str = "Bearer ";
 const BOT_PREFIX: &str = "Bot ";
