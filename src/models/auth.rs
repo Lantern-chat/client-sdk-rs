@@ -30,9 +30,16 @@ pub enum AuthToken {
     Bot(BotToken),
 }
 
-#[derive(Debug, thiserror::Error)]
-#[error("Invalid Auth Token")]
+#[derive(Debug)]
 pub struct InvalidAuthToken;
+
+impl fmt::Display for InvalidAuthToken {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Invalid Auth Token")
+    }
+}
+
+impl std::error::Error for InvalidAuthToken {}
 
 impl AuthToken {
     pub fn raw_header(&self) -> arrayvec::ArrayString<{ MAX_LENGTH }> {
