@@ -22,10 +22,6 @@ const MAX_LENGTH: usize = {
     }
 };
 
-mod bot;
-
-pub use bot::SplitBotToken;
-
 /// Raw base64-encoded auth tokens for users and bots.
 #[derive(Debug, Clone, Serialize)]
 #[serde(untagged)]
@@ -94,12 +90,6 @@ impl FromStr for AuthToken {
         }
 
         Err(InvalidAuthToken)
-    }
-}
-
-impl From<SplitBotToken> for AuthToken {
-    fn from(token: SplitBotToken) -> AuthToken {
-        AuthToken::Bot(token.format())
     }
 }
 
