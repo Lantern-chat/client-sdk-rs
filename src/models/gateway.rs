@@ -432,7 +432,9 @@ pub mod message {
             2 => Resume {
                 session: Snowflake,
             },
-            3 => SetPresence { #[serde(flatten)] inner: Box<SetPresence> }
+            3 => SetPresence { #[serde(flatten)] inner: Box<SetPresence> },
+            4 => Subscribe { party_id: Snowflake },
+            5 => Unsubscribe { party_id: Snowflake }
         }
     }
 

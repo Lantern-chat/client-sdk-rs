@@ -5,6 +5,7 @@ use super::*;
 
 use crate::util::fixed::FixedStr;
 
+// NOTE: Keep these in sync with the lengths in client-sdk-ts
 pub type BearerToken = FixedStr<28>;
 pub type BotToken = FixedStr<48>;
 
