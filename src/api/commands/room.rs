@@ -30,7 +30,7 @@ command! {
         }
     }
 
-    +struct GetMessage -> Message: GET("room" / room_id / "messages" / msg_id) where Room::READ_MESSAGES {
+    +struct GetMessage -> Message: GET("room" / room_id / "messages" / msg_id) where Room::READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
     }
@@ -49,7 +49,7 @@ pub enum MessageSearch {
 }
 
 command! {
-    +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where Room::READ_MESSAGES {
+    +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where Room::READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
 
         ; #[derive(Default)] struct GetMessagesQuery {

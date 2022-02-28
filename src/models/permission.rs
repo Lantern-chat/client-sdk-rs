@@ -44,7 +44,7 @@ bitflags::bitflags! {
     /// Permissions that make sense with per-room overrides
     pub struct RoomPermissions: i16 {
         const VIEW_ROOM             = 1 << 0;
-        const READ_MESSAGES         = 1 << 1 | Self::VIEW_ROOM.bits;
+        const READ_MESSAGE_HISTORY  = 1 << 1 | Self::VIEW_ROOM.bits;
         const SEND_MESSAGES         = 1 << 2 | Self::VIEW_ROOM.bits;
         const MANAGE_MESSAGES       = 1 << 3;
         const MUTE_MEMBERS          = 1 << 4;
@@ -62,7 +62,7 @@ bitflags::bitflags! {
         const EDIT_NEW_ATTACHMENT   = 1 << 13;
 
         const DEFAULT               = Self::VIEW_ROOM.bits |
-                                      Self::READ_MESSAGES.bits |
+                                      Self::READ_MESSAGE_HISTORY.bits |
                                       Self::SEND_MESSAGES.bits |
                                       Self::USE_EXTERNAL_EMOTES.bits |
                                       Self::ADD_REACTIONS.bits |
@@ -182,12 +182,12 @@ impl Permission {
     };
 
     pub const VIEW_ROOM: Self = perms!(Room::VIEW_ROOM);
-    pub const READ_MESSAGES: Self = perms!(Room::READ_MESSAGES);
+    pub const READ_MESSAGE_HISTORY: Self = perms!(Room::READ_MESSAGE_HISTORY);
 
     pub const PACKED_ALL: u64 = Self::ALL.pack();
     pub const PACKED_ADMIN: u64 = Self::ADMIN.pack();
     pub const PACKED_VIEW_ROOM: u64 = Self::VIEW_ROOM.pack();
-    pub const PACKED_READ_MESSAGES: u64 = Self::READ_MESSAGES.pack();
+    pub const PACKED_READ_MESSAGE_HISTORY: u64 = Self::READ_MESSAGE_HISTORY.pack();
 
     #[inline]
     pub const fn union(self, other: Self) -> Self {
