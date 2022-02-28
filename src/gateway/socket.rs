@@ -33,6 +33,8 @@ impl GatewaySocket {
                 Encoding::Json => "json",
                 #[cfg(feature = "msgpack")]
                 Encoding::MsgPack => "msgpack",
+                #[cfg(feature = "cbor")]
+                Encoding::CBOR => "cbor",
             }
         ))
         .await?;
@@ -45,11 +47,15 @@ impl GatewaySocket {
     }
 
     fn encode(&self, msg: ClientMsg) -> Result<WsMessage, GatewayError> {
-        let mut body = match self.encoding {
-            Encoding::Json => serde_json::to_vec(&msg)?,
+        let mut body = Vec::new();
+
+        match self.encoding {
+            Encoding::Json => serde_json::to_writer(&mut body, &msg)?,
             #[cfg(feature = "msgpack")]
-            Encoding::MsgPack => rmp_serde::to_vec_named(&msg)?, // TODO: Remove the names when bugs are fixed
-        };
+            Encoding::MsgPack => rmp_serde::encode::write_named(&mut body, &msg)?, // TODO: Remove the names when bugs are fixed
+            #[cfg(feature = "cbor")]
+            Encoding::CBOR => ciborium::ser::into_writer(&msg, &mut body)?,
+        }
 
         if self.compress {
             body = miniz_oxide::deflate::compress_to_vec_zlib(&body, 9);
@@ -90,6 +96,8 @@ impl GatewaySocket {
             Encoding::Json => serde_json::from_slice(&body)?,
             #[cfg(feature = "msgpack")]
             Encoding::MsgPack => rmp_serde::from_slice(&body)?,
+            #[cfg(feature = "cbor")]
+            Encoding::CBOR => ciborium::de::from_reader(&body[..])?,
         })
     }
 }

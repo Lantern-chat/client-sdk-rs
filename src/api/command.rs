@@ -26,6 +26,7 @@ bitflags::bitflags! {
 pub trait Command: sealed::Sealed {
     /// Object returned from the server as the result of a command
     type Result: serde::de::DeserializeOwned;
+    type Body: serde::Serialize;
 
     /// HTTP Method used to execute the command
     const METHOD: Method;
@@ -35,9 +36,7 @@ pub trait Command: sealed::Sealed {
     /// Serialize/format the REST path (without query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
 
-    fn serialize_body<S: serde::Serializer>(&self, ser: S) -> Result<S::Ok, S::Error> {
-        serde::Serialize::serialize(&(), ser)
-    }
+    fn body(&self) -> &Self::Body;
 
     /// Hint given to preallocate body size, only used for query strings
     fn body_size_hint(&self) -> usize {
@@ -73,6 +72,12 @@ macro_rules! command {
     (@seg $w:expr, $this:expr, [$value:ident] []) => { write!($w, "{}", $this.$value)?; };
 
     (@STRUCT struct) => {};
+
+    (@BODY_TY $name:ident) => { $name };
+    (@BODY_TY) => { () };
+
+    (@BODY_RETURN $name:ident $ret:expr) => { $ret };
+    (@BODY_RETURN ) => { &() };
 
     // entry point
     ($(
@@ -165,12 +170,13 @@ macro_rules! command {
                 Ok(())
             }
 
-            $(
-                #[inline]
-                fn serialize_body<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-                    <$body_name as serde::Serialize>::serialize(&self.body, s)
-                }
+            type Body = command!(@BODY_TY $($body_name)?);
 
+            fn body(&self) -> &Self::Body {
+                command!(@BODY_RETURN $($body_name &self.body)?)
+            }
+
+            $(
                 #[inline]
                 fn body_size_hint(&self) -> usize {
                     // ?value= &another=

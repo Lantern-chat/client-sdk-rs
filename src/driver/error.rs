@@ -23,6 +23,13 @@ pub enum DriverError {
     #[error("MsgPack Decode Error: {0}")]
     MsgPackDecodeError(#[from] rmp_serde::decode::Error),
 
+    #[cfg(feature = "cbor")]
+    #[error("CBOR Encode Error: {0}")]
+    CborEncodeError(#[from] ciborium::ser::Error<std::io::Error>),
+    #[cfg(feature = "cbor")]
+    #[error("CBOR Encode Error: {0}")]
+    CborDecodeError(#[from] ciborium::de::Error<std::io::Error>),
+
     #[error("Api Error: {0:?}")]
     ApiError(crate::api::error::ApiError),
 

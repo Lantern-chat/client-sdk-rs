@@ -18,6 +18,9 @@ pub enum Encoding {
 
     #[cfg(feature = "msgpack")]
     MsgPack,
+
+    #[cfg(feature = "cbor")]
+    CBOR,
 }
 
 #[derive(Clone)]
@@ -96,8 +99,11 @@ impl Driver {
                     let url = req.url_mut();
 
                     {
+                        use serde::Serialize;
+
                         let mut pairs = url.query_pairs_mut();
-                        cmd.serialize_body(serde_urlencoded::Serializer::new(&mut pairs))?;
+                        cmd.body()
+                            .serialize(serde_urlencoded::Serializer::new(&mut pairs))?;
                     }
 
                     if let Some("") = url.query() {
@@ -109,17 +115,23 @@ impl Driver {
 
                     match self.encoding {
                         Encoding::Json => {
-                            cmd.serialize_body(&mut serde_json::Serializer::new(&mut body))?;
+                            serde_json::to_writer(&mut body, cmd.body())?;
 
                             req.headers_mut().typed_insert(ContentType::json());
                         }
 
                         #[cfg(feature = "msgpack")]
                         Encoding::MsgPack => {
-                            cmd.serialize_body(&mut rmp_serde::Serializer::new(&mut body))?;
+                            rmp_serde::encode::write_named(&mut body, cmd.body())?;
 
-                            req.headers_mut()
-                                .typed_insert(ContentType::from(mime::APPLICATION_MSGPACK));
+                            req.headers_mut().typed_insert(APPLICATION_MSGPACK.clone());
+                        }
+
+                        #[cfg(feature = "cbor")]
+                        Encoding::CBOR => {
+                            ciborium::ser::into_writer(cmd.body(), &mut body)?;
+
+                            req.headers_mut().typed_insert(APPLICATION_CBOR.clone());
                         }
                     }
 
@@ -155,32 +167,39 @@ impl Driver {
     }
 }
 
+lazy_static::lazy_static! {
+    pub(crate) static ref APPLICATION_MSGPACK: ContentType = ContentType::from(mime::APPLICATION_MSGPACK);
+    pub(crate) static ref APPLICATION_CBOR: ContentType = ContentType::from("application/cbor".parse::<mime::Mime>().unwrap());
+}
+
 #[allow(unused_variables)]
 fn deserialize_ct<T>(body: &[u8], ct: Option<ContentType>) -> Result<T, DriverError>
 where
     T: serde::de::DeserializeOwned,
 {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    enum BodyType {
-        Json,
-
-        #[cfg(feature = "msgpack")]
-        MsgPack,
-    }
-
     #[allow(unused_mut)]
-    let mut kind = BodyType::Json;
+    let mut kind = Encoding::Json;
 
-    #[cfg(feature = "msgpack")]
-    if ct == Some(ContentType::from(mime::APPLICATION_MSGPACK)) {
-        kind = BodyType::MsgPack;
+    if let Some(ct) = ct {
+        #[cfg(feature = "msgpack")]
+        if ct == *APPLICATION_MSGPACK {
+            kind = Encoding::MsgPack;
+        }
+
+        #[cfg(feature = "cbor")]
+        if ct == *APPLICATION_CBOR {
+            kind = Encoding::CBOR;
+        }
     }
 
     Ok(match kind {
-        BodyType::Json => serde_json::from_slice(body)?,
+        Encoding::Json => serde_json::from_slice(body)?,
 
         #[cfg(feature = "msgpack")]
-        BodyType::MsgPack => rmp_serde::from_slice(body)?,
+        Encoding::MsgPack => rmp_serde::from_slice(body)?,
+
+        #[cfg(feature = "cbor")]
+        Encoding::CBOR => ciborium::de::from_reader(body)?,
     })
 }
 
