@@ -78,7 +78,7 @@ native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
 rustls-tls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots", "reqwest/rustls-tls-native-roots"]
 rustls-tls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls-webpki-roots"]
 
-default = ["api", "driver", "client", "gateway", "fs", "native-tls", "framework", "msgpack"]
+default = ["api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "msgpack"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
