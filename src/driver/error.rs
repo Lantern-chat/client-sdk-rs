@@ -15,14 +15,6 @@ pub enum DriverError {
     #[error("JSON Error: {0}")]
     JsonError(#[from] serde_json::Error),
 
-    #[cfg(feature = "msgpack")]
-    #[error("MsgPack Encode Error: {0}")]
-    MsgPackEncodeError(#[from] rmp_serde::encode::Error),
-
-    #[cfg(feature = "msgpack")]
-    #[error("MsgPack Decode Error: {0}")]
-    MsgPackDecodeError(#[from] rmp_serde::decode::Error),
-
     #[cfg(feature = "cbor")]
     #[error("CBOR Encode Error: {0}")]
     CborEncodeError(#[from] ciborium::ser::Error<std::io::Error>),

@@ -31,8 +31,6 @@ impl GatewaySocket {
             &driver.uri[4..],
             match driver.encoding {
                 Encoding::Json => "json",
-                #[cfg(feature = "msgpack")]
-                Encoding::MsgPack => "msgpack",
                 #[cfg(feature = "cbor")]
                 Encoding::CBOR => "cbor",
             }
@@ -51,8 +49,6 @@ impl GatewaySocket {
 
         match self.encoding {
             Encoding::Json => serde_json::to_writer(&mut body, &msg)?,
-            #[cfg(feature = "msgpack")]
-            Encoding::MsgPack => rmp_serde::encode::write_named(&mut body, &msg)?, // TODO: Remove the names when bugs are fixed
             #[cfg(feature = "cbor")]
             Encoding::CBOR => ciborium::ser::into_writer(&msg, &mut body)?,
         }
@@ -94,8 +90,6 @@ impl GatewaySocket {
 
         Ok(match self.encoding {
             Encoding::Json => serde_json::from_slice(&body)?,
-            #[cfg(feature = "msgpack")]
-            Encoding::MsgPack => rmp_serde::from_slice(&body)?,
             #[cfg(feature = "cbor")]
             Encoding::CBOR => ciborium::de::from_reader(&body[..])?,
         })

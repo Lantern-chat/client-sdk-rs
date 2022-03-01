@@ -16,9 +16,6 @@ use crate::{
 pub enum Encoding {
     Json,
 
-    #[cfg(feature = "msgpack")]
-    MsgPack,
-
     #[cfg(feature = "cbor")]
     CBOR,
 }
@@ -120,13 +117,6 @@ impl Driver {
                             req.headers_mut().typed_insert(ContentType::json());
                         }
 
-                        #[cfg(feature = "msgpack")]
-                        Encoding::MsgPack => {
-                            rmp_serde::encode::write_named(&mut body, cmd.body())?;
-
-                            req.headers_mut().typed_insert(APPLICATION_MSGPACK.clone());
-                        }
-
                         #[cfg(feature = "cbor")]
                         Encoding::CBOR => {
                             ciborium::ser::into_writer(cmd.body(), &mut body)?;
@@ -168,7 +158,6 @@ impl Driver {
 }
 
 lazy_static::lazy_static! {
-    pub(crate) static ref APPLICATION_MSGPACK: ContentType = ContentType::from(mime::APPLICATION_MSGPACK);
     pub(crate) static ref APPLICATION_CBOR: ContentType = ContentType::from("application/cbor".parse::<mime::Mime>().unwrap());
 }
 
@@ -181,11 +170,6 @@ where
     let mut kind = Encoding::Json;
 
     if let Some(ct) = ct {
-        #[cfg(feature = "msgpack")]
-        if ct == *APPLICATION_MSGPACK {
-            kind = Encoding::MsgPack;
-        }
-
         #[cfg(feature = "cbor")]
         if ct == *APPLICATION_CBOR {
             kind = Encoding::CBOR;
@@ -194,9 +178,6 @@ where
 
     Ok(match kind {
         Encoding::Json => serde_json::from_slice(body)?,
-
-        #[cfg(feature = "msgpack")]
-        Encoding::MsgPack => rmp_serde::from_slice(body)?,
 
         #[cfg(feature = "cbor")]
         Encoding::CBOR => ciborium::de::from_reader(body)?,

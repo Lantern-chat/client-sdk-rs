@@ -30,7 +30,6 @@ byteorder = "1.4"
 postgres-types = { version = "0.2.1", optional = true }
 bytes = { version = "1", optional = true }
 
-rmp-serde = { version = "1", optional = true }
 enum-primitive-derive = { version = "0.2", optional = true }
 num-traits = { version = "0.2", optional = true }
 crc32fast = { version = "1", optional = true }
@@ -72,10 +71,7 @@ gateway = ["tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_
 
 framework = ["client", "gateway"]
 
-# Efficient MessagePack Encoding
-msgpack = ["rmp-serde"]
-
-# Efficient CBOR Encoding
+# Efficient binary Encoding
 cbor = ["ciborium"]
 
 # Various TLS
@@ -83,7 +79,7 @@ native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
 rustls-tls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots", "reqwest/rustls-tls-native-roots"]
 rustls-tls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls-webpki-roots"]
 
-default = ["api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "msgpack", "cbor"]
+default = ["api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
