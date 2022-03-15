@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["AuthToken","Raw base64-encoded auth tokens for users and bots."]],"struct":[["InvalidAuthToken",""]],"type":[["BearerToken",""],["BotToken",""]]});

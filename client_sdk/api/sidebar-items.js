@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["commands",""],["error",""]],"struct":[["CommandFlags",""]],"trait":[["Command","Client Command, tells the client to perform specific requests"]]});

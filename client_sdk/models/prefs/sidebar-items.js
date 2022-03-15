@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Font",""],["Locale",""],["UserPreference",""],["UserPreferenceErrorKind",""]],"struct":[["UserPreferenceError",""],["UserPreferences",""],["UserPrefsFlags",""]]});

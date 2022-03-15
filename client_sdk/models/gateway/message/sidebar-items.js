@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ClientMsg","Messages sent from the client to the server"],["ClientMsgOpcode","OpCodes for [ClientMsg]"],["ServerMsg","Messages send from the server to the client"],["ServerMsgOpcode","OpCodes for [ServerMsg]"]],"mod":[["client_msg_payloads",""],["server_msg_payloads",""]]});

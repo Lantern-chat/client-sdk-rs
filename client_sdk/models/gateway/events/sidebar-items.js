@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PartyUpdateEvent",""]],"struct":[["Hello",""],["MessageDeleteEvent",""],["PartyMemberEvent",""],["PartyPositionUpdate",""],["Ready",""],["RoleDeleteEvent",""],["RoomDeleteEvent",""],["TypingStart",""],["UserPresenceEvent",""]]});

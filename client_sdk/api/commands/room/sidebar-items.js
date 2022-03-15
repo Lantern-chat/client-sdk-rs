@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["MessageSearch","Directional search query"]],"struct":[["CreateMessage","Create message command"],["CreateMessageBody",""],["EditMessage",""],["EditMessageBody",""],["GetMessage",""],["GetMessages",""],["GetMessagesQuery",""],["StartTyping",""]]});

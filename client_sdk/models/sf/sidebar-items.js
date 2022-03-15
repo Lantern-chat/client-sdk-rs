@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["LANTERN_EPOCH","Arbitrarily chosen starting epoch to offset the clock by"],["LANTERN_EPOCH_ODT",""],["LANTERN_EPOCH_PDT",""]],"struct":[["Snowflake","Snowflakes are a UUID-like system designed to embed timestamp information in a monotonic format."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["aliases",""]],"struct":[["Overwrite",""],["PartyPermissions","Permissions that make sense with party-wide roles"],["Permission",""],["RoomPermissions","Permissions that make sense with per-room overrides"],["StreamPermissions","Permissions that make sense on stream rooms"]]});

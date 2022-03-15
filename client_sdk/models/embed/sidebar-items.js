@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["EmbedType",""]],"struct":[["Embed","An embed is metadata taken from a given URL by loading said URL, parsing any meta tags, and fetching extra information from oEmbed sources."],["EmbedAuthor",""],["EmbedField",""],["EmbedFooter",""],["EmbedMedia",""],["EmbedProvider",""]]});

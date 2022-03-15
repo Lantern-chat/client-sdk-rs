@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["client_sdk"] = [{"text":"impl Stream for <a class=\"struct\" href=\"client_sdk/gateway/struct.GatewayConnection.html\" title=\"struct client_sdk::gateway::GatewayConnection\">GatewayConnection</a>","synthetic":false,"types":["client_sdk::gateway::conn::GatewayConnection"]},{"text":"impl Stream for <a class=\"struct\" href=\"client_sdk/gateway/struct.GatewaySocket.html\" title=\"struct client_sdk::gateway::GatewaySocket\">GatewaySocket</a>","synthetic":false,"types":["client_sdk::gateway::socket::GatewaySocket"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

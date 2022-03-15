@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["GatewayError",""],["GatewayErrorCode",""]],"struct":[["GatewayConnection","Gateway connection that provides automatic reconnect functionality as part of the [Sink]/[Stream] APIs."],["GatewayConnectionControl",""],["GatewaySocket","Raw WebSocket adapter that handles encoding and decoding of messages"]]});

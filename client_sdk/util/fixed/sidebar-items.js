@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["FixedStr","Fixed-size String that can only be a given length, no more or less, exactly N bytes"]]});
