@@ -30,7 +30,7 @@ jobs:
           toolchain: stable
           args: --no-deps --features "api driver client gateway fs framework cbor"
 
-      - run: echo "<meta http-equiv=refresh content=0;url=`echo $GITHUB_REPOSITORY | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]'`/index.html>" > target/doc/index.html
+      - run: echo "<meta http-equiv=refresh content=0;url=client_sdk/index.html>" > target/doc/index.html
 
       - name: Deploy Documentation
         uses: peaceiris/actions-gh-pages@v3
