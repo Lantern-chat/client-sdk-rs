@@ -8,7 +8,7 @@ license = "GPL-3.0-only"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-timestamp = { package = "iso8061-timestamp", version = "0.1" }
+timestamp = { package = "iso8601-timestamp", version = "0.1" }
 
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
