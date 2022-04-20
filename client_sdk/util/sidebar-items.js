@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["fixed",""]]});
+initSidebarItems({"mod":[["fixed",""],["schema",""]]});

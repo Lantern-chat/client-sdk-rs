@@ -44,6 +44,8 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
@@ -54,6 +56,7 @@
 }
 
 <span class="macro">serde_shims::impl_serde_for_bitflags!</span>(<span class="ident">RoleFlags</span>);
+<span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">RoleFlags</span>);
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RoleFlags</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
@@ -62,6 +65,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Role</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">Snowflake</span>,
 

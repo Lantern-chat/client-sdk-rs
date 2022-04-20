@@ -32,6 +32,9 @@
 <span id="27">27</span>
 <span id="28">28</span>
 <span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
@@ -43,9 +46,11 @@
 }
 
 <span class="macro">serde_shims::impl_serde_for_bitflags!</span>(<span class="ident">EmoteFlags</span>);
+<span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">EmoteFlags</span>);
 
 <span class="comment">// TODO: Add inline preview?</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CustomEmote</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">Snowflake</span>,
     <span class="kw">pub</span> <span class="ident">party_id</span>: <span class="ident">Snowflake</span>,
@@ -56,6 +61,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Emote</span> {
     <span class="ident">Standard</span> { <span class="ident">name</span>: <span class="ident">char</span> },

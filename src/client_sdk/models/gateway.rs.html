@@ -497,6 +497,22 @@
 <span id="492">492</span>
 <span id="493">493</span>
 <span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
@@ -577,17 +593,20 @@
 }
 
 <span class="macro">serde_shims::bitflags::impl_serde_for_bitflags!</span>(<span class="ident">Intent</span>);
+<span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">Intent</span>);
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">commands</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Identify</span> {
         <span class="kw">pub</span> <span class="ident">auth</span>: <span class="ident">AuthToken</span>,
         <span class="kw">pub</span> <span class="ident">intent</span>: <span class="ident">Intent</span>,
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SetPresence</span> {
         <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">flatten</span>)]</span>
         <span class="kw">pub</span> <span class="ident">presence</span>: <span class="ident">UserPresence</span>,
@@ -598,6 +617,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Hello</span> {
         <span class="doccomment">/// Number of milliseconds between heartbeats</span>
         <span class="kw">pub</span> <span class="ident">heartbeat_interval</span>: <span class="ident">u32</span>,
@@ -612,6 +632,7 @@
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ready</span> {
         <span class="kw">pub</span> <span class="ident">user</span>: <span class="ident">User</span>,
         <span class="kw">pub</span> <span class="ident">dms</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Room</span><span class="op">&gt;</span>,
@@ -620,6 +641,7 @@
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypingStart</span> {
         <span class="kw">pub</span> <span class="ident">room</span>: <span class="ident">Snowflake</span>,
         <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
@@ -632,18 +654,21 @@
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PartyPositionUpdate</span> {
         <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">Snowflake</span>,
         <span class="kw">pub</span> <span class="ident">position</span>: <span class="ident">i16</span>,
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UserPresenceEvent</span> {
         <span class="kw">pub</span> <span class="ident">user</span>: <span class="ident">User</span>,
         <span class="kw">pub</span> <span class="ident">presence</span>: <span class="ident">UserPresence</span>,
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MessageDeleteEvent</span> {
         <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">Snowflake</span>,
         <span class="kw">pub</span> <span class="ident">room_id</span>: <span class="ident">Snowflake</span>,
@@ -653,12 +678,14 @@
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RoleDeleteEvent</span> {
         <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">Snowflake</span>,
         <span class="kw">pub</span> <span class="ident">party_id</span>: <span class="ident">Snowflake</span>,
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RoomDeleteEvent</span> {
         <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">Snowflake</span>,
 
@@ -667,6 +694,7 @@
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PartyMemberEvent</span> {
         <span class="kw">pub</span> <span class="ident">party_id</span>: <span class="ident">Snowflake</span>,
 
@@ -675,6 +703,7 @@
     }
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PartyUpdateEvent</span> {
         <span class="ident">Position</span>(<span class="ident">PartyPositionUpdate</span>),
@@ -717,6 +746,7 @@
         ) =&gt; {<span class="macro">paste::paste!</span>{
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;OpCodes for [&quot;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="string">&quot;]&quot;</span>]</span>
             <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Serialize_repr</span>, <span class="ident">Deserialize_repr</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema_repr</span>))]</span>
             <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
             <span class="kw">pub</span> <span class="kw">enum</span> [<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="ident">Opcode</span><span class="op">&gt;</span>] {
                 $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">opcode</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">code</span>,)<span class="op">*</span>
@@ -730,6 +760,7 @@
                     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>]</span>
                     <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;Payload struct for [&quot;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="string">&quot;::&quot;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">opcode</span> <span class="string">&quot;]&quot;</span>]</span>
                     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+                    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
                     $(<span class="attribute">#[<span class="ident">derive</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Default</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>)<span class="question-mark">?</span>
                     <span class="kw">pub</span> <span class="kw">struct</span> [<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">opcode</span> <span class="ident">Payload</span><span class="op">&gt;</span>] {
                         $($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field_meta</span>]</span>)<span class="op">*</span> <span class="kw">pub</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>,)<span class="op">*</span>
@@ -739,6 +770,7 @@
 
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">meta</span>]</span>)<span class="op">*</span>
             <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
             <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span> <span class="comment">// custom tagging</span>
             <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {$(
                 $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant_meta</span>]</span>)<span class="op">*</span>
