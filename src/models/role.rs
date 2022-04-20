@@ -8,6 +8,7 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(RoleFlags);
+impl_schema_for_bitflags!(RoleFlags);
 
 impl Default for RoleFlags {
     fn default() -> Self {
@@ -16,6 +17,7 @@ impl Default for RoleFlags {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Role {
     pub id: Snowflake,
 

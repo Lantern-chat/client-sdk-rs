@@ -25,6 +25,7 @@ const MAX_LENGTH: usize = {
 
 /// Raw base64-encoded auth tokens for users and bots.
 #[derive(Debug, Clone, Serialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub enum AuthToken {
     Bearer(BearerToken),
@@ -113,7 +114,7 @@ impl std::ops::Deref for AuthToken {
     }
 }
 
-mod serde {
+mod serde_impl {
     use super::{AuthToken, BearerToken, BotToken};
 
     use std::fmt;
@@ -146,4 +147,48 @@ mod serde {
             deserializer.deserialize_str(AuthTokenVisitor)
         }
     }
+}
+
+#[cfg(feature = "schema")]
+mod schema_impl {
+    use super::{BearerToken, BotToken};
+
+    use schemars::_serde_json::json;
+    use schemars::{
+        schema::{InstanceType, Metadata, Schema, SchemaObject, SingleOrVec},
+        JsonSchema,
+    };
+
+    macro_rules! impl_schema {
+        ($name:ident) => {
+            impl JsonSchema for $name {
+                fn schema_name() -> String {
+                    stringify!($name).to_owned()
+                }
+
+                fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> Schema {
+                    let mut obj = SchemaObject {
+                        metadata: Some(Box::new(Metadata {
+                            description: Some(format!(
+                                "{} (Base-64 encoded auth token)",
+                                stringify!($name)
+                            )),
+                            ..Default::default()
+                        })),
+                        instance_type: Some(SingleOrVec::Single(Box::new(InstanceType::String))),
+                        ..Default::default()
+                    };
+
+                    obj.string().pattern = Some(format!("[a-fA-F0-9]{{{}}}", $name::LEN));
+                    obj.string().min_length = Some($name::LEN as u32);
+                    obj.string().max_length = Some($name::LEN as u32);
+
+                    Schema::Object(obj)
+                }
+            }
+        };
+    }
+
+    impl_schema!(BotToken);
+    impl_schema!(BearerToken);
 }

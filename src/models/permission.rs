@@ -90,6 +90,10 @@ serde_shims::impl_serde_for_bitflags!(PartyPermissions);
 serde_shims::impl_serde_for_bitflags!(RoomPermissions);
 serde_shims::impl_serde_for_bitflags!(StreamPermissions);
 
+impl_schema_for_bitflags!(PartyPermissions);
+impl_schema_for_bitflags!(RoomPermissions);
+impl_schema_for_bitflags!(StreamPermissions);
+
 impl Default for PartyPermissions {
     fn default() -> Self {
         PartyPermissions::DEFAULT
@@ -109,6 +113,7 @@ impl Default for StreamPermissions {
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Permission {
     pub party: PartyPermissions,
     pub room: RoomPermissions,
@@ -146,6 +151,7 @@ impl StreamPermissions {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Overwrite {
     /// Role or user ID
     ///

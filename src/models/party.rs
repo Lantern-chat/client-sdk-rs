@@ -18,6 +18,7 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(SecurityFlags);
+impl_schema_for_bitflags!(SecurityFlags);
 
 impl Default for SecurityFlags {
     fn default() -> Self {
@@ -33,6 +34,7 @@ impl Default for SecurityFlags {
 //}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Party {
     #[serde(flatten)]
     pub partial: PartialParty,
@@ -53,6 +55,7 @@ pub struct Party {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PartialParty {
     pub id: Snowflake,
 
@@ -72,6 +75,7 @@ impl Deref for Party {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PartyMember {
     /// Global user information
     #[serde(default, skip_serializing_if = "Option::is_none")]

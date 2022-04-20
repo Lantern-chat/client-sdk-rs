@@ -9,9 +9,11 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(EmoteFlags);
+impl_schema_for_bitflags!(EmoteFlags);
 
 // TODO: Add inline preview?
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct CustomEmote {
     pub id: Snowflake,
     pub party_id: Snowflake,
@@ -22,6 +24,7 @@ pub struct CustomEmote {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub enum Emote {
     Standard { name: char },

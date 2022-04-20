@@ -78,17 +78,20 @@ bitflags::bitflags! {
 }
 
 serde_shims::bitflags::impl_serde_for_bitflags!(Intent);
+impl_schema_for_bitflags!(Intent);
 
 pub mod commands {
     use super::*;
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct Identify {
         pub auth: AuthToken,
         pub intent: Intent,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct SetPresence {
         #[serde(flatten)]
         pub presence: UserPresence,
@@ -99,6 +102,7 @@ pub mod events {
     use super::*;
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct Hello {
         /// Number of milliseconds between heartbeats
         pub heartbeat_interval: u32,
@@ -113,6 +117,7 @@ pub mod events {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct Ready {
         pub user: User,
         pub dms: Vec<Room>,
@@ -121,6 +126,7 @@ pub mod events {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct TypingStart {
         pub room: Snowflake,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -133,18 +139,21 @@ pub mod events {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct PartyPositionUpdate {
         pub id: Snowflake,
         pub position: i16,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct UserPresenceEvent {
         pub user: User,
         pub presence: UserPresence,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct MessageDeleteEvent {
         pub id: Snowflake,
         pub room_id: Snowflake,
@@ -154,12 +163,14 @@ pub mod events {
     }
 
     #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct RoleDeleteEvent {
         pub id: Snowflake,
         pub party_id: Snowflake,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct RoomDeleteEvent {
         pub id: Snowflake,
 
@@ -168,6 +179,7 @@ pub mod events {
     }
 
     #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct PartyMemberEvent {
         pub party_id: Snowflake,
 
@@ -176,6 +188,7 @@ pub mod events {
     }
 
     #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[serde(untagged)]
     pub enum PartyUpdateEvent {
         Position(PartyPositionUpdate),
@@ -218,6 +231,7 @@ pub mod message {
         ) => {paste::paste!{
             #[doc = "OpCodes for [" $name "]"]
             #[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
+            #[cfg_attr(feature = "schema", derive(schemars::JsonSchema_repr))]
             #[repr(u8)]
             pub enum [<$name Opcode>] {
                 $($opcode = $code,)*
@@ -231,6 +245,7 @@ pub mod message {
                     #[doc = ""]
                     #[doc = "Payload struct for [" $name "::" $opcode "]"]
                     #[derive(Debug, Serialize, Deserialize)]
+                    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
                     $(#[derive($Default, PartialEq, Eq)])?
                     pub struct [<$opcode Payload>] {
                         $($(#[$field_meta])* pub $field : $ty,)*
@@ -240,6 +255,7 @@ pub mod message {
 
             $(#[$meta])*
             #[derive(Debug, Serialize)]
+            #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
             #[serde(untagged)] // custom tagging
             pub enum $name {$(
                 $(#[$variant_meta])*

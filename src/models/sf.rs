@@ -164,6 +164,40 @@ mod serde_impl {
     }
 }
 
+#[cfg(feature = "schema")]
+mod schema_impl {
+    use super::Snowflake;
+
+    use schemars::_serde_json::json;
+    use schemars::{
+        schema::{InstanceType, Metadata, Schema, SchemaObject, SingleOrVec},
+        JsonSchema,
+    };
+
+    impl JsonSchema for Snowflake {
+        fn schema_name() -> String {
+            "Snowflake".to_owned()
+        }
+
+        fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> Schema {
+            let mut obj = SchemaObject {
+                metadata: Some(Box::new(Metadata {
+                    description: Some("Snowflake (Non-Zero Integer as String)".to_owned()),
+                    examples: vec![json!("354745245846793448")],
+                    ..Default::default()
+                })),
+                instance_type: Some(SingleOrVec::Single(Box::new(InstanceType::String))),
+                ..Default::default()
+            };
+
+            // https://stackoverflow.com/a/7036407/2083075
+            obj.string().pattern = Some("^[0-9]*[1-9][0-9]*$".to_owned()); // non-zero integer
+
+            Schema::Object(obj)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

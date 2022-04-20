@@ -131,6 +131,7 @@ impl fmt::Display for UserPreference {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct UserPreferences(HashMap<UserPreference, Value>);
 
 #[derive(Debug, Clone, Copy)]

@@ -1,6 +1,7 @@
 use super::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct File {
     pub id: Snowflake,
     pub filename: SmolStr,

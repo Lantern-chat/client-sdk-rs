@@ -109,7 +109,7 @@ impl<const N: usize> fmt::Display for FixedStr<N> {
     }
 }
 
-mod serde {
+mod serde_impl {
     use super::FixedStr;
 
     use std::fmt;

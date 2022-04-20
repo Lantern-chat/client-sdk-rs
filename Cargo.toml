@@ -7,6 +7,9 @@ license = "GPL-3.0-only"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[patch.crates-io]
+smol_str = { git = "https://github.com/Lantern-chat/smol_str" }
+
 [dependencies]
 timestamp = { package = "iso8601-timestamp", version = "0.1" }
 
@@ -23,6 +26,8 @@ hashbrown = "0.12"
 paste = "1"
 static_assertions = "1"
 byteorder = "1.4"
+
+schemars = { version = "0.8", optional = true }
 
 # Maybe?
 # typescript-definitions = { git = "https://github.com/storyscript/typescript-definitions" }
@@ -56,6 +61,8 @@ pin-project-lite = { version = "0.2.8", optional = true }
 [features]
 _internal_common = ["num-traits", "thiserror", "enum-primitive-derive"]
 
+schema = ["schemars", "timestamp/schema", "smol_str/schema"]
+
 pg = ["postgres-types", "bytes"]
 api = ["http", "_internal_common"] # required for Method
 
@@ -79,7 +86,7 @@ native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
 rustls-tls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots", "reqwest/rustls-tls-native-roots"]
 rustls-tls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls-webpki-roots"]
 
-default = ["api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor"]
+default = ["schema", "api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

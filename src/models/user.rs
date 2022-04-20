@@ -50,6 +50,7 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(UserFlags);
+impl_schema_for_bitflags!(UserFlags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
@@ -94,6 +95,7 @@ impl UserFlags {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct User {
     pub id: Snowflake,
     pub username: SmolStr,
@@ -126,8 +128,10 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(FriendFlags);
+impl_schema_for_bitflags!(FriendFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Friend {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<SmolStr>,

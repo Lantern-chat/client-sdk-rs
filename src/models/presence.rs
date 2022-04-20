@@ -10,8 +10,10 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(UserPresenceFlags);
+impl_schema_for_bitflags!(UserPresenceFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct UserPresence {
     pub flags: UserPresenceFlags,
 
@@ -24,6 +26,7 @@ pub struct UserPresence {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub enum AnyActivity {
     Typed(Activity),
@@ -33,4 +36,5 @@ pub enum AnyActivity {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Activity {}

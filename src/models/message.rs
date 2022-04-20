@@ -1,6 +1,7 @@
 use super::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct MessageCreateForm {
     pub content: SmolStr,
 
@@ -26,8 +27,10 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(MessageFlags);
+impl_schema_for_bitflags!(MessageFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Message {
     pub id: Snowflake,
     pub room_id: Snowflake,
@@ -72,6 +75,7 @@ pub struct Message {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ReactionShorthand {
     pub emote: Snowflake,
     pub own: bool,
@@ -79,12 +83,14 @@ pub struct ReactionShorthand {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ReactionFull {
     pub emote: Emote,
     pub users: Vec<Snowflake>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub enum Reaction {
     Shorthand(ReactionShorthand),
@@ -92,6 +98,7 @@ pub enum Reaction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Attachment {
     #[serde(flatten)]
     pub file: File,

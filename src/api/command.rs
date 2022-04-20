@@ -210,6 +210,7 @@ macro_rules! command {
         $(
             $(#[$body_meta])*
             #[derive(Debug, Serialize, Deserialize)]
+            #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
             pub struct $body_name {
                 $( $(#[$body_field_meta])* $body_field_vis $body_field_name: $body_field_ty ),*
             }

@@ -3,6 +3,7 @@ use super::*;
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "lowercase")]
 pub enum EmbedType {
     Image,
@@ -20,6 +21,7 @@ pub enum EmbedType {
 /// may be embedded directly either via a URL (`embed_url`) or arbitrary HTML (`embed_html`), of which
 /// should always be properly sandboxed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Embed {
     /// Timestamp when the embed was retreived
     pub ts: Timestamp,
@@ -78,6 +80,7 @@ pub struct EmbedFooter {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedMedia {
     pub url: SmolStr,
 
@@ -108,6 +111,7 @@ impl EmbedMedia {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedProvider {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<SmolStr>,
@@ -123,6 +127,7 @@ impl EmbedProvider {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedAuthor {
     pub name: SmolStr,
 
@@ -137,6 +142,7 @@ pub struct EmbedAuthor {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedField {
     name: SmolStr,
     value: SmolStr,
