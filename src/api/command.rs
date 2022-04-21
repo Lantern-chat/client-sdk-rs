@@ -51,7 +51,7 @@ pub trait Command: sealed::Sealed {
     fn add_headers(&self, _map: &mut HeaderMap) {}
 
     #[cfg(feature = "schema")]
-    fn schema() -> (String, okapi::openapi3::PathItem);
+    fn schema(gen: &mut schemars::gen::SchemaGenerator) -> (String, okapi::openapi3::PathItem);
 }
 
 // Takes an expression like:
@@ -78,20 +78,20 @@ macro_rules! format_path {
 
 // Similar to the above, but concatenates the path together for usage in schemas
 macro_rules! schema_path {
-    ($w:expr, [$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
-        schema_path!($w, [$($value,)+ $next] [$(/ $tail)*])
+    ([$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
+        schema_path!([$($value,)+ $next] [$(/ $tail)*])
     };
 
-    ($w:expr, [$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
-        concat!($("/", $value,)+ schema_path!($w, [$next] [$(/ $tail)*]))
+    ([$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
+        concat!($("/", $value,)+ schema_path!([$next] [$(/ $tail)*]))
     };
 
-    ($w:expr, [$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
-        concat!("/{", stringify!($value), "}", schema_path!($w, [$next] [$(/ $tail)*]))
+    ([$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
+        concat!("/{", stringify!($value), "}", schema_path!([$next] [$(/ $tail)*]))
     };
 
-    ($w:expr, [$($value:literal),*] []) => { concat!($("/", $value),*) };
-    ($w:expr, [$value:ident] []) => { concat!("/{", stringify!($value), "}") };
+    ([$($value:literal),*] []) => { concat!($("/", $value),*) };
+    ([$value:ident] []) => { concat!("/{", stringify!($value), "}") };
 }
 
 // Macro to autogenerate most Command trait implementations.
@@ -104,11 +104,17 @@ macro_rules! command {
     (@BODY_RETURN $name:ident $ret:expr) => { $ret };
     (@BODY_RETURN ) => { &() };
 
-    (@DOC #[doc = $doc:literal]) => {
-        $doc
-    };
-
+    // get doc comments as string literals
+    (@DOC #[doc = $doc:literal]) => { $doc };
     (@DOC #[$meta:meta]) => {""};
+
+    // only insert block if GET-ish method (i.e. body is treated as query)
+    (@GET GET $c:block) => {$c};
+    (@GET OPTIONS $c:block) => {$c};
+    (@GET HEAD $c:block) => {$c};
+    (@GET CONNECT $c:block) => {$c};
+    (@GET TRACE $c:block) => {$c};
+    (@GET $other:ident $c:block) => {};
 
     // entry point
     ($(
@@ -131,7 +137,7 @@ macro_rules! command {
         // fields
         {
             $(
-                $(#[$field_meta:meta])*
+                $(#[$($field_meta:tt)*])*
                 $field_vis:vis $field_name:ident: $field_ty:ty $(
                     // conditional additional permissions
                     where $($field_kind:ident::$field_perm:ident)|+ if $cond:expr
@@ -147,7 +153,7 @@ macro_rules! command {
                 struct $body_name:ident {
                     $(
 
-                        $(#[$body_field_meta:meta])*
+                        $(#[$($body_field_meta:tt)*])*
                         $body_field_vis:vis $body_field_name:ident: $body_field_ty:ty $(
                             where $($body_field_kind:ident::$body_field_perm:ident)|+ if $body_field_cond:expr
                         )?
@@ -225,44 +231,86 @@ macro_rules! command {
             )?
 
             #[cfg(feature = "schema")]
-            fn schema() -> (String, okapi::openapi3::PathItem) {
-                use http::Method;
-                use okapi::openapi3::{Operation, PathItem};
+            fn schema(gen: &mut schemars::gen::SchemaGenerator) -> (String, okapi::openapi3::PathItem) {
+                #![allow(unused)]
 
-                fn operation() -> Operation {
-                    unimplemented!()
-                }
+                use http::Method;
+                use schemars::{JsonSchema, schema::SchemaObject, gen::SchemaGenerator};
+                use okapi::openapi3::{Operation, PathItem, Parameter, ParameterValue, RefOr, Object};
 
                 let mut path_item = PathItem::default();
 
-                path_item.description = Some(concat!($(command!(@DOC #[$($meta)*])),*).trim().to_owned());
+                path_item.description = {
+                    let description = concat!($(command!(@DOC #[$($meta)*])),*).trim();
+                    if description.is_empty() { None } else { Some(description.to_owned()) }
+                };
 
-                match Self::METHOD {
-                    Method::GET => path_item.get = Some(operation()),
-                    Method::PUT => path_item.put = Some(operation()),
-                    Method::POST => path_item.post = Some(operation()),
-                    Method::DELETE => path_item.delete = Some(operation()),
-                    Method::OPTIONS => path_item.options = Some(operation()),
-                    Method::HEAD => path_item.head = Some(operation()),
-                    Method::PATCH => path_item.patch = Some(operation()),
-                    Method::TRACE => path_item.trace = Some(operation()),
-                    _ => unimplemented!("Unimplemented HTTP Method: {}", Self::METHOD),
-                }
+                paste::paste!(path_item.[<$method:lower>]) = {
+                    unimplemented!()
+                };
 
-                if matches!(Self::METHOD, Method::GET | Method::OPTIONS | Method::HEAD | Method::CONNECT | Method::TRACE) {
-                    path_item.parameters = {
-                        vec![] // TODO
-                    };
-                }
+                path_item.parameters = vec![
+                    $({
+                        RefOr::Object(Parameter {
+                            name: stringify!($field_name).to_owned(),
+                            location: "path".to_owned(),
+                            description: {
+                                let description = concat!($(command!(@DOC #[$($field_meta)*])),*).trim();
+                                if description.is_empty() { None } else { Some(description.to_owned()) }
+                            },
+                            required: true,
+                            deprecated: false,
+                            allow_empty_value: false,
+                            extensions: Default::default(),
+                            value: ParameterValue::Schema {
+                                style: None,
+                                explode: None,
+                                allow_reserved: false,
+                                schema: <$field_ty as JsonSchema>::json_schema(gen).into_object(),
+                                example: None,
+                                examples: None,
+                            }
+                        })
+                    },)*
+                ];
 
-                (schema_path!(&mut path_schema, [$head] [$(/ $tail)*]).to_owned(), path_item)
+                // if has body and GET-ish
+                $(
+                    command!(@GET $method {
+                        $(
+                            path_item.parameters.push(RefOr::Object(Parameter {
+                                name: stringify!($body_field_name).to_owned(),
+                                location: "query".to_owned(),
+                                description: {
+                                    let description = concat!($(command!(@DOC #[$($body_field_meta)*])),*).trim();
+                                    if description.is_empty() { None } else { Some(description.to_owned()) }
+                                },
+                                // TODO: Figure out a better way to detect `Option<T>` types?
+                                required: !<$body_field_ty as JsonSchema>::_schemars_private_is_option(),
+                                deprecated: false,
+                                allow_empty_value: false,
+                                extensions: Default::default(),
+                                value: ParameterValue::Schema {
+                                    style: None,
+                                    explode: None,
+                                    allow_reserved: false,
+                                    schema: <$body_field_ty as JsonSchema>::json_schema(gen).into_object(),
+                                    example: None,
+                                    examples: None,
+                                }
+                            }));
+                        )*
+                    });
+                )?
+
+                (schema_path!([$head] [$(/ $tail)*]).to_owned(), path_item)
             }
         }
 
         $(#[$($meta)*])*
         #[derive(Debug)]
         pub struct $name {
-            $($(#[$field_meta])* $field_vis $field_name: $field_ty, )*
+            $($(#[$($field_meta)*])* $field_vis $field_name: $field_ty, )*
 
             $( $($(#[$header_meta])* $header_vis $header_field: $header_ty, )* )?
 
@@ -277,7 +325,7 @@ macro_rules! command {
             #[derive(Debug, Serialize, Deserialize)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
             pub struct $body_name {
-                $( $(#[$body_field_meta])* $body_field_vis $body_field_name: $body_field_ty ),*
+                $( $(#[$($body_field_meta)*])* $body_field_vis $body_field_name: $body_field_ty ),*
             }
 
             impl std::ops::Deref for $name {
