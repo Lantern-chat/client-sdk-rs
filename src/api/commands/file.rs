@@ -29,12 +29,14 @@ command! {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct FilesystemStatus {
     pub quota_used: i64,
     pub quota_total: i64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct FileStatus {
     pub complete: u32,
     pub upload_offset: u64,

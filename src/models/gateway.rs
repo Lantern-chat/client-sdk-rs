@@ -261,8 +261,10 @@ pub mod message {
                 $(#[$variant_meta])*
                 #[doc = ""]
                 #[doc = "See [" [<new_ $opcode:snake>] "](" $name "::" [<new_ $opcode:snake>] ") for an easy way to create this message."]
+                #[cfg_attr(feature = "schema", schemars(description = "" $name "::" $opcode "" ))]
                 $opcode {
                     #[serde(rename = "o")]
+                    #[cfg_attr(feature = "schema", schemars(description = "" [<$name Opcode>] "::" $opcode "" ))]
                     op: [<$name Opcode>],
 
                     #[serde(rename = "p")]

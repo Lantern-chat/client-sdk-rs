@@ -28,6 +28,7 @@ static_assertions = "1"
 byteorder = "1.4"
 
 schemars = { version = "0.8", optional = true }
+okapi = { version = "0.7.0-rc.1", optional = true }
 
 # Maybe?
 # typescript-definitions = { git = "https://github.com/storyscript/typescript-definitions" }
@@ -61,7 +62,7 @@ pin-project-lite = { version = "0.2.8", optional = true }
 [features]
 _internal_common = ["num-traits", "thiserror", "enum-primitive-derive"]
 
-schema = ["schemars", "timestamp/schema", "smol_str/schema"]
+schema = ["schemars", "okapi", "timestamp/schema", "smol_str/schema"]
 
 pg = ["postgres-types", "bytes"]
 api = ["http", "_internal_common"] # required for Method

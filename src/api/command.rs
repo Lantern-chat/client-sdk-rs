@@ -49,28 +49,53 @@ pub trait Command: sealed::Sealed {
     /// Insert any additional headers required to perform this command
     #[inline(always)]
     fn add_headers(&self, _map: &mut HeaderMap) {}
+
+    #[cfg(feature = "schema")]
+    fn schema() -> (String, okapi::openapi3::PathItem);
+}
+
+// Takes an expression like:
+//  "a" / value / "b" / value2
+// and converts it into a sequence of `Write` writes
+macro_rules! format_path {
+    ($w:expr, $this:expr, [$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
+        format_path!($w, $this, [$($value,)+ $next] [$(/ $tail)*]);
+    };
+
+    ($w:expr, $this:expr, [$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
+        $w.write_str(concat!($("/", $value),+))?;
+        format_path!($w, $this, [$next] [$(/ $tail)*]);
+    };
+
+    ($w:expr, $this:expr, [$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
+        write!($w, "/{}", $this.$value)?;
+        format_path!($w, $this, [$next] [$(/ $tail)*]);
+    };
+
+    ($w:expr, $this:expr, [$($value:literal),*] []) => { $w.write_str(concat!($("/", $value),*))?; };
+    ($w:expr, $this:expr, [$value:ident] []) => { write!($w, "/{}", $this.$value)?; };
+}
+
+// Similar to the above, but concatenates the path together for usage in schemas
+macro_rules! schema_path {
+    ($w:expr, [$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
+        schema_path!($w, [$($value,)+ $next] [$(/ $tail)*])
+    };
+
+    ($w:expr, [$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
+        concat!($("/", $value,)+ schema_path!($w, [$next] [$(/ $tail)*]))
+    };
+
+    ($w:expr, [$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
+        concat!("/{", stringify!($value), "}", schema_path!($w, [$next] [$(/ $tail)*]))
+    };
+
+    ($w:expr, [$($value:literal),*] []) => { concat!($("/", $value),*) };
+    ($w:expr, [$value:ident] []) => { concat!("/{", stringify!($value), "}") };
 }
 
 // Macro to autogenerate most Command trait implementations.
 macro_rules! command {
-    // munchers
-    (@seg $w:expr, $this:expr, [$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
-        command!(@seg $w, $this, [$($value,)+ $next] [$(/ $tail)*]);
-    };
-
-    (@seg $w:expr, $this:expr, [$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
-        $w.write_str(concat!($("/", $value),+))?;
-        command!(@seg $w, $this, [$next] [$(/ $tail)*]);
-    };
-
-    (@seg $w:expr, $this:expr, [$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
-        write!($w, "/{}", $this.$value)?;
-        command!(@seg $w, $this, [$next] [$(/ $tail)*]);
-    };
-
-    (@seg $w:expr, $this:expr, [$($value:literal),*] []) => { $w.write_str(concat!($("/", $value),*))?; };
-    (@seg $w:expr, $this:expr, [$value:ident] []) => { write!($w, "{}", $this.$value)?; };
-
     (@STRUCT struct) => {};
 
     (@BODY_TY $name:ident) => { $name };
@@ -79,10 +104,16 @@ macro_rules! command {
     (@BODY_RETURN $name:ident $ret:expr) => { $ret };
     (@BODY_RETURN ) => { &() };
 
+    (@DOC #[doc = $doc:literal]) => {
+        $doc
+    };
+
+    (@DOC #[$meta:meta]) => {""};
+
     // entry point
     ($(
         // meta
-        $(#[$meta:meta])*
+        $(#[$($meta:tt)*])*
 
         // two symbols to differentiate auth and noauth commands (keyword struct verified in @STRUCT)
         $(+$auth_struct:ident)? $(-$noauth_struct:ident)?
@@ -165,7 +196,7 @@ macro_rules! command {
 
             #[inline]
             fn format_path<W: std::fmt::Write>(&self, mut w: W) -> std::fmt::Result {
-                command!(@seg w, self, [$head] [$(/ $tail)*]);
+                format_path!(w, self, [$head] [$(/ $tail)*]);
 
                 Ok(())
             }
@@ -192,9 +223,43 @@ macro_rules! command {
                     )+
                 }
             )?
+
+            #[cfg(feature = "schema")]
+            fn schema() -> (String, okapi::openapi3::PathItem) {
+                use http::Method;
+                use okapi::openapi3::{Operation, PathItem};
+
+                fn operation() -> Operation {
+                    unimplemented!()
+                }
+
+                let mut path_item = PathItem::default();
+
+                path_item.description = Some(concat!($(command!(@DOC #[$($meta)*])),*).trim().to_owned());
+
+                match Self::METHOD {
+                    Method::GET => path_item.get = Some(operation()),
+                    Method::PUT => path_item.put = Some(operation()),
+                    Method::POST => path_item.post = Some(operation()),
+                    Method::DELETE => path_item.delete = Some(operation()),
+                    Method::OPTIONS => path_item.options = Some(operation()),
+                    Method::HEAD => path_item.head = Some(operation()),
+                    Method::PATCH => path_item.patch = Some(operation()),
+                    Method::TRACE => path_item.trace = Some(operation()),
+                    _ => unimplemented!("Unimplemented HTTP Method: {}", Self::METHOD),
+                }
+
+                if matches!(Self::METHOD, Method::GET | Method::OPTIONS | Method::HEAD | Method::CONNECT | Method::TRACE) {
+                    path_item.parameters = {
+                        vec![] // TODO
+                    };
+                }
+
+                (schema_path!(&mut path_schema, [$head] [$(/ $tail)*]).to_owned(), path_item)
+            }
         }
 
-        $(#[$meta])*
+        $(#[$($meta)*])*
         #[derive(Debug)]
         pub struct $name {
             $($(#[$field_meta])* $field_vis $field_name: $field_ty, )*
@@ -249,6 +314,13 @@ macro_rules! command {
             }
         }
     )*};
+}
+
+macro_rules! command_module {
+    ($($vis:vis mod $mod:ident;)*) => {
+        $($vis mod $mod;)*
+        // TODO: Collect schemas from each object
+    }
 }
 
 /*

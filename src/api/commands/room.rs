@@ -38,18 +38,7 @@ command! {
     +struct StartTyping -> (): POST("room" / room_id / "typing") where Room::SEND_MESSAGES {
         pub room_id: Snowflake,
     }
-}
 
-/// Directional search query
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[serde(rename_all = "lowercase")]
-pub enum MessageSearch {
-    After(Snowflake),
-    Before(Snowflake),
-}
-
-command! {
     +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where Room::READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
 
@@ -64,4 +53,13 @@ command! {
             pub limit: Option<u8>,
         }
     }
+}
+
+/// Directional search query
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "lowercase")]
+pub enum MessageSearch {
+    After(Snowflake),
+    Before(Snowflake),
 }
