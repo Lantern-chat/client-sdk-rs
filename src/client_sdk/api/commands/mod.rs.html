@@ -10,13 +10,17 @@
 <span id="5">5</span>
 <span id="6">6</span>
 <span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">api::command::CommandFlags</span>, <span class="ident">models</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">smol_str::SmolStr</span>;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">file</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">party</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">room</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">user</span>;
+<span class="macro">command_module!</span> {
+    <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">file</span>;
+    <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">party</span>;
+    <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">room</span>;
+    <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">user</span>;
+}
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="client_sdk" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
 </body></html>
