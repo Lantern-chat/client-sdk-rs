@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ApiError {
     pub code: ApiErrorCode,
     pub message: Cow<'static, str>,
@@ -9,6 +10,7 @@ pub struct ApiError {
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema_repr))]
 #[derive(enum_primitive_derive::Primitive)]
 #[repr(u16)]
 pub enum ApiErrorCode {

@@ -105,8 +105,11 @@ macro_rules! command {
     (@BODY_RETURN ) => { &() };
 
     // get doc comments as string literals
-    (@DOC #[doc = $doc:literal]) => { $doc };
+    (@DOC #[doc = $doc:literal]) => { concat!($doc, "\n") };
     (@DOC #[$meta:meta]) => {""};
+
+    (@DEPRECATED #[deprecated $($any:tt)*]) => { true };
+    (@DEPRECATED #[$meta:meta]) => { false };
 
     // only insert block if GET-ish method (i.e. body is treated as query)
     (@GET GET $c:block) => {$c};
@@ -177,7 +180,7 @@ macro_rules! command {
                 $(.union((stringify!($auth_struct), CommandFlags::AUTHORIZED).1))?
             ;
 
-            #[allow(unused_mut, unused_variables)]
+            #[allow(unused_mut, unused_variables, deprecated)]
             fn perms(&self) -> Permission {
                 let mut base = crate::perms!($($($kind::$perm)|+)?);
 
@@ -201,6 +204,7 @@ macro_rules! command {
             }
 
             #[inline]
+            #[allow(deprecated)]
             fn format_path<W: std::fmt::Write>(&self, mut w: W) -> std::fmt::Result {
                 format_path!(w, self, [$head] [$(/ $tail)*]);
 
@@ -240,45 +244,19 @@ macro_rules! command {
 
                 let mut path_item = PathItem::default();
 
-                path_item.description = {
-                    let description = concat!($(command!(@DOC #[$($meta)*])),*).trim();
-                    if description.is_empty() { None } else { Some(description.to_owned()) }
-                };
+                paste::paste!(path_item.[<$method:lower>]) = Some({
+                    let mut op = Operation {
+                        description: {
+                            let description = concat!($(command!(@DOC #[$($meta)*])),*).trim();
+                            if description.is_empty() { None } else { Some(description.to_owned()) }
+                        },
+                        ..Default::default()
+                    };
 
-                paste::paste!(path_item.[<$method:lower>]) = {
-                    unimplemented!()
-                };
-
-                path_item.parameters = vec![
-                    $({
-                        RefOr::Object(Parameter {
-                            name: stringify!($field_name).to_owned(),
-                            location: "path".to_owned(),
-                            description: {
-                                let description = concat!($(command!(@DOC #[$($field_meta)*])),*).trim();
-                                if description.is_empty() { None } else { Some(description.to_owned()) }
-                            },
-                            required: true,
-                            deprecated: false,
-                            allow_empty_value: false,
-                            extensions: Default::default(),
-                            value: ParameterValue::Schema {
-                                style: None,
-                                explode: None,
-                                allow_reserved: false,
-                                schema: <$field_ty as JsonSchema>::json_schema(gen).into_object(),
-                                example: None,
-                                examples: None,
-                            }
-                        })
-                    },)*
-                ];
-
-                // if has body and GET-ish
-                $(
-                    command!(@GET $method {
-                        $(
-                            path_item.parameters.push(RefOr::Object(Parameter {
+                    // if has body and GET-ish
+                    $(
+                        command!(@GET $method {$(
+                            op.parameters.push(RefOr::Object(Parameter {
                                 name: stringify!($body_field_name).to_owned(),
                                 location: "query".to_owned(),
                                 description: {
@@ -287,7 +265,7 @@ macro_rules! command {
                                 },
                                 // TODO: Figure out a better way to detect `Option<T>` types?
                                 required: !<$body_field_ty as JsonSchema>::_schemars_private_is_option(),
-                                deprecated: false,
+                                deprecated: false $(|| command!(@DEPRECATED #[$($body_field_meta)*]))*,
                                 allow_empty_value: false,
                                 extensions: Default::default(),
                                 value: ParameterValue::Schema {
@@ -299,9 +277,43 @@ macro_rules! command {
                                     examples: None,
                                 }
                             }));
-                        )*
-                    });
-                )?
+                        )*});
+                    )?
+
+                    let response_schema_name = <$result as JsonSchema>::schema_name();
+
+                    // if not ()
+                    if response_schema_name != "Null" {
+                        // TODO: Figure out how to insert and reference schema?
+                        //let defs = gen.definitions_mut();
+                        //op.responses.default = Some()
+                    }
+
+                    op
+                });
+
+                path_item.parameters = vec![$({
+                    RefOr::Object(Parameter {
+                        name: stringify!($field_name).to_owned(),
+                        location: "path".to_owned(),
+                        description: {
+                            let description = concat!($(command!(@DOC #[$($field_meta)*])),*).trim();
+                            if description.is_empty() { None } else { Some(description.to_owned()) }
+                        },
+                        required: true,
+                        deprecated: false $(|| command!(@DEPRECATED #[$($field_meta)*]))*,
+                        allow_empty_value: false,
+                        extensions: Default::default(),
+                        value: ParameterValue::Schema {
+                            style: None,
+                            explode: None,
+                            allow_reserved: false,
+                            schema: <$field_ty as JsonSchema>::json_schema(gen).into_object(),
+                            example: None,
+                            examples: None,
+                        }
+                    })
+                },)*];
 
                 (schema_path!([$head] [$(/ $tail)*]).to_owned(), path_item)
             }
@@ -347,6 +359,7 @@ macro_rules! command {
 
         impl $name {
             #[doc = "Construct new instance from individual fields"]
+            #[allow(deprecated)]
             pub const fn new(
                 $($field_name: $field_ty,)*
                 $( $($header_field: $header_ty,)* )?
