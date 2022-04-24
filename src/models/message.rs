@@ -29,6 +29,23 @@ bitflags::bitflags! {
 serde_shims::impl_serde_for_bitflags!(MessageFlags);
 impl_schema_for_bitflags!(MessageFlags);
 
+#[rustfmt::skip]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(enum_primitive_derive::Primitive)]
+#[repr(i8)]
+pub enum MessageKind {
+    Normal  = 0,
+    Welcome = 1,
+}
+
+impl Default for MessageKind {
+    fn default() -> MessageKind {
+        MessageKind::Normal
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Message {
@@ -37,6 +54,9 @@ pub struct Message {
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub party_id: Option<Snowflake>,
+
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub kind: MessageKind,
 
     pub author: User,
 
