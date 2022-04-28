@@ -108,12 +108,26 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SecurityFlags</span>: <span class="ident">i8</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SecurityFlags</span>: <span class="ident">i16</span> {
         <span class="doccomment">/// Must have a verified email address</span>
         <span class="kw">const</span> <span class="ident">EMAIL</span>         <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
         <span class="doccomment">/// Must have a verified phone number</span>
@@ -162,6 +176,8 @@
     <span class="kw">pub</span> <span class="ident">avatar</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SmolStr</span><span class="op">&gt;</span>,
 
     <span class="kw">pub</span> <span class="ident">position</span>: <span class="ident">i16</span>,
+
+    <span class="kw">pub</span> <span class="ident">default_room</span>: <span class="ident">Snowflake</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
@@ -184,6 +200,15 @@
     }
 }
 
+<span class="macro">bitflags::bitflags!</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PartyMemberFlags</span>: <span class="ident">i16</span> {
+        <span class="kw">const</span> <span class="ident">BANNED</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
+    }
+}
+
+<span class="macro">serde_shims::impl_serde_for_bitflags!</span>(<span class="ident">PartyMemberFlags</span>);
+<span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">PartyMemberFlags</span>);
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PartyMember</span> {
@@ -205,6 +230,9 @@
     <span class="doccomment">/// Per-party avatar?</span>
     <span class="comment">// #[serde(default, skip_serializing_if = &quot;Option::is_none&quot;)]</span>
     <span class="comment">// pub avatar_id: Option&lt;Snowflake&gt;,</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">flags</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PartyMemberFlags</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// List of Role id snowflakes</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_none_or_empty&quot;</span>)]</span>

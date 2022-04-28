@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["file",""],["party",""],["room",""],["user",""]]});
+initSidebarItems({"mod":[["config",""],["file",""],["invite",""],["party",""],["room",""],["user",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["GetInvite",""],["RedeemInvite",""],["RedeemInviteBody",""],["RevokeInvite",""]]});
