@@ -40,10 +40,10 @@ pub(crate) const fn is_true(value: &bool) -> bool {
 
 #[allow(unused)]
 #[inline]
-pub(crate) fn is_none_or_empty<T>(value: &Option<Vec<T>>) -> bool {
+pub(crate) fn is_none_or_empty<T: IsEmpty>(value: &Option<T>) -> bool {
     match value {
         None => true,
-        Some(v) => v.is_empty(),
+        Some(v) => v._is_empty(),
     }
 }
 
@@ -60,4 +60,38 @@ where
     T: Default + PartialEq,
 {
     *value == T::default()
+}
+
+//
+
+pub(crate) trait IsEmpty {
+    fn _is_empty(&self) -> bool;
+}
+
+impl<T> IsEmpty for &[T] {
+    #[inline]
+    fn _is_empty(&self) -> bool {
+        self.is_empty()
+    }
+}
+
+impl<T> IsEmpty for Vec<T> {
+    #[inline]
+    fn _is_empty(&self) -> bool {
+        self.is_empty()
+    }
+}
+
+impl IsEmpty for SmolStr {
+    #[inline]
+    fn _is_empty(&self) -> bool {
+        self.is_empty()
+    }
+}
+
+impl IsEmpty for String {
+    #[inline]
+    fn _is_empty(&self) -> bool {
+        self.is_empty()
+    }
 }

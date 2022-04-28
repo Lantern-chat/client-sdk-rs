@@ -4,11 +4,14 @@ use super::*;
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Invite {
     pub code: SmolStr,
-    pub party: PartialParty,
-    pub inviter: Snowflake,
 
-    #[serde(skip_serializing_if = "SmolStr::is_empty")]
-    pub description: SmolStr,
+    pub party: PartialParty,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inviter: Option<Snowflake>,
+
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    pub description: Option<SmolStr>,
 
     pub expires: Option<Timestamp>,
 

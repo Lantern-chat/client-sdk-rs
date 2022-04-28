@@ -34,7 +34,7 @@ impl_schema_for_bitflags!(MessageFlags);
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[derive(enum_primitive_derive::Primitive)]
-#[repr(i8)]
+#[repr(i16)]
 pub enum MessageKind {
     Normal  = 0,
     Welcome = 1,

@@ -3,7 +3,7 @@ use std::ops::Deref;
 use super::*;
 
 bitflags::bitflags! {
-    pub struct SecurityFlags: i8 {
+    pub struct SecurityFlags: i16 {
         /// Must have a verified email address
         const EMAIL         = 1 << 0;
         /// Must have a verified phone number
@@ -52,6 +52,8 @@ pub struct Party {
     pub avatar: Option<SmolStr>,
 
     pub position: i16,
+
+    pub default_room: Snowflake,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,6 +76,15 @@ impl Deref for Party {
     }
 }
 
+bitflags::bitflags! {
+    pub struct PartyMemberFlags: i16 {
+        const BANNED = 1 << 0;
+    }
+}
+
+serde_shims::impl_serde_for_bitflags!(PartyMemberFlags);
+impl_schema_for_bitflags!(PartyMemberFlags);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PartyMember {
@@ -95,6 +106,9 @@ pub struct PartyMember {
     /// Per-party avatar?
     // #[serde(default, skip_serializing_if = "Option::is_none")]
     // pub avatar_id: Option<Snowflake>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub flags: Option<PartyMemberFlags>,
 
     /// List of Role id snowflakes
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
