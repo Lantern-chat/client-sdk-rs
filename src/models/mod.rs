@@ -4,6 +4,7 @@ use smol_str::SmolStr;
 use timestamp::Timestamp;
 
 pub mod auth;
+pub mod config;
 pub mod embed;
 pub mod emote;
 pub mod file;
@@ -22,8 +23,8 @@ pub mod thread;
 pub mod user;
 
 pub use self::{
-    auth::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,
-    prefs::*, presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
+    auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*,
+    permission::*, prefs::*, presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
 };
 
 #[allow(unused)]
