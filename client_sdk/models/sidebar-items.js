@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["auth",""],["embed",""],["emote",""],["file",""],["gateway",""],["invite",""],["message",""],["party",""],["permission",""],["prefs",""],["presence",""],["role",""],["room",""],["session",""],["sf",""],["thread",""],["user",""]]});
+initSidebarItems({"mod":[["auth",""],["config",""],["embed",""],["emote",""],["file",""],["gateway",""],["invite",""],["message",""],["party",""],["permission",""],["prefs",""],["presence",""],["role",""],["room",""],["session",""],["sf",""],["thread",""],["user",""]]});

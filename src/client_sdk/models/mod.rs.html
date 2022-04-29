@@ -100,12 +100,14 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
+<span id="98">98</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">smol_str::SmolStr</span>;
 <span class="kw">use</span> <span class="ident">timestamp::Timestamp</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">auth</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">config</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">embed</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">emote</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">file</span>;
@@ -124,8 +126,8 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">user</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">auth</span>::<span class="kw-2">*</span>, <span class="ident">embed</span>::<span class="kw-2">*</span>, <span class="ident">emote</span>::<span class="kw-2">*</span>, <span class="ident">file</span>::<span class="kw-2">*</span>, <span class="ident">gateway</span>::<span class="kw-2">*</span>, <span class="ident">invite</span>::<span class="kw-2">*</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">party</span>::<span class="kw-2">*</span>, <span class="ident">permission</span>::<span class="kw-2">*</span>,
-    <span class="ident">prefs</span>::<span class="kw-2">*</span>, <span class="ident">presence</span>::<span class="kw-2">*</span>, <span class="ident">role</span>::<span class="kw-2">*</span>, <span class="ident">room</span>::<span class="kw-2">*</span>, <span class="ident">session</span>::<span class="kw-2">*</span>, <span class="ident">sf</span>::<span class="kw-2">*</span>, <span class="ident">thread</span>::<span class="kw-2">*</span>, <span class="ident">user</span>::<span class="kw-2">*</span>,
+    <span class="ident">auth</span>::<span class="kw-2">*</span>, <span class="ident">config</span>::<span class="kw-2">*</span>, <span class="ident">embed</span>::<span class="kw-2">*</span>, <span class="ident">emote</span>::<span class="kw-2">*</span>, <span class="ident">file</span>::<span class="kw-2">*</span>, <span class="ident">gateway</span>::<span class="kw-2">*</span>, <span class="ident">invite</span>::<span class="kw-2">*</span>, <span class="ident">message</span>::<span class="kw-2">*</span>, <span class="ident">party</span>::<span class="kw-2">*</span>,
+    <span class="ident">permission</span>::<span class="kw-2">*</span>, <span class="ident">prefs</span>::<span class="kw-2">*</span>, <span class="ident">presence</span>::<span class="kw-2">*</span>, <span class="ident">role</span>::<span class="kw-2">*</span>, <span class="ident">room</span>::<span class="kw-2">*</span>, <span class="ident">session</span>::<span class="kw-2">*</span>, <span class="ident">sf</span>::<span class="kw-2">*</span>, <span class="ident">thread</span>::<span class="kw-2">*</span>, <span class="ident">user</span>::<span class="kw-2">*</span>,
 };
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>

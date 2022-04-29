@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GetServerConfig","Gets the global server configuration"],["ServerConfig",""]]});
+initSidebarItems({"struct":[["GetServerConfig","Gets the global server configuration"]]});
