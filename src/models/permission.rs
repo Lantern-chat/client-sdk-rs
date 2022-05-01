@@ -240,6 +240,34 @@ impl Permission {
     }
 }
 
+pub trait SubPermission {
+    fn contained_in(self, perm: &Permission) -> bool;
+}
+
+macro_rules! impl_sub_perm {
+    ($($sub:ident::$field:ident),*) => {$(
+        impl SubPermission for $sub {
+            #[inline]
+            fn contained_in(self, perm: &Permission) -> bool {
+                perm.$field.contains(self)
+            }
+        }
+    )*};
+}
+
+impl_sub_perm!(
+    PartyPermissions::party,
+    RoomPermissions::room,
+    StreamPermissions::stream
+);
+
+impl Permission {
+    #[inline]
+    pub fn contains<P: SubPermission>(&self, perm: P) -> bool {
+        perm.contained_in(self)
+    }
+}
+
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
 impl Not for Permission {
