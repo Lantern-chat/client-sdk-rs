@@ -18,6 +18,6 @@ pub struct Invite {
     /// Number of remaining uses this invite has left.
     ///
     /// Only users with the `MANAGE_INVITES` permission can see this.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub remaining: Option<u16>,
 }
