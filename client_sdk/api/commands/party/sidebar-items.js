@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GetParty",""],["GetPartyMembers",""],["GetPartyRooms",""]]});
+initSidebarItems({"struct":[["GetParty",""],["GetPartyInvites",""],["GetPartyMembers",""],["GetPartyRooms",""]]});
