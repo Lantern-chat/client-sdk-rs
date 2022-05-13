@@ -22,6 +22,25 @@
 <span id="17">17</span>
 <span id="18">18</span>
 <span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">command!</span> {
@@ -39,6 +58,25 @@
 
     <span class="op">+</span><span class="kw">struct</span> <span class="ident">GetPartyInvites</span> -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Invite</span><span class="op">&gt;</span>: <span class="ident">GET</span>(<span class="string">&quot;party&quot;</span> <span class="op">/</span> <span class="ident">party_id</span> <span class="op">/</span> <span class="string">&quot;invites&quot;</span>) {
         <span class="kw">pub</span> <span class="ident">party_id</span>: <span class="ident">Snowflake</span>,
+    }
+
+    <span class="op">+</span><span class="kw">struct</span> <span class="ident">CreatePartyInvite</span> -&gt; <span class="ident">Invite</span>: <span class="ident">POST</span>(<span class="string">&quot;party&quot;</span> <span class="op">/</span> <span class="ident">party_id</span> <span class="op">/</span> <span class="string">&quot;invites&quot;</span>) {
+        <span class="kw">pub</span> <span class="ident">party_id</span>: <span class="ident">Snowflake</span>,
+
+        ;
+        <span class="doccomment">/// Infinite parameters may only be used with appropriate permissions</span>
+        <span class="kw">struct</span> <span class="ident">CreatePartyInviteBody</span> {
+            <span class="doccomment">/// If `None`, invite has infinite uses</span>
+            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+            <span class="kw">pub</span> <span class="ident">max_uses</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
+
+            <span class="doccomment">/// If `None`, invite has infinite duration</span>
+            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+            <span class="kw">pub</span> <span class="ident">duration</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+
+            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+            <span class="kw">pub</span> <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SmolStr</span><span class="op">&gt;</span>,
+        }
     }
 }
 </code></pre></div>

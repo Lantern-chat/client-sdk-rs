@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GetParty",""],["GetPartyInvites",""],["GetPartyMembers",""],["GetPartyRooms",""]]});
+initSidebarItems({"struct":[["CreatePartyInvite",""],["CreatePartyInviteBody","Infinite parameters may only be used with appropriate permissions"],["GetParty",""],["GetPartyInvites",""],["GetPartyMembers",""],["GetPartyRooms",""]]});

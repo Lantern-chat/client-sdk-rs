@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CreateInvite",""],["CreateInviteBody","Infinite parameters may only be used with appropriate permissions"],["GetInvite",""],["RedeemInvite",""],["RedeemInviteBody",""],["RevokeInvite",""]]});
+initSidebarItems({"struct":[["GetInvite",""],["RedeemInvite",""],["RedeemInviteBody",""],["RevokeInvite",""]]});
