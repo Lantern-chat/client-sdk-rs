@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate serde;
 
+pub use models::Snowflake;
+
 #[macro_use]
 pub mod util {
     #[macro_use]
