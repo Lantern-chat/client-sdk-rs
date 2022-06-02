@@ -94,6 +94,33 @@ impl UserFlags {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct DateOfBirth {
+    pub year: i32,
+    pub month: u8,
+    pub day: u8,
+}
+
+impl From<time::Date> for DateOfBirth {
+    fn from(d: time::Date) -> Self {
+        let (year, month, day) = d.to_calendar_date();
+        DateOfBirth {
+            year,
+            month: month as u8,
+            day,
+        }
+    }
+}
+
+impl TryFrom<DateOfBirth> for time::Date {
+    type Error = time::error::ComponentRange;
+
+    fn try_from(d: DateOfBirth) -> Result<Self, Self::Error> {
+        time::Date::from_calendar_date(d.year, time::Month::try_from(d.month)?, d.day)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct User {

@@ -7,12 +7,8 @@ command! {
             pub username: SmolStr,
             pub password: SmolStr,
 
-            /// Birth year
-            pub year: i32,
-            /// Birth month
-            pub month: u8,
-            /// Birth day
-            pub day: u8,
+            #[serde(flatten)]
+            pub dob: DateOfBirth,
 
             /// hCaptcha token
             pub token: String, // TODO: Don't allocate?
