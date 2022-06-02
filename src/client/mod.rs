@@ -45,7 +45,7 @@ impl Client {
             inner: client,
             auth: ArcSwapOption::empty(),
             uri: Arc::from(uri),
-            preferred_encoding: ArcSwap::from_pointee(Encoding::Json),
+            preferred_encoding: ArcSwap::from_pointee(Encoding::JSON),
         }))
     }
 

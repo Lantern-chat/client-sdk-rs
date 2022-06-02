@@ -8,3 +8,6 @@ mod command;
 pub use command::{Command, CommandFlags};
 
 pub mod commands;
+
+#[cfg(feature = "gateway")]
+pub mod gateway;

@@ -12,12 +12,19 @@ use crate::{
     models::{AuthToken, Snowflake},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Encoding {
-    Json,
+    JSON,
 
     #[cfg(feature = "cbor")]
     CBOR,
+}
+
+impl Default for Encoding {
+    fn default() -> Self {
+        Encoding::JSON
+    }
 }
 
 #[derive(Clone)]
@@ -50,7 +57,7 @@ impl Driver {
         Driver {
             inner: client,
             uri,
-            encoding: Encoding::Json,
+            encoding: Encoding::JSON,
             auth: None,
         }
     }
@@ -111,7 +118,7 @@ impl Driver {
                     let mut body = Vec::with_capacity(body_size_hint.max(128));
 
                     match self.encoding {
-                        Encoding::Json => {
+                        Encoding::JSON => {
                             serde_json::to_writer(&mut body, cmd.body())?;
 
                             req.headers_mut().typed_insert(ContentType::json());
@@ -167,7 +174,7 @@ where
     T: serde::de::DeserializeOwned,
 {
     #[allow(unused_mut)]
-    let mut kind = Encoding::Json;
+    let mut kind = Encoding::JSON;
 
     if let Some(ct) = ct {
         #[cfg(feature = "cbor")]
@@ -177,7 +184,7 @@ where
     }
 
     Ok(match kind {
-        Encoding::Json => serde_json::from_slice(body)?,
+        Encoding::JSON => serde_json::from_slice(body)?,
 
         #[cfg(feature = "cbor")]
         Encoding::CBOR => ciborium::de::from_reader(body)?,

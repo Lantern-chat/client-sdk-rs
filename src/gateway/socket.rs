@@ -30,7 +30,7 @@ impl GatewaySocket {
             "ws{}/api/v1/gateway?compress=true&encoding={}",
             &driver.uri[4..],
             match driver.encoding {
-                Encoding::Json => "json",
+                Encoding::JSON => "json",
                 #[cfg(feature = "cbor")]
                 Encoding::CBOR => "cbor",
             }
@@ -48,7 +48,7 @@ impl GatewaySocket {
         let mut body = Vec::new();
 
         match self.encoding {
-            Encoding::Json => serde_json::to_writer(&mut body, &msg)?,
+            Encoding::JSON => serde_json::to_writer(&mut body, &msg)?,
             #[cfg(feature = "cbor")]
             Encoding::CBOR => ciborium::ser::into_writer(&msg, &mut body)?,
         }
@@ -89,7 +89,7 @@ impl GatewaySocket {
         }
 
         Ok(match self.encoding {
-            Encoding::Json => serde_json::from_slice(&body)?,
+            Encoding::JSON => serde_json::from_slice(&body)?,
             #[cfg(feature = "cbor")]
             Encoding::CBOR => ciborium::de::from_reader(&body[..])?,
         })
