@@ -309,6 +309,8 @@
 <span id="304">304</span>
 <span id="305">305</span>
 <span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
@@ -460,6 +462,8 @@
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;User Preference Error: \&quot;{}\&quot; {}&quot;</span>, <span class="self">self</span>.<span class="ident">field</span>, <span class="ident">kind</span>)
     }
 }
+
+<span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">UserPreferenceError</span> {}
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UserPreferenceErrorKind</span> {

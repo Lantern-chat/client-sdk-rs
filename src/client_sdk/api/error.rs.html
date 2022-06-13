@@ -79,6 +79,8 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
@@ -143,11 +145,13 @@
     <span class="ident">TemporarilyDisabled</span>      <span class="op">=</span> <span class="number">40029</span>,
     <span class="ident">InvalidCaptcha</span>           <span class="op">=</span> <span class="number">40030</span>,
     <span class="ident">Base85DecodeError</span>        <span class="op">=</span> <span class="number">40031</span>,
+    <span class="ident">WebsocketError</span>           <span class="op">=</span> <span class="number">40032</span>,
 
     <span class="comment">// Generic HTTP-like error codes</span>
     <span class="ident">BadRequest</span>               <span class="op">=</span> <span class="number">40400</span>,
     <span class="ident">Unauthorized</span>             <span class="op">=</span> <span class="number">40401</span>,
     <span class="ident">NotFound</span>                 <span class="op">=</span> <span class="number">40404</span>,
+    <span class="ident">MethodNotAllowed</span>         <span class="op">=</span> <span class="number">40405</span>,
     <span class="ident">Conflict</span>                 <span class="op">=</span> <span class="number">40409</span>,
     <span class="ident">RequestEntityTooLarge</span>    <span class="op">=</span> <span class="number">40413</span>,
     <span class="ident">ChecksumMismatch</span>         <span class="op">=</span> <span class="number">40460</span>,
