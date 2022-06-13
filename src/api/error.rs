@@ -62,11 +62,13 @@ pub enum ApiErrorCode {
     TemporarilyDisabled      = 40029,
     InvalidCaptcha           = 40030,
     Base85DecodeError        = 40031,
+    WebsocketError           = 40032,
 
     // Generic HTTP-like error codes
     BadRequest               = 40400,
     Unauthorized             = 40401,
     NotFound                 = 40404,
+    MethodNotAllowed         = 40405,
     Conflict                 = 40409,
     RequestEntityTooLarge    = 40413,
     ChecksumMismatch         = 40460,

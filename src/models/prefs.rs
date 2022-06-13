@@ -150,6 +150,8 @@ impl fmt::Display for UserPreferenceError {
     }
 }
 
+impl std::error::Error for UserPreferenceError {}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UserPreferenceErrorKind {
     InvalidType,
