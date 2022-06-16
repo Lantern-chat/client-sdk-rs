@@ -22,13 +22,12 @@ pub enum ApiErrorCode {
     JsonError                = 50005,
     EventEncodingError       = 50006,
     InternalError            = 50007,
-    InternalErrorStatic      = 50008,
-    Utf8ParseError           = 50009,
-    IOError                  = 50010,
-    InvalidHeaderValue       = 50011,
-    XMLError                 = 50012,
-    RequestError             = 50013,
-    Unimplemented            = 50014,
+    Utf8ParseError           = 50008,
+    IOError                  = 50009,
+    InvalidHeaderValue       = 50010,
+    XMLError                 = 50011,
+    RequestError             = 50012,
+    Unimplemented            = 50013,
 
     // Client errors
     AlreadyExists            = 40001,
@@ -63,6 +62,7 @@ pub enum ApiErrorCode {
     InvalidCaptcha           = 40030,
     Base85DecodeError        = 40031,
     WebsocketError           = 40032,
+    MissingContentTypeHeader = 40033,
 
     // Generic HTTP-like error codes
     BadRequest               = 40400,
@@ -71,6 +71,7 @@ pub enum ApiErrorCode {
     MethodNotAllowed         = 40405,
     Conflict                 = 40409,
     RequestEntityTooLarge    = 40413,
+    UnsupportedMediaType     = 40415,
     ChecksumMismatch         = 40460,
 
     #[serde(other)]
