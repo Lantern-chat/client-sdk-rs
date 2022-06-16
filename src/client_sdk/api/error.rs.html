@@ -81,6 +81,7 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
+<span id="79">79</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
@@ -105,13 +106,12 @@
     <span class="ident">JsonError</span>                <span class="op">=</span> <span class="number">50005</span>,
     <span class="ident">EventEncodingError</span>       <span class="op">=</span> <span class="number">50006</span>,
     <span class="ident">InternalError</span>            <span class="op">=</span> <span class="number">50007</span>,
-    <span class="ident">InternalErrorStatic</span>      <span class="op">=</span> <span class="number">50008</span>,
-    <span class="ident">Utf8ParseError</span>           <span class="op">=</span> <span class="number">50009</span>,
-    <span class="ident">IOError</span>                  <span class="op">=</span> <span class="number">50010</span>,
-    <span class="ident">InvalidHeaderValue</span>       <span class="op">=</span> <span class="number">50011</span>,
-    <span class="ident">XMLError</span>                 <span class="op">=</span> <span class="number">50012</span>,
-    <span class="ident">RequestError</span>             <span class="op">=</span> <span class="number">50013</span>,
-    <span class="ident">Unimplemented</span>            <span class="op">=</span> <span class="number">50014</span>,
+    <span class="ident">Utf8ParseError</span>           <span class="op">=</span> <span class="number">50008</span>,
+    <span class="ident">IOError</span>                  <span class="op">=</span> <span class="number">50009</span>,
+    <span class="ident">InvalidHeaderValue</span>       <span class="op">=</span> <span class="number">50010</span>,
+    <span class="ident">XMLError</span>                 <span class="op">=</span> <span class="number">50011</span>,
+    <span class="ident">RequestError</span>             <span class="op">=</span> <span class="number">50012</span>,
+    <span class="ident">Unimplemented</span>            <span class="op">=</span> <span class="number">50013</span>,
 
     <span class="comment">// Client errors</span>
     <span class="ident">AlreadyExists</span>            <span class="op">=</span> <span class="number">40001</span>,
@@ -146,6 +146,7 @@
     <span class="ident">InvalidCaptcha</span>           <span class="op">=</span> <span class="number">40030</span>,
     <span class="ident">Base85DecodeError</span>        <span class="op">=</span> <span class="number">40031</span>,
     <span class="ident">WebsocketError</span>           <span class="op">=</span> <span class="number">40032</span>,
+    <span class="ident">MissingContentTypeHeader</span> <span class="op">=</span> <span class="number">40033</span>,
 
     <span class="comment">// Generic HTTP-like error codes</span>
     <span class="ident">BadRequest</span>               <span class="op">=</span> <span class="number">40400</span>,
@@ -154,6 +155,7 @@
     <span class="ident">MethodNotAllowed</span>         <span class="op">=</span> <span class="number">40405</span>,
     <span class="ident">Conflict</span>                 <span class="op">=</span> <span class="number">40409</span>,
     <span class="ident">RequestEntityTooLarge</span>    <span class="op">=</span> <span class="number">40413</span>,
+    <span class="ident">UnsupportedMediaType</span>     <span class="op">=</span> <span class="number">40415</span>,
     <span class="ident">ChecksumMismatch</span>         <span class="op">=</span> <span class="number">40460</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">other</span>)]</span>
