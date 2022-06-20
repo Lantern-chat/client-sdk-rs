@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ServerConfig",""]]});
+initSidebarItems({"struct":[["ServerConfig",""],["ServerLimits",""]]});
