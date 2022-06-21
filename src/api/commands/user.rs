@@ -33,6 +33,8 @@ command! {
         pub file_id: Snowflake,
     }
 
+    +struct DeleteUserAvatar -> (): DELETE("user" / "@me" / "avatar") {}
+
     +struct UpdateUserPrefs -> (): PATCH("user" / "@me" / "prefs") {
         ; struct UpdateUserPrefsBody {
             #[serde(flatten)]
