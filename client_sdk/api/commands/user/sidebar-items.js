@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GetFriends",""],["GetSessions",""],["SetUserAvatar",""],["UpdateUserPrefs",""],["UpdateUserPrefsBody",""],["UserLogin",""],["UserLoginForm",""],["UserRegister",""],["UserRegisterForm",""]]});
+initSidebarItems({"struct":[["DeleteUserAvatar",""],["GetFriends",""],["GetSessions",""],["SetUserAvatar",""],["UpdateUserPrefs",""],["UpdateUserPrefsBody",""],["UserLogin",""],["UserLoginForm",""],["UserRegister",""],["UserRegisterForm",""]]});

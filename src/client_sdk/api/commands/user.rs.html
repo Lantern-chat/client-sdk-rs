@@ -51,6 +51,8 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">command!</span> {
@@ -85,6 +87,8 @@
     <span class="op">+</span><span class="kw">struct</span> <span class="ident">SetUserAvatar</span> -&gt; (): <span class="ident">POST</span>(<span class="string">&quot;user&quot;</span> <span class="op">/</span> <span class="string">&quot;@me&quot;</span> <span class="op">/</span> <span class="string">&quot;avatar&quot;</span> <span class="op">/</span> <span class="ident">file_id</span>) {
         <span class="kw">pub</span> <span class="ident">file_id</span>: <span class="ident">Snowflake</span>,
     }
+
+    <span class="op">+</span><span class="kw">struct</span> <span class="ident">DeleteUserAvatar</span> -&gt; (): <span class="ident">DELETE</span>(<span class="string">&quot;user&quot;</span> <span class="op">/</span> <span class="string">&quot;@me&quot;</span> <span class="op">/</span> <span class="string">&quot;avatar&quot;</span>) {}
 
     <span class="op">+</span><span class="kw">struct</span> <span class="ident">UpdateUserPrefs</span> -&gt; (): <span class="ident">PATCH</span>(<span class="string">&quot;user&quot;</span> <span class="op">/</span> <span class="string">&quot;@me&quot;</span> <span class="op">/</span> <span class="string">&quot;prefs&quot;</span>) {
         ; <span class="kw">struct</span> <span class="ident">UpdateUserPrefsBody</span> {
