@@ -123,6 +123,38 @@ impl TryFrom<DateOfBirth> for time::Date {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct UserProfile {
+    pub bits: i32,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<SmolStr>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub banner: Option<SmolStr>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<SmolStr>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bio: Option<SmolStr>,
+}
+
+impl UserProfile {
+    pub fn roundedness(&self) -> f32 {
+        (self.bits & 0x7F) as f32 / 127.0
+    }
+
+    pub fn override_banner(&self) -> bool {
+        self.bits & 0x80 != 0
+    }
+
+    pub fn banner_color(&self) -> u32 {
+        (self.bits as u32) >> 8
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct User {
     pub id: Snowflake,
     pub username: SmolStr,
@@ -130,13 +162,9 @@ pub struct User {
     /// Unsigned 16-bit integer
     pub discriminator: i32,
     pub flags: UserFlags,
-    pub avatar: Option<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub status: Option<SmolStr>,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub bio: Option<SmolStr>,
+    pub profile: Option<UserProfile>,
 
     /// Not present when user isn't self
     #[serde(default, skip_serializing_if = "Option::is_none")]

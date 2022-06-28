@@ -223,6 +223,11 @@ impl Permission {
         }
     }
 
+    #[inline(always)]
+    pub const fn unpack_i64(bits: i64) -> Self {
+        Self::unpack(bits as u64)
+    }
+
     #[inline]
     pub fn remove(&mut self, other: Self) {
         self.party.remove(other.party);
