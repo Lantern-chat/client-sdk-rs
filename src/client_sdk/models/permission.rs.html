@@ -383,6 +383,11 @@
 <span id="378">378</span>
 <span id="379">379</span>
 <span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">aliases</span> {
@@ -606,6 +611,11 @@
             <span class="ident">room</span>: <span class="ident">RoomPermissions::from_bits_truncate</span>((<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <span class="ident">i16</span>),
             <span class="ident">stream</span>: <span class="ident">StreamPermissions::from_bits_truncate</span>((<span class="ident">bits</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">i16</span>),
         }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">unpack_i64</span>(<span class="ident">bits</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::unpack</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">u64</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>

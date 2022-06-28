@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ElevationLevel",""]],"struct":[["DateOfBirth",""],["Friend",""],["FriendFlags",""],["User",""],["UserFlags","NOTE: Remember to clear flag caches when they change"]]});
+initSidebarItems({"enum":[["ElevationLevel",""]],"struct":[["DateOfBirth",""],["Friend",""],["FriendFlags",""],["User",""],["UserFlags","NOTE: Remember to clear flag caches when they change"],["UserProfile",""]]});
