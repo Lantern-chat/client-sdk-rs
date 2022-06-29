@@ -88,24 +88,13 @@ impl_schema_for_bitflags!(PartyMemberFlags);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PartyMember {
-    /// Global user information
+    /// User information
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 
     /// Per-party nickname
     #[serde(default)]
     pub nick: Option<SmolStr>,
-
-    // /// Per-party status
-    // #[serde(default, skip_serializing_if = "Option::is_none")]
-    // pub status: Option<SmolStr>,
-    /// Per-party biography
-    // #[serde(default, skip_serializing_if = "Option::is_none")]
-    // pub bio: Option<SmolStr>,
-
-    /// Per-party avatar?
-    // #[serde(default, skip_serializing_if = "Option::is_none")]
-    // pub avatar_id: Option<Snowflake>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flags: Option<PartyMemberFlags>,

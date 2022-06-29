@@ -126,17 +126,17 @@ impl TryFrom<DateOfBirth> for time::Date {
 pub struct UserProfile {
     pub bits: i32,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<SmolStr>,
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub avatar: Nullable<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub banner: Option<SmolStr>,
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub banner: Nullable<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub status: Option<SmolStr>,
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub status: Nullable<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub bio: Option<SmolStr>,
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub bio: Nullable<SmolStr>,
 }
 
 impl UserProfile {
@@ -163,8 +163,8 @@ pub struct User {
     pub discriminator: i32,
     pub flags: UserFlags,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub profile: Option<UserProfile>,
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub profile: Nullable<UserProfile>,
 
     /// Not present when user isn't self
     #[serde(default, skip_serializing_if = "Option::is_none")]

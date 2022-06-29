@@ -3,6 +3,10 @@
 use smol_str::SmolStr;
 use timestamp::Timestamp;
 
+pub mod nullable;
+
+pub use nullable::Nullable;
+
 pub mod auth;
 pub mod config;
 pub mod embed;
