@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Nullable","Similar to `Option`, `Undefined` values can be used when data may exist but is not provided."]]});

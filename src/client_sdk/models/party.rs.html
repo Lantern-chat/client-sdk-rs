@@ -111,17 +111,6 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
@@ -212,24 +201,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PartyMember</span> {
-    <span class="doccomment">/// Global user information</span>
+    <span class="doccomment">/// User information</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">user</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">User</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Per-party nickname</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="kw">pub</span> <span class="ident">nick</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SmolStr</span><span class="op">&gt;</span>,
-
-    <span class="comment">// /// Per-party status</span>
-    <span class="comment">// #[serde(default, skip_serializing_if = &quot;Option::is_none&quot;)]</span>
-    <span class="comment">// pub status: Option&lt;SmolStr&gt;,</span>
-    <span class="doccomment">/// Per-party biography</span>
-    <span class="comment">// #[serde(default, skip_serializing_if = &quot;Option::is_none&quot;)]</span>
-    <span class="comment">// pub bio: Option&lt;SmolStr&gt;,</span>
-
-    <span class="doccomment">/// Per-party avatar?</span>
-    <span class="comment">// #[serde(default, skip_serializing_if = &quot;Option::is_none&quot;)]</span>
-    <span class="comment">// pub avatar_id: Option&lt;Snowflake&gt;,</span>
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">flags</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PartyMemberFlags</span><span class="op">&gt;</span>,
