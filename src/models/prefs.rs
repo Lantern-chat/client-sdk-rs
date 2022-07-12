@@ -68,6 +68,9 @@ bitflags::bitflags! {
 
         const ENABLE_SPELLCHECK = 1 << 11;
 
+        const LOW_BANDWIDTH_MODE = 1 << 12;
+        // TODO: VERY_LOW_BANDWIDTH_MODE ?
+
         // give some space for other flags, and possibly switching compact view out for more options (multiple view types)
 
         const DEVELOPER_MODE = 1 << 15;
