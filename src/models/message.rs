@@ -23,11 +23,22 @@ bitflags::bitflags! {
         const PINNED            = 1 << 3;
         const TTS               = 1 << 4;
         const SUPRESS_EMBEDS    = 1 << 5;
+
+        /// Top 6 bits are a language code,
+        /// which is never actually exposed to users.
+        const LANGUAGE          = 0b111_111 << (16 - 6);
     }
 }
 
 serde_shims::impl_serde_for_bitflags!(MessageFlags);
 impl_schema_for_bitflags!(MessageFlags);
+
+impl MessageFlags {
+    #[inline]
+    pub const fn from_bits_truncate_public(bits: i16) -> Self {
+        Self::from_bits_truncate(bits).difference(Self::LANGUAGE)
+    }
+}
 
 #[rustfmt::skip]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

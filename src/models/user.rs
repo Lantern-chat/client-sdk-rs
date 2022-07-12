@@ -65,11 +65,9 @@ pub enum ElevationLevel {
 }
 
 impl UserFlags {
-    /// Cleanup any private flags for public responses
     #[inline]
-    pub fn publicize(mut self) -> Self {
-        self.remove(Self::PRIVATE_FLAGS);
-        self
+    pub fn from_bits_truncate_public(bits: i32) -> Self {
+        Self::from_bits_truncate(bits).difference(Self::PRIVATE_FLAGS)
     }
 
     pub fn elevation(self) -> ElevationLevel {

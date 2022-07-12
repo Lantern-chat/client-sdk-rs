@@ -3,6 +3,11 @@ use std::ops::Deref;
 use super::*;
 
 bitflags::bitflags! {
+    pub struct PartyFlags: i16 {
+        /// Top 6 bits are a language code
+        const LANGUAGE = 0b111_111 << (16 - 6);
+    }
+
     pub struct SecurityFlags: i16 {
         /// Must have a verified email address
         const EMAIL         = 1 << 0;
