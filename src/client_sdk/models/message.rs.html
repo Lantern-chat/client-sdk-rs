@@ -128,6 +128,17 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
@@ -153,11 +164,22 @@
         <span class="kw">const</span> <span class="ident">PINNED</span>            <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
         <span class="kw">const</span> <span class="ident">TTS</span>               <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
         <span class="kw">const</span> <span class="ident">SUPRESS_EMBEDS</span>    <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>;
+
+        <span class="doccomment">/// Top 6 bits are a language code,</span>
+        <span class="doccomment">/// which is never actually exposed to users.</span>
+        <span class="kw">const</span> <span class="ident">LANGUAGE</span>          <span class="op">=</span> <span class="number">0b111_111</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="number">16</span> <span class="op">-</span> <span class="number">6</span>);
     }
 }
 
 <span class="macro">serde_shims::impl_serde_for_bitflags!</span>(<span class="ident">MessageFlags</span>);
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">MessageFlags</span>);
+
+<span class="kw">impl</span> <span class="ident">MessageFlags</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bits_truncate_public</span>(<span class="ident">bits</span>: <span class="ident">i16</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::from_bits_truncate</span>(<span class="ident">bits</span>).<span class="ident">difference</span>(<span class="ident"><span class="self">Self</span>::LANGUAGE</span>)
+    }
+}
 
 <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
@@ -254,5 +276,5 @@
     <span class="kw">pub</span> <span class="ident">file</span>: <span class="ident">File</span>,
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="client_sdk" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="client_sdk" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

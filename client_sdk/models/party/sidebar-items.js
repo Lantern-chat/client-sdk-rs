@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PartialParty",""],["Party",""],["PartyMember",""],["PartyMemberFlags",""],["SecurityFlags",""]]});
+initSidebarItems({"struct":[["PartialParty",""],["Party",""],["PartyFlags",""],["PartyMember",""],["PartyMemberFlags",""],["SecurityFlags",""]]});

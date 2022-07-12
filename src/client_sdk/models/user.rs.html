@@ -220,8 +220,6 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
@@ -289,11 +287,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">UserFlags</span> {
-    <span class="doccomment">/// Cleanup any private flags for public responses</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">publicize</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">remove</span>(<span class="ident"><span class="self">Self</span>::PRIVATE_FLAGS</span>);
-        <span class="self">self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bits_truncate_public</span>(<span class="ident">bits</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::from_bits_truncate</span>(<span class="ident">bits</span>).<span class="ident">difference</span>(<span class="ident"><span class="self">Self</span>::PRIVATE_FLAGS</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">elevation</span>(<span class="self">self</span>) -&gt; <span class="ident">ElevationLevel</span> {
@@ -442,5 +438,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="client_sdk" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="client_sdk" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>
