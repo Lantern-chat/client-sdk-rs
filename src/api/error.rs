@@ -28,6 +28,7 @@ pub enum ApiErrorCode {
     XMLError                 = 50011,
     RequestError             = 50012,
     Unimplemented            = 50013,
+    BincodeError             = 50014,
 
     // Client errors
     AlreadyExists            = 40001,
