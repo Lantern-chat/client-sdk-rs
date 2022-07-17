@@ -29,11 +29,35 @@ command! {
 
     +struct GetFriends -> Vec<Friend>: GET("user" / "@me" / "friends") {}
 
-    +struct SetUserAvatar -> (): POST("user" / "@me" / "avatar" / file_id) {
-        pub file_id: Snowflake,
+    +struct PatchUserProfile -> UserProfile: PATCH("user" / "@me" / "profile") {
+        ;
+
+        struct PartialUserProfile {
+            pub bits: UserProfileBits,
+
+            /// File ID
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            pub avatar: Option<Snowflake>,
+
+            /// File ID
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            pub banner: Option<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            pub status: Option<SmolStr>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            pub bio: Option<SmolStr>,
+        }
     }
 
-    +struct DeleteUserAvatar -> (): DELETE("user" / "@me" / "avatar") {}
+    +struct GetUserProfile -> UserProfile: GET("user" / user_id / "profile") {
+        pub user_id: Snowflake,
+    }
+
+    +struct GetUser -> User: GET("user" / user_id) {
+        pub user_id: Snowflake,
+    }
 
     +struct UpdateUserPrefs -> (): PATCH("user" / "@me" / "prefs") {
         ; struct UpdateUserPrefsBody {
