@@ -8,6 +8,9 @@ pub mod util {
     #[macro_use]
     pub mod schema;
     pub mod fixed;
+
+    #[macro_use]
+    pub mod flags;
 }
 
 #[macro_use]

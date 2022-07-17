@@ -11,6 +11,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(UserPresenceFlags);
 impl_schema_for_bitflags!(UserPresenceFlags);
+impl_pg_for_bitflags!(UserPresenceFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

@@ -119,10 +119,22 @@ impl TryFrom<DateOfBirth> for time::Date {
     }
 }
 
+bitflags::bitflags! {
+    pub struct UserProfileBits: i32 {
+        const AVATAR_ROUNDNESS = 0x7F; // 127, lower 7 bits
+        const OVERRIDE_COLOR = 0x80; // 8th bit
+        const PROFILE_COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits
+    }
+}
+
+serde_shims::impl_serde_for_bitflags!(UserProfileBits);
+impl_schema_for_bitflags!(UserProfileBits);
+impl_pg_for_bitflags!(UserProfileBits);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct UserProfile {
-    pub bits: i32,
+    pub bits: UserProfileBits,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     pub avatar: Nullable<SmolStr>,
@@ -139,15 +151,15 @@ pub struct UserProfile {
 
 impl UserProfile {
     pub fn roundedness(&self) -> f32 {
-        (self.bits & 0x7F) as f32 / 127.0
+        (self.bits & UserProfileBits::AVATAR_ROUNDNESS).bits() as f32 / 127.0
     }
 
     pub fn override_banner(&self) -> bool {
-        self.bits & 0x80 != 0
+        self.bits.intersects(UserProfileBits::OVERRIDE_COLOR)
     }
 
     pub fn banner_color(&self) -> u32 {
-        (self.bits as u32) >> 8
+        self.bits.bits() as u32 >> 8
     }
 }
 
@@ -182,6 +194,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(FriendFlags);
 impl_schema_for_bitflags!(FriendFlags);
+impl_pg_for_bitflags!(FriendFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

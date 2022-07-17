@@ -94,6 +94,10 @@ impl_schema_for_bitflags!(PartyPermissions);
 impl_schema_for_bitflags!(RoomPermissions);
 impl_schema_for_bitflags!(StreamPermissions);
 
+impl_pg_for_bitflags!(PartyPermissions);
+impl_pg_for_bitflags!(RoomPermissions);
+impl_pg_for_bitflags!(StreamPermissions);
+
 impl Default for PartyPermissions {
     fn default() -> Self {
         PartyPermissions::DEFAULT
