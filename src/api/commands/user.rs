@@ -29,25 +29,12 @@ command! {
 
     +struct GetFriends -> Vec<Friend>: GET("user" / "@me" / "friends") {}
 
-    +struct PatchUserProfile -> UserProfile: PATCH("user" / "@me" / "profile") {
+    +struct UpdateUserProfile -> UserProfile: PATCH("user" / "@me" / "profile") {
         ;
 
-        struct PartialUserProfile {
-            pub bits: UserProfileBits,
-
-            /// File ID
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub avatar: Option<Snowflake>,
-
-            /// File ID
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub banner: Option<Snowflake>,
-
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub status: Option<SmolStr>,
-
-            #[serde(default, skip_serializing_if = "Option::is_none")]
-            pub bio: Option<SmolStr>,
+        struct UpdateUserProfileBody {
+            #[serde(flatten)]
+            pub profile: UserProfile,
         }
     }
 
@@ -70,5 +57,10 @@ command! {
 impl From<UserPreferences> for UpdateUserPrefsBody {
     fn from(prefs: UserPreferences) -> UpdateUserPrefsBody {
         UpdateUserPrefsBody { prefs }
+    }
+}
+impl From<UserProfile> for UpdateUserProfileBody {
+    fn from(profile: UserProfile) -> UpdateUserProfileBody {
+        UpdateUserProfileBody { profile }
     }
 }
