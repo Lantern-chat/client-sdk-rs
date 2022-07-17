@@ -62,6 +62,7 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
+<span id="60">60</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
@@ -85,6 +86,7 @@
 
 <span class="macro">serde_shims::impl_serde_for_bitflags!</span>(<span class="ident">RoomFlags</span>);
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">RoomFlags</span>);
+<span class="macro">impl_pg_for_bitflags!</span>(<span class="ident">RoomFlags</span>);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>

@@ -35,6 +35,7 @@
 <span id="30">30</span>
 <span id="31">31</span>
 <span id="32">32</span>
+<span id="33">33</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
@@ -47,6 +48,7 @@
 
 <span class="macro">serde_shims::impl_serde_for_bitflags!</span>(<span class="ident">EmoteFlags</span>);
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">EmoteFlags</span>);
+<span class="macro">impl_pg_for_bitflags!</span>(<span class="ident">EmoteFlags</span>);
 
 <span class="comment">// TODO: Add inline preview?</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>

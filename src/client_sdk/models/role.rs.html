@@ -46,6 +46,7 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
+<span id="44">44</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
@@ -57,6 +58,7 @@
 
 <span class="macro">serde_shims::impl_serde_for_bitflags!</span>(<span class="ident">RoleFlags</span>);
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">RoleFlags</span>);
+<span class="macro">impl_pg_for_bitflags!</span>(<span class="ident">RoleFlags</span>);
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RoleFlags</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {

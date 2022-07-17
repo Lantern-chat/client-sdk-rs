@@ -515,6 +515,7 @@
 <span id="510">510</span>
 <span id="511">511</span>
 <span id="512">512</span>
+<span id="513">513</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">bitflags::bitflags!</span> {
@@ -596,6 +597,7 @@
 
 <span class="macro">serde_shims::bitflags::impl_serde_for_bitflags!</span>(<span class="ident">Intent</span>);
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">Intent</span>);
+<span class="macro">impl_pg_for_bitflags!</span>(<span class="ident">Intent</span>);
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">commands</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;

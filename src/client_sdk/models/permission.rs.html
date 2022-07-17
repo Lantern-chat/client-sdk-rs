@@ -388,6 +388,10 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">aliases</span> {
@@ -483,6 +487,10 @@
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">PartyPermissions</span>);
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">RoomPermissions</span>);
 <span class="macro">impl_schema_for_bitflags!</span>(<span class="ident">StreamPermissions</span>);
+
+<span class="macro">impl_pg_for_bitflags!</span>(<span class="ident">PartyPermissions</span>);
+<span class="macro">impl_pg_for_bitflags!</span>(<span class="ident">RoomPermissions</span>);
+<span class="macro">impl_pg_for_bitflags!</span>(<span class="ident">StreamPermissions</span>);
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PartyPermissions</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
