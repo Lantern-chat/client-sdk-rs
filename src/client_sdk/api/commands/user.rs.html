@@ -69,6 +69,12 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="macro">command!</span> {
@@ -104,8 +110,19 @@
         ;
 
         <span class="kw">struct</span> <span class="ident">UpdateUserProfileBody</span> {
-            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">flatten</span>)]</span>
-            <span class="kw">pub</span> <span class="ident">profile</span>: <span class="ident">UserProfile</span>,
+            <span class="kw">pub</span> <span class="ident">bits</span>: <span class="ident">UserProfileBits</span>,
+
+            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Nullable::is_undefined&quot;</span>)]</span>
+            <span class="kw">pub</span> <span class="ident">avatar</span>: <span class="ident">Nullable</span><span class="op">&lt;</span><span class="ident">Snowflake</span><span class="op">&gt;</span>,
+
+            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Nullable::is_undefined&quot;</span>)]</span>
+            <span class="kw">pub</span> <span class="ident">banner</span>: <span class="ident">Nullable</span><span class="op">&lt;</span><span class="ident">Snowflake</span><span class="op">&gt;</span>,
+
+            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Nullable::is_undefined&quot;</span>)]</span>
+            <span class="kw">pub</span> <span class="ident">status</span>: <span class="ident">Nullable</span><span class="op">&lt;</span><span class="ident">SmolStr</span><span class="op">&gt;</span>,
+
+            <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Nullable::is_undefined&quot;</span>)]</span>
+            <span class="kw">pub</span> <span class="ident">bio</span>: <span class="ident">Nullable</span><span class="op">&lt;</span><span class="ident">SmolStr</span><span class="op">&gt;</span>,
         }
     }
 
@@ -128,11 +145,6 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UserPreferences</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UpdateUserPrefsBody</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">prefs</span>: <span class="ident">UserPreferences</span>) -&gt; <span class="ident">UpdateUserPrefsBody</span> {
         <span class="ident">UpdateUserPrefsBody</span> { <span class="ident">prefs</span> }
-    }
-}
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UserProfile</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UpdateUserProfileBody</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">profile</span>: <span class="ident">UserProfile</span>) -&gt; <span class="ident">UpdateUserProfileBody</span> {
-        <span class="ident">UpdateUserProfileBody</span> { <span class="ident">profile</span> }
     }
 }
 </code></pre></div>
