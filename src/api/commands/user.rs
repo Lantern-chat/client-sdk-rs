@@ -33,8 +33,19 @@ command! {
         ;
 
         struct UpdateUserProfileBody {
-            #[serde(flatten)]
-            pub profile: UserProfile,
+            pub bits: UserProfileBits,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            pub avatar: Nullable<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            pub banner: Nullable<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            pub status: Nullable<SmolStr>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            pub bio: Nullable<SmolStr>,
         }
     }
 
@@ -57,10 +68,5 @@ command! {
 impl From<UserPreferences> for UpdateUserPrefsBody {
     fn from(prefs: UserPreferences) -> UpdateUserPrefsBody {
         UpdateUserPrefsBody { prefs }
-    }
-}
-impl From<UserProfile> for UpdateUserProfileBody {
-    fn from(profile: UserProfile) -> UpdateUserProfileBody {
-        UpdateUserProfileBody { profile }
     }
 }

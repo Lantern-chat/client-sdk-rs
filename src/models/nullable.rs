@@ -42,6 +42,17 @@ impl<T> Nullable<T> {
     pub const fn is_some(&self) -> bool {
         matches!(self, Nullable::Some(_))
     }
+
+    pub fn map<F, U>(self, f: F) -> Nullable<U>
+    where
+        F: FnOnce(T) -> U,
+    {
+        match self {
+            Nullable::Some(value) => Nullable::Some(f(value)),
+            Nullable::Null => Nullable::Null,
+            Nullable::Undefined => Nullable::Undefined,
+        }
+    }
 }
 
 impl<T> Default for Nullable<T> {
