@@ -57,6 +57,9 @@ pub struct Party {
 
     pub avatar: Option<SmolStr>,
 
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub banner: Nullable<SmolStr>,
+
     pub position: i16,
 
     pub default_room: Snowflake,
