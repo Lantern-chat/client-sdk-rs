@@ -65,7 +65,7 @@ _internal_common = ["thiserror"]
 schema = ["schemars", "okapi", "timestamp/schema", "smol_str/schema"]
 
 pg = ["postgres-types", "bytes"]
-api = ["http", "_internal_common"] # required for Method
+api = ["http", "_internal_common"] # http required for Method
 
 # Low-level command execution
 driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]

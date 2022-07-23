@@ -1,5 +1,6 @@
 //! API Definitions
 
+pub mod asset;
 pub mod error;
 
 #[macro_use]

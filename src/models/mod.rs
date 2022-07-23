@@ -7,6 +7,7 @@ pub mod nullable;
 
 pub use nullable::Nullable;
 
+pub mod asset;
 pub mod auth;
 pub mod config;
 pub mod embed;
@@ -27,7 +28,7 @@ pub mod thread;
 pub mod user;
 
 pub use self::{
-    auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*,
+    asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*,
     permission::*, prefs::*, presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
 };
 
