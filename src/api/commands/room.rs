@@ -9,6 +9,9 @@ command! {
             #[serde(default)]
             pub content: SmolStr,
 
+            //#[serde(default, skip_serializing_if = "is_false")]
+            //pub tts: bool,
+
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub parent: Option<Snowflake>,
 

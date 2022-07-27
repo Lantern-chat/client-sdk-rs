@@ -1,28 +1,12 @@
 use super::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct MessageCreateForm {
-    pub content: SmolStr,
-
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub tts: bool,
-
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub embeds: Vec<Embed>,
-
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub attachments: Vec<File>,
-}
-
 bitflags::bitflags! {
     pub struct MessageFlags: i16 {
         const DELETED           = 1 << 0;
         const MENTIONS_EVERYONE = 1 << 1;
         const MENTIONS_HERE     = 1 << 2;
-        const PINNED            = 1 << 3;
-        const TTS               = 1 << 4;
-        const SUPRESS_EMBEDS    = 1 << 5;
+        const TTS               = 1 << 3;
+        const SUPRESS_EMBEDS    = 1 << 4;
 
         /// Top 6 bits are a language code,
         /// which is never actually exposed to users.
@@ -89,6 +73,9 @@ pub struct Message {
     pub flags: MessageFlags,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub pins: Vec<Snowflake>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub user_mentions: Vec<Snowflake>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub role_mentions: Vec<Snowflake>,
@@ -133,4 +120,17 @@ pub enum Reaction {
 pub struct Attachment {
     #[serde(flatten)]
     pub file: File,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct PinFolder {
+    pub id: Snowflake,
+    pub name: SmolStr,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub icon_id: Option<Snowflake>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<SmolStr>,
 }
