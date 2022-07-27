@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MessageKind",""],["Reaction",""]],"struct":[["Attachment",""],["Message",""],["MessageCreateForm",""],["MessageFlags",""],["ReactionFull",""],["ReactionShorthand",""]]});
+initSidebarItems({"enum":[["MessageKind",""],["Reaction",""]],"struct":[["Attachment",""],["Message",""],["MessageFlags",""],["PinFolder",""],["ReactionFull",""],["ReactionShorthand",""]]});

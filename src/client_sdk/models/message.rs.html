@@ -141,29 +141,13 @@
 <span id="136">136</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MessageCreateForm</span> {
-    <span class="kw">pub</span> <span class="ident">content</span>: <span class="ident">SmolStr</span>,
-
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;is_false&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">tts</span>: <span class="ident">bool</span>,
-
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">embeds</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Embed</span><span class="op">&gt;</span>,
-
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">attachments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-}
-
 <span class="macro">bitflags::bitflags!</span> {
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MessageFlags</span>: <span class="ident">i16</span> {
         <span class="kw">const</span> <span class="ident">DELETED</span>           <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
         <span class="kw">const</span> <span class="ident">MENTIONS_EVERYONE</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
         <span class="kw">const</span> <span class="ident">MENTIONS_HERE</span>     <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>;
-        <span class="kw">const</span> <span class="ident">PINNED</span>            <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
-        <span class="kw">const</span> <span class="ident">TTS</span>               <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
-        <span class="kw">const</span> <span class="ident">SUPRESS_EMBEDS</span>    <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>;
+        <span class="kw">const</span> <span class="ident">TTS</span>               <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
+        <span class="kw">const</span> <span class="ident">SUPRESS_EMBEDS</span>    <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
 
         <span class="doccomment">/// Top 6 bits are a language code,</span>
         <span class="doccomment">/// which is never actually exposed to users.</span>
@@ -230,6 +214,9 @@
     <span class="kw">pub</span> <span class="ident">flags</span>: <span class="ident">MessageFlags</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">pins</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Snowflake</span><span class="op">&gt;</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">user_mentions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Snowflake</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">role_mentions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Snowflake</span><span class="op">&gt;</span>,
@@ -274,6 +261,19 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attachment</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">flatten</span>)]</span>
     <span class="kw">pub</span> <span class="ident">file</span>: <span class="ident">File</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;schema&quot;</span>, <span class="ident">derive</span>(<span class="ident">schemars::JsonSchema</span>))]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PinFolder</span> {
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">Snowflake</span>,
+    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">SmolStr</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">icon_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Snowflake</span><span class="op">&gt;</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SmolStr</span><span class="op">&gt;</span>,
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="client_sdk" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
