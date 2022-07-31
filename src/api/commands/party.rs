@@ -17,6 +17,11 @@ command! {
         pub party_id: Snowflake,
     }
 
+    +struct GetMemberProfile -> UserProfile: GET("party" / party_id / "members" / user_id / "profile") {
+        pub party_id: Snowflake,
+        pub user_id: Snowflake,
+    }
+
     +struct CreatePartyInvite -> Invite: POST("party" / party_id / "invites") {
         pub party_id: Snowflake,
 
