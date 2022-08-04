@@ -123,7 +123,7 @@ bitflags::bitflags! {
     pub struct UserProfileBits: i32 {
         const AVATAR_ROUNDNESS = 0x7F; // 127, lower 7 bits
         const OVERRIDE_COLOR = 0x80; // 8th bit
-        const PROFILE_COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits
+        const COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits
     }
 }
 
@@ -131,7 +131,13 @@ serde_shims::impl_serde_for_bitflags!(UserProfileBits);
 impl_schema_for_bitflags!(UserProfileBits);
 impl_pg_for_bitflags!(UserProfileBits);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl Default for UserProfileBits {
+    fn default() -> Self {
+        UserProfileBits::empty()
+    }
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct UserProfile {
     pub bits: UserProfileBits,
@@ -154,11 +160,11 @@ impl UserProfile {
         (self.bits & UserProfileBits::AVATAR_ROUNDNESS).bits() as f32 / 127.0
     }
 
-    pub fn override_banner(&self) -> bool {
-        self.bits.intersects(UserProfileBits::OVERRIDE_COLOR)
+    pub fn override_color(&self) -> bool {
+        self.bits.contains(UserProfileBits::OVERRIDE_COLOR)
     }
 
-    pub fn banner_color(&self) -> u32 {
+    pub fn color(&self) -> u32 {
         self.bits.bits() as u32 >> 8
     }
 }

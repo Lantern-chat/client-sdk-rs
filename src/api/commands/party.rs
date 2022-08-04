@@ -22,6 +22,15 @@ command! {
         pub user_id: Snowflake,
     }
 
+    +struct UpdateMemberProfile -> UserProfile: PATCH("party" / party_id / "members" / "profile") {
+        pub party_id: Snowflake,
+
+        ; struct UpdateMemberProfileBody {
+            #[serde(flatten)]
+            profile: user::UpdateUserProfileBody,
+        }
+    }
+
     +struct CreatePartyInvite -> Invite: POST("party" / party_id / "invites") {
         pub party_id: Snowflake,
 
