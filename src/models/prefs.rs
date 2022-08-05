@@ -71,6 +71,8 @@ bitflags::bitflags! {
         const LOW_BANDWIDTH_MODE = 1 << 12;
         // TODO: VERY_LOW_BANDWIDTH_MODE ?
 
+        const FORCE_COLOR_CONSTRAST = 1 << 13;
+
         // give some space for other flags, and possibly switching compact view out for more options (multiple view types)
 
         const DEVELOPER_MODE = 1 << 15;
