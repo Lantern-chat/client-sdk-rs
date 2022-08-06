@@ -1,11 +1,14 @@
 use super::*;
 
 bitflags::bitflags! {
+    /// NOTE: These flags are ordered such that larger values take precedence
     pub struct UserPresenceFlags: i16 {
-        const ONLINE    = 1 << 0;
-        const AWAY      = 1 << 1;
-        const BUSY      = 1 << 2;
-        const MOBILE    = 1 << 3;
+        const OFFLINE   = 0;
+        const AWAY      = 1 << 0;
+        const MOBILE    = 1 << 1;
+        const ONLINE    = 1 << 2; // ONLINE+MOBILE will be larger than ONLINE only
+        const BUSY      = 1 << 3;
+        const INVISIBLE = 1 << 4;
     }
 }
 
