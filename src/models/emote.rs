@@ -8,7 +8,7 @@ bitflags::bitflags! {
     }
 }
 
-impl_serde_for_bitflags!(EmoteFlags);
+serde_shims::impl_serde_for_bitflags!(EmoteFlags);
 impl_schema_for_bitflags!(EmoteFlags);
 impl_pg_for_bitflags!(EmoteFlags);
 

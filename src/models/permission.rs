@@ -86,9 +86,9 @@ bitflags::bitflags! {
     }
 }
 
-impl_serde_for_bitflags!(PartyPermissions);
-impl_serde_for_bitflags!(RoomPermissions);
-impl_serde_for_bitflags!(StreamPermissions);
+serde_shims::impl_serde_for_bitflags!(PartyPermissions);
+serde_shims::impl_serde_for_bitflags!(RoomPermissions);
+serde_shims::impl_serde_for_bitflags!(StreamPermissions);
 
 impl_schema_for_bitflags!(PartyPermissions);
 impl_schema_for_bitflags!(RoomPermissions);

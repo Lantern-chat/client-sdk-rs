@@ -49,9 +49,8 @@ bitflags::bitflags! {
     }
 }
 
-impl_serde_for_bitflags!(UserFlags - UserFlags::PRIVATE_FLAGS);
+serde_shims::impl_serde_for_bitflags!(UserFlags);
 impl_schema_for_bitflags!(UserFlags);
-impl_pg_for_bitflags!(UserFlags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
@@ -66,6 +65,11 @@ pub enum ElevationLevel {
 }
 
 impl UserFlags {
+    #[inline]
+    pub fn from_bits_truncate_public(bits: i32) -> Self {
+        Self::from_bits_truncate(bits).difference(Self::PRIVATE_FLAGS)
+    }
+
     pub fn elevation(self) -> ElevationLevel {
         match (self & Self::ELEVATION).bits() >> 6 {
             1 => ElevationLevel::Bot,
@@ -123,7 +127,7 @@ bitflags::bitflags! {
     }
 }
 
-impl_serde_for_bitflags!(UserProfileBits);
+serde_shims::impl_serde_for_bitflags!(UserProfileBits);
 impl_schema_for_bitflags!(UserProfileBits);
 impl_pg_for_bitflags!(UserProfileBits);
 
@@ -194,7 +198,7 @@ bitflags::bitflags! {
     }
 }
 
-impl_serde_for_bitflags!(FriendFlags);
+serde_shims::impl_serde_for_bitflags!(FriendFlags);
 impl_schema_for_bitflags!(FriendFlags);
 impl_pg_for_bitflags!(FriendFlags);
 

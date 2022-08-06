@@ -30,7 +30,7 @@ bitflags::bitflags! {
     }
 }
 
-impl_serde_for_bitflags!(AssetFlags);
+serde_shims::impl_serde_for_bitflags!(AssetFlags);
 impl_schema_for_bitflags!(AssetFlags);
 impl_pg_for_bitflags!(AssetFlags);
 
