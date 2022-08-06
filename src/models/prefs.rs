@@ -81,7 +81,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(UserPrefsFlags);
+impl_serde_for_bitflags!(UserPrefsFlags);
 impl_pg_for_bitflags!(UserPrefsFlags);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Hash, PartialEq, Eq)]

@@ -77,7 +77,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::bitflags::impl_serde_for_bitflags!(Intent);
+impl_serde_for_bitflags!(Intent);
 impl_schema_for_bitflags!(Intent);
 impl_pg_for_bitflags!(Intent);
 

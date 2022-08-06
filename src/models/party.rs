@@ -22,7 +22,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(SecurityFlags);
+impl_serde_for_bitflags!(SecurityFlags);
 impl_schema_for_bitflags!(SecurityFlags);
 impl_pg_for_bitflags!(SecurityFlags);
 
@@ -91,7 +91,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(PartyMemberFlags);
+impl_serde_for_bitflags!(PartyMemberFlags);
 impl_schema_for_bitflags!(PartyMemberFlags);
 impl_pg_for_bitflags!(PartyMemberFlags);
 

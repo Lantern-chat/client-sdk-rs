@@ -19,7 +19,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(RoomFlags);
+impl_serde_for_bitflags!(RoomFlags);
 impl_schema_for_bitflags!(RoomFlags);
 impl_pg_for_bitflags!(RoomFlags);
 

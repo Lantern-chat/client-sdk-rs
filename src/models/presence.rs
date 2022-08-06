@@ -12,7 +12,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(UserPresenceFlags);
+impl_serde_for_bitflags!(UserPresenceFlags - UserPresenceFlags::INVISIBLE);
 impl_schema_for_bitflags!(UserPresenceFlags);
 impl_pg_for_bitflags!(UserPresenceFlags);
 
