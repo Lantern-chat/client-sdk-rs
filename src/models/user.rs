@@ -66,7 +66,7 @@ pub enum ElevationLevel {
 
 impl UserFlags {
     #[inline]
-    pub fn from_bits_truncate_public(bits: i32) -> Self {
+    pub const fn from_bits_truncate_public(bits: i32) -> Self {
         Self::from_bits_truncate(bits).difference(Self::PRIVATE_FLAGS)
     }
 

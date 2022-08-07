@@ -14,7 +14,12 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(UserPresenceFlags);
 impl_schema_for_bitflags!(UserPresenceFlags);
-impl_pg_for_bitflags!(UserPresenceFlags);
+
+impl UserPresenceFlags {
+    pub const fn from_bits_truncate_public(bits: i16) -> Self {
+        Self::from_bits_truncate(bits).difference(Self::INVISIBLE)
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

@@ -435,8 +435,8 @@ pub mod message {
             25 => MessageReactionRemoveEmote {},
 
             26 => PresenceUpdate {
-                party: Option<Snowflake>,
-                #[serde(flatten)] inner: Arc<UserPresenceEvent>,
+                party_id: Option<Snowflake>,
+                #[serde(flatten)] inner: Box<UserPresenceEvent>,
             },
             27 => TypingStart { #[serde(flatten)] t: Box<TypingStart> },
             28 => UserUpdate { user: Arc<User> }
