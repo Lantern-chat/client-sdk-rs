@@ -22,5 +22,10 @@ pub struct ServerConfig {
 pub struct ServerLimits {
     pub max_upload_size: u64,
     pub max_avatar_size: u32,
+    pub max_banner_size: u32,
     pub max_avatar_pixels: u32,
+    pub max_banner_pixels: u32,
+    pub avatar_width: u32,
+    pub banner_width: u32,
+    pub banner_height: u32,
 }
