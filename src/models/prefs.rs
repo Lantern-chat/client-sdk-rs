@@ -73,9 +73,12 @@ bitflags::bitflags! {
 
         const FORCE_COLOR_CONSTRAST = 1 << 13;
 
-        // give some space for other flags, and possibly switching compact view out for more options (multiple view types)
+        /// Displays information like mime type and file size
+        const SHOW_MEDIA_METADATA = 1 << 14;
 
         const DEVELOPER_MODE = 1 << 15;
+
+
 
         const DEFAULT_FLAGS = Self::ALLOW_DMS.bits | Self::GROUP_LINES.bits | Self::ENABLE_SPELLCHECK.bits;
     }
