@@ -39,3 +39,4 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./target/doc
           keep_files: false
+          force_orphan: true
