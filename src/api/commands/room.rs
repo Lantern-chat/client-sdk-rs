@@ -63,6 +63,7 @@ command! {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "lowercase")]
 pub enum MessageSearch {
+    Exact(Snowflake),
     After(Snowflake),
     Before(Snowflake),
 }
