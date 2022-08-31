@@ -94,8 +94,18 @@ pub struct Message {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[serde(untagged)]
+pub enum EmoteOrEmoji {
+    Emote { emote: Snowflake },
+    Emoji { emoji: SmolStr },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ReactionShorthand {
-    pub emote: Snowflake,
+    #[serde(flatten)]
+    pub emote: EmoteOrEmoji,
+
     pub own: bool,
     pub count: i64,
 }
@@ -103,7 +113,7 @@ pub struct ReactionShorthand {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ReactionFull {
-    pub emote: Emote,
+    pub emote: EmoteOrEmoji,
     pub users: Vec<Snowflake>,
 }
 

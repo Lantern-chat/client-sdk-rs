@@ -18,7 +18,7 @@ impl_pg_for_bitflags!(EmoteFlags);
 pub struct CustomEmote {
     pub id: Snowflake,
     pub party_id: Snowflake,
-    pub file: Snowflake,
+    pub asset: Snowflake,
     pub name: SmolStr,
     pub flags: EmoteFlags,
     pub aspect_ratio: f32,
@@ -28,6 +28,6 @@ pub struct CustomEmote {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub enum Emote {
-    Standard { name: char },
+    Emoji { emoji: SmolStr },
     Custom(CustomEmote),
 }
