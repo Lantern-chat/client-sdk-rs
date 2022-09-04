@@ -56,6 +56,43 @@ command! {
             pub limit: Option<u8>,
         }
     }
+
+    +struct PutReaction -> (): PUT("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+        pub emote_id: EmoteOrEmoji,
+    }
+
+    +struct DeleteOwnReaction -> (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+        pub emote_id: EmoteOrEmoji,
+    }
+
+    +struct DeleteUserReaction -> (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / user_id) {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+        pub emote_id: EmoteOrEmoji,
+        pub user_id: Snowflake,
+    }
+
+    +struct DeleteAllReactions -> (): DELETE("room" / room_id / "messages" / msg_id / "reactions") {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+    }
+
+    +struct GetReactions -> Vec<()>: GET("room" / room_id / "messages" / msg_id / "reactions" / emote_id) {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+        pub emote_id: EmoteOrEmoji,
+
+        ; struct GetReactionsForm {
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            after: Option<Snowflake>,
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            limit: Option<i8>,
+        }
+    }
 }
 
 /// Directional search query

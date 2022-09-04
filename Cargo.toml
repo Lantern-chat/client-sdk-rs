@@ -50,6 +50,7 @@ reqwest = { version = "0.11.9", optional = true, default_features = false, featu
 http = { version = "0.2.6", optional = true }
 serde_urlencoded = { version = "0.7.1", optional = true }
 form_urlencoded = { version = "1.0.1", optional = true }
+percent-encoding = { version = "2.1.0", optional = true }
 arc-swap = { version = "1.5", optional = true }
 base64 = { version = "0.13.0", optional = true }
 tokio = { version = "1", optional = true, default_features = false, features = ["io-util"] }
@@ -65,7 +66,7 @@ _internal_common = ["thiserror"]
 schema = ["schemars", "okapi", "timestamp/schema", "smol_str/schema"]
 
 pg = ["postgres-types", "bytes"]
-api = ["http", "_internal_common"] # http required for Method
+api = ["http", "_internal_common", "percent-encoding"] # http required for Method
 
 # Low-level command execution
 driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]
