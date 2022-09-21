@@ -196,6 +196,19 @@ pub mod events {
         Full(Party),
     }
 
+    #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    pub struct UserReactionEvent {
+        pub user_id: Snowflake,
+        pub room_id: Snowflake,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub party_id: Option<Snowflake>,
+        pub msg_id: Snowflake,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub member: Option<Box<PartyMember>>,
+        pub emote: EmoteOrEmoji,
+    }
+
     //#[derive(Debug, Clone, Serialize, Deserialize)]
     //pub struct PresenceUpdate {
     //    pub user_id: Snowflake,
@@ -429,8 +442,8 @@ pub mod message {
             20 => MessageUpdate { #[serde(flatten)] msg: Box<RoomMessage> },
             21 => MessageDelete { #[serde(flatten)] msg: Box<MessageDeleteEvent> },
 
-            22 => MessageReactionAdd {},
-            23 => MessageReactionRemove {},
+            22 => MessageReactionAdd { #[serde(flatten)] r: Box<UserReactionEvent> },
+            23 => MessageReactionRemove { #[serde(flatten)] r: Box<UserReactionEvent> },
             24 => MessageReactionRemoveAll {},
             25 => MessageReactionRemoveEmote {},
 
