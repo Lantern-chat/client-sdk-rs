@@ -222,6 +222,7 @@ pub mod message {
     use serde_repr::{Deserialize_repr, Serialize_repr};
 
     use serde::de::{self, Deserialize, Deserializer, MapAccess, SeqAccess, Visitor};
+    use serde::ser::{Serialize, SerializeStruct, Serializer};
 
     #[inline]
     fn is_default<T>(value: &T) -> bool
@@ -267,49 +268,99 @@ pub mod message {
                 )*
             }
 
-            $(#[$meta])*
-            #[derive(Debug, Serialize)]
-            #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-            #[serde(untagged)] // custom tagging
-            pub enum $name {$(
-                $(#[$variant_meta])*
-                #[doc = ""]
-                #[doc = "See [" [<new_ $opcode:snake>] "](" $name "::" [<new_ $opcode:snake>] ") for an easy way to create this message."]
-                #[cfg_attr(feature = "schema", schemars(description = "" $name "::" $opcode "" ))]
-                $opcode {
-                    #[serde(rename = "o")]
-                    #[cfg_attr(feature = "schema", schemars(description = "" [<$name Opcode>] "::" $opcode "" ))]
-                    op: [<$name Opcode>],
+            #[doc = "Handler callbacks for [" $name "]"]
+            #[cfg(feature = "framework")]
+            #[async_trait::async_trait]
+            pub trait [<$name Handlers>]<U = ()>: Sized {
+                /// Dispatches a message to the appropriate event handler
+                async fn dispatch(self, msg: $name) -> U {
+                    match msg {
+                        $($name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }) => {
+                            self.[<on_ $opcode:snake>]($($field,)*)
+                        })*
+                    }.await
+                }
 
-                    #[serde(rename = "p")]
-                    $(#[serde(skip_serializing_if = "" [< is_ $Default:lower >] "" )])?
-                    payload: [<$name:snake _payloads>]::[<$opcode Payload>],
-                },)*
+                /// Callback for unhandled messages
+                async fn fallback(self, msg: $name) -> U;
+
+                $(
+                    $(#[$variant_meta])*
+                    #[doc = ""]
+                    #[doc = "Handler callback for [" $name "::" $opcode "]"]
+                    #[inline(always)]
+                    async fn [<on_ $opcode:snake>](self, $($field: $ty,)*) -> U {
+                        self.fallback($name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* })).await
+                    }
+                )*
+            }
+
+            $(#[$meta])*
+            #[derive(Debug)]
+            #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+            pub enum $name {
+                $(
+                    $(#[$variant_meta])*
+                    #[doc = ""]
+                    #[doc = "See [" [<new_ $opcode:snake>] "](" $name "::" [<new_ $opcode:snake>] ") for an easy way to create this message."]
+                    #[cfg_attr(feature = "schema", schemars(description = "" $name "::" $opcode "" ))]
+                    $opcode([<$name:snake _payloads>]::[<$opcode Payload>])
+                ,)*
+            }
+
+            impl $name {
+                /// Returns the discrete opcode for the message
+                pub const fn opcode(&self) -> [<$name Opcode>] {
+                    match self {
+                        $($name::$opcode(_) => [<$name Opcode>]::$opcode,)*
+                    }
+                }
+            }
+
+            impl From<&$name> for [<$name Opcode>] {
+                #[inline]
+                fn from(msg: &$name) -> [<$name Opcode>] {
+                    msg.opcode()
+                }
             }
 
             impl $name {
                 $(
-                    #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from raw payload struct."]
-                    #[doc = ""]
-                    $(#[$variant_meta])*
-                    #[inline]
-                    pub const fn [<$opcode:snake>](payload: [<$name:snake _payloads>]::[<$opcode Payload>]) -> Self {
-                        $name::$opcode { op: [<$name Opcode>]::$opcode, payload }
-                    }
-
                     #[doc = "Create new [" $opcode "](" $name "::" $opcode ") message from payload fields."]
                     #[doc = ""]
                     $(#[$variant_meta])*
                     #[inline]
                     pub fn [<new_ $opcode:snake>]($($field: impl Into<$ty>),*) -> Self {
-                        $name::$opcode {
-                            op: [<$name Opcode>]::$opcode,
-                            payload: [<$name:snake _payloads>]::[<$opcode Payload>] {
-                                $($field: $field.into()),*
-                            }
-                        }
+                        $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] {
+                            $($field: $field.into()),*
+                        })
                     }
                 )*
+            }
+
+            impl Serialize for $name {
+                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where
+                    S: Serializer,
+                {
+                    let state = match self {$(
+                        $name::$opcode(payload) => {
+                            let skip_payload = false $(|| [<is_ $Default:lower>](payload))?;
+
+                            let mut state = serializer.serialize_struct(stringify!($name), 2 - skip_payload as usize)?;
+
+                            state.serialize_field("o", &[<$name Opcode>]::$opcode)?;
+
+                            if !skip_payload {
+                                state.serialize_field("p", payload)?;
+                            }
+
+                            state
+                        }
+                    )*};
+
+                    state.end()
+                }
             }
 
             impl<'de> Deserialize<'de> for $name {
@@ -348,16 +399,13 @@ pub mod message {
 
                             match opcode {
                                 $(
-                                    [<$name Opcode>]::$opcode => Ok($name::$opcode {
-                                        op: opcode,
-                                        payload: match map.next_entry()? {
-                                            Some((Field::Payload, payload)) => payload,
-                                            $(None => $Default::default(),)?
+                                    [<$name Opcode>]::$opcode => Ok($name::$opcode(match map.next_entry()? {
+                                        Some((Field::Payload, payload)) => payload,
+                                        $(None => $Default::default(),)?
 
-                                            #[allow(unreachable_patterns)]
-                                            _ => return Err(de::Error::missing_field("payload")),
-                                        }
-                                    }),
+                                        #[allow(unreachable_patterns)]
+                                        _ => return Err(de::Error::missing_field("payload")),
+                                    })),
                                 )*
                                 // _ => Err(de::Error::custom("Invalid opcode")),
                             }
@@ -374,16 +422,13 @@ pub mod message {
 
                             match opcode {
                                 $(
-                                    [<$name Opcode>]::$opcode => Ok($name::$opcode {
-                                        op: opcode,
-                                        payload: match seq.next_element()? {
-                                            Some(payload) => payload,
-                                            $(None => $Default::default(),)?
+                                    [<$name Opcode>]::$opcode => Ok($name::$opcode(match seq.next_element()? {
+                                        Some(payload) => payload,
+                                        $(None => $Default::default(),)?
 
-                                            #[allow(unreachable_patterns)]
-                                            _ => return Err(de::Error::missing_field("payload")),
-                                        }
-                                    }),
+                                        #[allow(unreachable_patterns)]
+                                        _ => return Err(de::Error::missing_field("payload")),
+                                    })),
                                 )*
                             }
                         }
@@ -409,7 +454,7 @@ pub mod message {
     decl_msgs! {
         /// Messages send from the server to the client
         enum ServerMsg {
-            /// The Hello message initialates the gateway session and expects a [ClientMsg::Identify] in return.
+            /// The Hello message initiates the gateway session and expects a [ClientMsg::Identify] in return.
             0 => Hello { #[serde(flatten)] inner: Hello },
 
             /// Acknowledgement of a heartbeat

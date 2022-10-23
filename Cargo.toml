@@ -59,6 +59,7 @@ tokio-tungstenite = { version = "0.17", optional = true, default_features = fals
 miniz_oxide = { version = "0.6", optional = true }
 futures = { version = "0.3", optional = true }
 pin-project-lite = { version = "0.2.8", optional = true }
+async-trait = { version = "0.1", optional = true }
 
 [features]
 _internal_common = ["thiserror"]
@@ -78,7 +79,7 @@ fs = ["tokio/fs"]
 # Realtime gateway support
 gateway = ["tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
 
-framework = ["client", "gateway"]
+framework = ["client", "gateway", "async-trait"]
 
 # Efficient binary Encoding
 cbor = ["ciborium"]
