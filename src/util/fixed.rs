@@ -71,10 +71,12 @@ impl<const N: usize> FixedStr<N> {
         }
 
         let mut data = [0; N];
+        let src = s.as_bytes();
 
+        // must use while-loop in const function
         let mut i = 0;
         while i < N {
-            data[i] = s.as_bytes()[i];
+            data[i] = src[i];
             i += 1;
         }
 
