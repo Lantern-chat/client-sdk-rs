@@ -24,7 +24,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(SecurityFlags);
 impl_schema_for_bitflags!(SecurityFlags);
-impl_pg_for_bitflags!(SecurityFlags);
+impl_sql_for_bitflags!(SecurityFlags);
 
 impl Default for SecurityFlags {
     fn default() -> Self {
@@ -93,7 +93,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(PartyMemberFlags);
 impl_schema_for_bitflags!(PartyMemberFlags);
-impl_pg_for_bitflags!(PartyMemberFlags);
+impl_sql_for_bitflags!(PartyMemberFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

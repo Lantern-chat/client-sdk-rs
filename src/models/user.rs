@@ -129,7 +129,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(UserProfileBits);
 impl_schema_for_bitflags!(UserProfileBits);
-impl_pg_for_bitflags!(UserProfileBits);
+impl_sql_for_bitflags!(UserProfileBits);
 
 impl Default for UserProfileBits {
     fn default() -> Self {
@@ -200,7 +200,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(FriendFlags);
 impl_schema_for_bitflags!(FriendFlags);
-impl_pg_for_bitflags!(FriendFlags);
+impl_sql_for_bitflags!(FriendFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

@@ -1,4 +1,4 @@
-macro_rules! impl_pg_for_bitflags {
+macro_rules! impl_sql_for_bitflags {
     (@ACCEPTS $id:ident) => {
         fn accepts(ty: &postgres_types::Type) -> bool {
             use postgres_types::Type;
@@ -13,6 +13,26 @@ macro_rules! impl_pg_for_bitflags {
         }
     };
     ($id:ident) => {
+        #[cfg(feature = "rusqlite")]
+        const _: () = {
+            use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
+
+            impl FromSql for $id {
+                fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+                    match value {
+                        ValueRef::Integer(value) => Ok(Self::from_bits_truncate(value as _)),
+                        _ => Err(FromSqlError::InvalidType),
+                    }
+                }
+            }
+
+            impl ToSql for $id {
+                fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+                    Ok(ToSqlOutput::Owned(self.bits().into()))
+                }
+            }
+        };
+
         #[cfg(feature = "pg")]
         const _: () = {
             use std::error::Error;
@@ -26,7 +46,7 @@ macro_rules! impl_pg_for_bitflags {
                     Ok(Self::from_bits_truncate(FromSql::from_sql(ty, raw)?))
                 }
 
-                impl_pg_for_bitflags!(@ACCEPTS $id);
+                impl_sql_for_bitflags!(@ACCEPTS $id);
             }
 
             impl ToSql for $id {
@@ -42,7 +62,7 @@ macro_rules! impl_pg_for_bitflags {
                     self.bits().to_sql(ty, out)
                 }
 
-                impl_pg_for_bitflags!(@ACCEPTS $id);
+                impl_sql_for_bitflags!(@ACCEPTS $id);
                 to_sql_checked!();
             }
         };

@@ -32,7 +32,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(AssetFlags);
 impl_schema_for_bitflags!(AssetFlags);
-impl_pg_for_bitflags!(AssetFlags);
+impl_sql_for_bitflags!(AssetFlags);
 
 impl AssetFlags {
     pub const fn with_quality(self, q: u8) -> Self {

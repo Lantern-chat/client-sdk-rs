@@ -99,6 +99,31 @@ mod impl_serde {
     }
 }
 
+#[cfg(feature = "rusqlite")]
+mod rusqlite_impl {
+    use super::Nullable;
+
+    use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, Null, ToSql, ToSqlOutput, ValueRef};
+
+    impl<T: FromSql> FromSql for Nullable<T> {
+        fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+            match value {
+                ValueRef::Null => Ok(Nullable::Null),
+                _ => T::column_result(value).map(Nullable::Some),
+            }
+        }
+    }
+
+    impl<T: ToSql> ToSql for Nullable<T> {
+        fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+            match self {
+                Nullable::Some(val) => val.to_sql(),
+                _ => Ok(ToSqlOutput::from(Null)),
+            }
+        }
+    }
+}
+
 #[cfg(feature = "pg")]
 mod pg_impl {
     use super::Nullable;
@@ -127,8 +152,8 @@ mod pg_impl {
     impl<T: ToSql> ToSql for Nullable<T> {
         #[inline]
         fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
-            match *self {
-                Nullable::Some(ref val) => val.to_sql(ty, out),
+            match self {
+                Nullable::Some(val) => val.to_sql(ty, out),
                 _ => Ok(IsNull::Yes),
             }
         }

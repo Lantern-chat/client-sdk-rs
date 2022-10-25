@@ -110,6 +110,31 @@ mod pg_impl {
     }
 }
 
+#[cfg(feature = "rusqlite")]
+mod rusqlite_impl {
+    use super::*;
+
+    use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
+
+    impl FromSql for Snowflake {
+        fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+            match value {
+                ValueRef::Integer(i) if i != 0 => unsafe {
+                    Ok(Snowflake(NonZeroU64::new_unchecked(i as u64)))
+                },
+                ValueRef::Integer(_) => Err(FromSqlError::OutOfRange(0)),
+                _ => Err(FromSqlError::InvalidType),
+            }
+        }
+    }
+
+    impl ToSql for Snowflake {
+        fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
+            Ok(ToSqlOutput::Owned(self.to_i64().into()))
+        }
+    }
+}
+
 mod serde_impl {
     use super::*;
 
