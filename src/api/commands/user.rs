@@ -30,8 +30,11 @@ command! {
     +struct GetFriends -> Vec<Friend>: GET("user" / "@me" / "friends") {}
 
     +struct UpdateUserProfile -> UserProfile: PATCH("user" / "@me" / "profile") {
-        ; struct UpdateUserProfileBody {
+        ; #[derive(Default)] struct UpdateUserProfileBody {
             pub bits: UserProfileBits,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            pub nick: Nullable<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             pub avatar: Nullable<Snowflake>,

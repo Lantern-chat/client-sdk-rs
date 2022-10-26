@@ -143,6 +143,9 @@ pub struct UserProfile {
     pub bits: UserProfileBits,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub nick: Nullable<SmolStr>,
+
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     pub avatar: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
