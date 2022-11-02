@@ -139,9 +139,15 @@ impl fmt::Display for UserPreference {
     }
 }
 
+#[cfg(not(feature = "ahash"))]
+type Hasher = std::collections::hash_map::RandomState;
+
+#[cfg(feature = "ahash")]
+type Hasher = ahash::RandomState;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct UserPreferences(HashMap<UserPreference, Value>);
+pub struct UserPreferences(HashMap<UserPreference, Value, Hasher>);
 
 #[derive(Debug, Clone, Copy)]
 pub struct UserPreferenceError {

@@ -24,13 +24,13 @@ itoa = "1"
 time = { version = "0.3", features = ["macros"] }
 smol_str = { version = "0.1", features = ["serde"] }
 arrayvec = { version = "0.7.1", features = ["serde"] }
-hashbrown = "0.12"
 paste = "1"
 static_assertions = "1"
 byteorder = "1.4"
 
 schemars = { version = "0.8", optional = true }
 okapi = { version = "0.7.0-rc.1", optional = true }
+ahash = { version = "0.8", optional = true }
 
 # Maybe?
 # typescript-definitions = { git = "https://github.com/storyscript/typescript-definitions" }
