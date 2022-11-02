@@ -74,6 +74,8 @@ bitflags::bitflags! {
 
         /// - TYPING_START
         const DIRECT_MESSAGE_TYPING     = 1 << 14;
+
+        const PROFILE_UPDATES           = 1 << 15;
     }
 }
 
@@ -129,10 +131,10 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct TypingStart {
-        pub room: Snowflake,
+        pub room_id: Snowflake,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub party: Option<Snowflake>,
-        pub user: Snowflake,
+        pub party_id: Option<Snowflake>,
+        pub user_id: Snowflake,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub member: Option<PartyMember>,
         // maybe timestamp?
@@ -493,11 +495,21 @@ pub mod message {
             25 => MessageReactionRemoveEmote {},
 
             26 => PresenceUpdate {
+                #[serde(default, skip_serializing_if = "Option::is_none")]
                 party_id: Option<Snowflake>,
-                #[serde(flatten)] inner: Box<UserPresenceEvent>,
+
+                #[serde(flatten)]
+                inner: Box<UserPresenceEvent>,
             },
             27 => TypingStart { #[serde(flatten)] t: Box<TypingStart> },
-            28 => UserUpdate { user: Arc<User> }
+            28 => UserUpdate { user: Arc<User> },
+
+            29 => ProfileUpdate {
+                #[serde(default, skip_serializing_if = "Option::is_none")]
+                party_id: Option<Snowflake>,
+
+                user: Box<User>,
+            }
         }
     }
 
@@ -519,40 +531,55 @@ pub mod message {
         #[rustfmt::skip]
         pub fn matching_intent(&self) -> Option<Intent> {
             Some(match *self {
-                ServerMsg::PartyCreate { .. } |
-                ServerMsg::PartyDelete { .. } |
-                ServerMsg::PartyUpdate { .. } |
-                ServerMsg::RoleCreate { .. } |
-                ServerMsg::RoleDelete { .. } |
-                ServerMsg::RoleUpdate { .. } |
-                ServerMsg::RoomPinsUpdate { .. } |
-                ServerMsg::RoomCreate { .. } |
-                ServerMsg::RoomDelete { .. } |
-                ServerMsg::RoomUpdate { .. } => Intent::PARTIES,
+                | ServerMsg::PartyCreate { .. }
+                | ServerMsg::PartyDelete { .. }
+                | ServerMsg::PartyUpdate { .. }
+                | ServerMsg::RoleCreate { .. }
+                | ServerMsg::RoleDelete { .. }
+                | ServerMsg::RoleUpdate { .. }
+                | ServerMsg::RoomPinsUpdate { .. }
+                | ServerMsg::RoomCreate { .. }
+                | ServerMsg::RoomDelete { .. }
+                | ServerMsg::RoomUpdate { .. }
+                    => Intent::PARTIES,
 
-                ServerMsg::MemberAdd { .. } |
-                ServerMsg::MemberRemove { .. } |
-                ServerMsg::MemberUpdate { .. } => Intent::PARTY_MEMBERS,
+                | ServerMsg::MemberAdd { .. }
+                | ServerMsg::MemberUpdate { .. }
+                | ServerMsg::MemberRemove { .. }
+                    => Intent::PARTY_MEMBERS,
 
-                ServerMsg::MemberBan {..} | ServerMsg::MemberUnban {..} => Intent::PARTY_BANS,
+                | ServerMsg::MemberBan {..}
+                | ServerMsg::MemberUnban {..}
+                    => Intent::PARTY_BANS,
 
-                ServerMsg::MessageCreate { .. } |
-                ServerMsg::MessageDelete { .. } |
-                ServerMsg::MessageUpdate { .. } => Intent::MESSAGES,
+                | ServerMsg::MessageCreate { .. }
+                | ServerMsg::MessageDelete { .. }
+                | ServerMsg::MessageUpdate { .. }
+                    => Intent::MESSAGES,
 
-                ServerMsg::MessageReactionAdd { .. } |
-                ServerMsg::MessageReactionRemove { .. } |
-                ServerMsg::MessageReactionRemoveAll { .. } |
-                ServerMsg::MessageReactionRemoveEmote { .. } => Intent::MESSAGE_REACTIONS,
+                | ServerMsg::MessageReactionAdd { .. }
+                | ServerMsg::MessageReactionRemove { .. }
+                | ServerMsg::MessageReactionRemoveAll { .. }
+                | ServerMsg::MessageReactionRemoveEmote { .. }
+                    => Intent::MESSAGE_REACTIONS,
 
-                ServerMsg::PresenceUpdate { .. } => Intent::PRESENCE,
-                ServerMsg::TypingStart { .. } => Intent::MESSAGE_TYPING,
+                ServerMsg::PresenceUpdate { .. }
+                    => Intent::PRESENCE,
 
-                ServerMsg::Hello { .. } |
-                ServerMsg::HeartbeatAck { .. } |
-                ServerMsg::Ready { .. } |
-                ServerMsg::InvalidSession { .. } |
-                ServerMsg::UserUpdate { .. } => return None,
+                ServerMsg::TypingStart { .. }
+                    => Intent::MESSAGE_TYPING,
+
+                ServerMsg::ProfileUpdate(ref payload) => match payload.party_id {
+                    Some(_) => Intent::PROFILE_UPDATES | Intent::PARTY_MEMBERS,
+                    None => Intent::PROFILE_UPDATES,
+                }
+
+                | ServerMsg::Hello { .. }
+                | ServerMsg::HeartbeatAck { .. }
+                | ServerMsg::Ready { .. }
+                | ServerMsg::UserUpdate { .. }
+                | ServerMsg::InvalidSession { .. }
+                    => return None,
             })
         }
     }
