@@ -33,6 +33,9 @@ command! {
         ; #[derive(Default)] struct UpdateUserProfileBody {
             pub bits: UserProfileBits,
 
+            #[serde(default, skip_serializing_if = "ExtraUserProfileBits::is_empty")]
+            pub extra: ExtraUserProfileBits,
+
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             pub nick: Nullable<SmolStr>,
 

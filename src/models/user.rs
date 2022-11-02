@@ -120,10 +120,17 @@ impl TryFrom<DateOfBirth> for time::Date {
 }
 
 bitflags::bitflags! {
+    #[derive(Default)]
     pub struct UserProfileBits: i32 {
         const AVATAR_ROUNDNESS = 0x7F; // 127, lower 7 bits
         const OVERRIDE_COLOR = 0x80; // 8th bit
-        const COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits
+        const PRIMARY_COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits
+    }
+
+    #[derive(Default)]
+    pub struct ExtraUserProfileBits: i32 {
+        const OVERRIDE_COLOR = 0x80; // 8th bit
+        const SECONDARY_COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits
     }
 }
 
@@ -131,16 +138,17 @@ serde_shims::impl_serde_for_bitflags!(UserProfileBits);
 impl_schema_for_bitflags!(UserProfileBits);
 impl_sql_for_bitflags!(UserProfileBits);
 
-impl Default for UserProfileBits {
-    fn default() -> Self {
-        UserProfileBits::empty()
-    }
-}
+serde_shims::impl_serde_for_bitflags!(ExtraUserProfileBits);
+impl_schema_for_bitflags!(ExtraUserProfileBits);
+impl_sql_for_bitflags!(ExtraUserProfileBits);
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct UserProfile {
     pub bits: UserProfileBits,
+
+    #[serde(default, skip_serializing_if = "ExtraUserProfileBits::is_empty")]
+    pub extra: ExtraUserProfileBits,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     pub nick: Nullable<SmolStr>,
