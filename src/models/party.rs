@@ -8,6 +8,7 @@ bitflags::bitflags! {
         const LANGUAGE = 0b111_111 << (16 - 6);
     }
 
+    #[derive(Default)]
     pub struct SecurityFlags: i16 {
         /// Must have a verified email address
         const EMAIL         = 1 << 0;
@@ -25,12 +26,6 @@ bitflags::bitflags! {
 serde_shims::impl_serde_for_bitflags!(SecurityFlags);
 impl_schema_for_bitflags!(SecurityFlags);
 impl_sql_for_bitflags!(SecurityFlags);
-
-impl Default for SecurityFlags {
-    fn default() -> Self {
-        SecurityFlags::empty()
-    }
-}
 
 //#[derive(Debug, Clone, Serialize, Deserialize)]
 //#[serde(untagged)]

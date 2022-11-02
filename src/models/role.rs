@@ -1,6 +1,7 @@
 use super::*;
 
 bitflags::bitflags! {
+    #[derive(Default)]
     pub struct RoleFlags: i16 {
         const HOIST         = 1 << 0;
         const MENTIONABLE   = 1 << 1;
@@ -10,12 +11,6 @@ bitflags::bitflags! {
 serde_shims::impl_serde_for_bitflags!(RoleFlags);
 impl_schema_for_bitflags!(RoleFlags);
 impl_sql_for_bitflags!(RoleFlags);
-
-impl Default for RoleFlags {
-    fn default() -> Self {
-        RoleFlags::empty()
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
