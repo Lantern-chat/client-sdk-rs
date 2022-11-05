@@ -15,6 +15,9 @@ pub struct ServerConfig {
     pub secure: bool,
 
     pub limits: ServerLimits,
+
+    /// If true, use a "camo"/camouflage route provided at "{cdn}/camo/base64_url/url_signature"
+    pub camo: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
