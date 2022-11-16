@@ -211,6 +211,14 @@ pub mod events {
         pub emote: EmoteOrEmoji,
     }
 
+    #[derive(Debug, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    pub struct ProfileUpdateEvent {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub party_id: Option<Snowflake>,
+        pub user: User,
+    }
+
     //#[derive(Debug, Clone, Serialize, Deserialize)]
     //pub struct PresenceUpdate {
     //    pub user_id: Snowflake,
@@ -504,12 +512,7 @@ pub mod message {
             27 => TypingStart { #[serde(flatten)] t: Box<TypingStart> },
             28 => UserUpdate { user: Arc<User> },
 
-            29 => ProfileUpdate {
-                #[serde(default, skip_serializing_if = "Option::is_none")]
-                party_id: Option<Snowflake>,
-
-                user: Box<User>,
-            }
+            29 => ProfileUpdate { #[serde(flatten)] inner: Box<ProfileUpdateEvent> },
         }
     }
 
@@ -523,7 +526,7 @@ pub mod message {
             },
             3 => SetPresence { #[serde(flatten)] inner: Box<SetPresence> },
             4 => Subscribe { party_id: Snowflake },
-            5 => Unsubscribe { party_id: Snowflake }
+            5 => Unsubscribe { party_id: Snowflake },
         }
     }
 
@@ -569,7 +572,7 @@ pub mod message {
                 ServerMsg::TypingStart { .. }
                     => Intent::MESSAGE_TYPING,
 
-                ServerMsg::ProfileUpdate(ref payload) => match payload.party_id {
+                ServerMsg::ProfileUpdate(ref payload) => match payload.inner.party_id {
                     Some(_) => Intent::PROFILE_UPDATES | Intent::PARTY_MEMBERS,
                     None => Intent::PROFILE_UPDATES,
                 }
