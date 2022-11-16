@@ -204,8 +204,14 @@ pub struct User {
 
 bitflags::bitflags! {
     pub struct FriendFlags: i16 {
+        /// If the friend-request was accepted
+        const ACCEPTED = 1 << 0;
+
+        /// If this friend-request is waiting on action from the current user
+        const PENDING = 1 << 1;
+
         /// Pins the user to the top of their friendlist
-        const FAVORITE = 1 << 0;
+        const FAVORITE = 1 << 2;
     }
 }
 

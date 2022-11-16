@@ -455,7 +455,7 @@ pub mod message {
     use crate::models::{
         commands::{Identify, SetPresence},
         events::*,
-        Intent, Message as RoomMessage, Party, PartyMember, Role, User, UserPresence,
+        Friend, Intent, Message as RoomMessage, Party, PartyMember, Role, User, UserPresence,
     };
 
     type Room = (); // TODO
@@ -513,6 +513,8 @@ pub mod message {
             28 => UserUpdate { user: Arc<User> },
 
             29 => ProfileUpdate { #[serde(flatten)] inner: Box<ProfileUpdateEvent> },
+            30 => FriendAdd { #[serde(flatten)] inner: Box<Friend> },
+            31 => FriendRemove { user_id: Snowflake },
         }
     }
 
@@ -582,6 +584,8 @@ pub mod message {
                 | ServerMsg::Ready { .. }
                 | ServerMsg::UserUpdate { .. }
                 | ServerMsg::InvalidSession { .. }
+                | ServerMsg::FriendAdd { .. }
+                | ServerMsg::FriendRemove { .. }
                     => return None,
             })
         }

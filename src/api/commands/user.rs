@@ -29,6 +29,25 @@ command! {
 
     +struct GetFriends -> Vec<Friend>: GET("user" / "@me" / "friends") {}
 
+    /// Used for sending and accepting friend requests
+    +struct AddFriend -> Friend: POST("user" / "@me" / "friends" / user_id) {
+        pub user_id: Snowflake,
+    }
+
+    /// Used for rejecting a friend-request or removing an existing friend
+    +struct RemoveFriend -> (): DELETE("user" / "@me" / "friends" / user_id) {
+        pub user_id: Snowflake,
+    }
+
+    +struct PatchFriend -> Friend: PATCH("user" / "@me" / "friends" / user_id) {
+        pub user_id: Snowflake,
+
+        ; #[derive(Default)] struct PatchFriendBody {
+            pub fav: Nullable<bool>,
+            pub note: Nullable<SmolStr>,
+        }
+    }
+
     +struct UpdateUserProfile -> UserProfile: PATCH("user" / "@me" / "profile") {
         ; #[derive(Default)] struct UpdateUserProfileBody {
             pub bits: UserProfileBits,
