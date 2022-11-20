@@ -64,6 +64,7 @@ pub enum ApiErrorCode {
     Base85DecodeError        = 40031,
     WebsocketError           = 40032,
     MissingContentTypeHeader = 40033,
+    Blocked                  = 40034,
 
     // Generic HTTP-like error codes
     BadRequest               = 40400,
