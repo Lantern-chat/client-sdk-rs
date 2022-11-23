@@ -3,11 +3,7 @@ use super::*;
 bitflags::bitflags! {
     /// NOTE: Remember to clear flag caches when they change
     pub struct UserFlags: i32 {
-        //const SYSTEM                = 1 << 2;
-        //const BOT                   = 1 << 3;
-        //const STAFF                 = 1 << 4;
-
-        const DELETED               = 1 << 0;
+        const BANNED                = 1 << 0;
         const VERIFIED              = 1 << 1;
         const MFA_ENABLED           = 1 << 2;
         const NEEDS_PASSWORD_RESET  = 1 << 3;
@@ -36,7 +32,7 @@ bitflags::bitflags! {
         const RESERVED = Self::RESERVED_1.bits | Self::RESERVED_2.bits | Self::RESERVED_3.bits | Self::RESERVED_4.bits;
 
         /// Always strip these from public responses
-        const PRIVATE_FLAGS = Self::VERIFIED.bits | Self::MFA_ENABLED.bits | Self::DELETED.bits | Self::NEEDS_PASSWORD_RESET.bits | Self::EXTRA_STORAGE.bits | Self::RESERVED.bits;
+        const PRIVATE_FLAGS = Self::BANNED.bits | Self::VERIFIED.bits | Self::MFA_ENABLED.bits | Self::NEEDS_PASSWORD_RESET.bits | Self::EXTRA_STORAGE.bits | Self::RESERVED.bits;
 
         /// elevation level integer
         const ELEVATION     = Self::ELEVATION_1.bits | Self::ELEVATION_2.bits | Self::ELEVATION_3.bits;
