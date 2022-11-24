@@ -11,7 +11,7 @@ license = "GPL-3.0-only"
 smol_str = { git = "https://github.com/Lantern-chat/smol_str" }
 
 [dependencies]
-timestamp = { package = "iso8601-timestamp", version = "0.1" }
+timestamp = { package = "iso8601-timestamp", version = "0.2" }
 
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
