@@ -41,46 +41,40 @@ pub enum Font {
 bitflags::bitflags! {
     pub struct UserPrefsFlags: i32 {
         /// Reduce movement and animations in the UI
-        const REDUCE_ANIMATIONS = 1 << 0;
+        const REDUCE_ANIMATIONS                 = 1 << 0;
         /// Pause animations on window unfocus
-        const UNFOCUS_PAUSE = 1 << 1;
-        const LIGHT_MODE = 1 << 2;
+        const UNFOCUS_PAUSE                     = 1 << 1;
+        const LIGHT_MODE                        = 1 << 2;
 
         /// Allow direct messages from shared server memmbers
-        const ALLOW_DMS = 1 << 3;
+        const ALLOW_DMS                         = 1 << 3;
         /// Show small lines between message groups
-        const GROUP_LINES = 1 << 4;
-        const HIDE_AVATARS = 1 << 5;
+        const GROUP_LINES                       = 1 << 4;
+        const HIDE_AVATARS                      = 1 << 5;
 
         /// Display dark theme in an OLED-compatible mode
-        const OLED_MODE = 1 << 6;
+        const OLED_MODE                         = 1 << 6;
 
         /// Mute videos/audio by default
-        const MUTE_MEDIA = 1 << 7;
+        const MUTE_MEDIA                        = 1 << 7;
 
         /// Hide images/video with unknown dimensions
-        const HIDE_UNKNOWN_DIMENSIONS = 1 << 8;
+        const HIDE_UNKNOWN_DIMENSIONS           = 1 << 8;
 
-        const COMPACT_VIEW = 1 << 9;
+        const COMPACT_VIEW                      = 1 << 9;
 
         /// Prefer browser/platform emojis rather than twemoji
-        const USE_PLATFORM_EMOJIS = 1 << 10;
-
-        const ENABLE_SPELLCHECK = 1 << 11;
-
-        const LOW_BANDWIDTH_MODE = 1 << 12;
-        // TODO: VERY_LOW_BANDWIDTH_MODE ?
-
-        const FORCE_COLOR_CONSTRAST = 1 << 13;
+        const USE_PLATFORM_EMOJIS               = 1 << 10;
+        const ENABLE_SPELLCHECK                 = 1 << 11;
+        const LOW_BANDWIDTH_MODE                = 1 << 12;
+        const FORCE_COLOR_CONSTRAST             = 1 << 13;
 
         /// Displays information like mime type and file size
-        const SHOW_MEDIA_METADATA = 1 << 14;
+        const SHOW_MEDIA_METADATA               = 1 << 14;
+        const DEVELOPER_MODE                    = 1 << 15;
+        const SHOW_DATE_CHANGE                  = 1 << 16;
 
-        const DEVELOPER_MODE = 1 << 15;
-
-
-
-        const DEFAULT_FLAGS = Self::ALLOW_DMS.bits | Self::GROUP_LINES.bits | Self::ENABLE_SPELLCHECK.bits;
+        const DEFAULT_FLAGS = Self::ALLOW_DMS.bits | Self::GROUP_LINES.bits | Self::ENABLE_SPELLCHECK.bits | Self::SHOW_DATE_CHANGE.bits;
     }
 }
 
