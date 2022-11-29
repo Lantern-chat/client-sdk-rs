@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
-use smol_str::SmolStr;
-use timestamp::Timestamp;
+pub use smol_str::SmolStr;
+pub use timestamp::Timestamp;
 
 pub mod nullable;
 
