@@ -27,13 +27,15 @@ impl Default for Locale {
 #[allow(non_camel_case_types)]
 pub enum Font {
     SansSerif = 0,
-    Serif,
-    Monospace,
-    Cursive,
-    ComicSans,
+    Serif = 1,
+    Monospace = 2,
+    Cursive = 3,
+    ComicSans = 4,
 
     // third-party fonts
     OpenDyslexic = 30,
+
+    AtkinsonHyperlegible = 31,
 
     __MAX_FONT,
 }
