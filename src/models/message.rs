@@ -33,9 +33,12 @@ impl MessageFlags {
 pub enum MessageKind {
     Normal  = 0,
     Welcome = 1,
+    Ephemeral = 2,
+    Unavailable = 3,
 }
 
 impl Default for MessageKind {
+    #[inline(always)]
     fn default() -> MessageKind {
         MessageKind::Normal
     }

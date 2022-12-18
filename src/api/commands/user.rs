@@ -27,6 +27,9 @@ command! {
 
     +struct GetSessions -> Vec<AnonymousSession>: GET("user" / "@me" / "sessions") {}
 
+    /// Clears all **other** sessions
+    +struct ClearSessions -> (): DELETE("user" / "@me" / "sessions") {}
+
     +struct GetFriends -> Vec<Friend>: GET("user" / "@me" / "friends") {}
 
     /// Used for sending and accepting friend requests
@@ -72,11 +75,7 @@ command! {
         }
     }
 
-    +struct GetUserProfile -> UserProfile: GET("user" / user_id / "profile") {
-        pub user_id: Snowflake,
-    }
-
-    +struct GetUser -> User: GET("user" / user_id) {
+    +struct GetUser -> FullUser: GET("user" / user_id) {
         pub user_id: Snowflake,
     }
 

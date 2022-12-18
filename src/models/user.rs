@@ -75,8 +75,9 @@ impl UserFlags {
         }
     }
 
-    pub fn with_elevation(self, ev: ElevationLevel) -> Self {
-        self.difference(Self::ELEVATION) | Self::from_bits_truncate(((ev as u8) as i32) << 6)
+    pub const fn with_elevation(self, ev: ElevationLevel) -> Self {
+        self.difference(Self::ELEVATION)
+            .union(Self::from_bits_truncate(((ev as u8) as i32) << 6))
     }
 
     pub fn premium_level(self) -> u8 {
@@ -86,6 +87,10 @@ impl UserFlags {
     pub fn extra_storage_tier(self) -> u8 {
         ((self & Self::EXTRA_STORAGE).bits() >> 13) as u8
     }
+
+    pub const SYSTEM_USER: UserFlags = UserFlags::empty()
+        .with_elevation(ElevationLevel::System)
+        .union(UserFlags::VERIFIED);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -186,6 +191,11 @@ pub struct User {
     pub discriminator: i32,
     pub flags: UserFlags,
 
+    /// approximately how many seconds ago they were active
+    /// not present in all events or if user has disabled it
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_active: Option<u64>,
+
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     pub profile: Nullable<UserProfile>,
 
@@ -248,3 +258,33 @@ mod tests {
         println!("BOT: {}", f.with_elevation(ElevationLevel::Bot).bits());
     }
 }
+
+bitflags::bitflags! {
+    pub struct UserRelationship: i8 {
+        /// You share a party
+        const ASSOCIATED    = 1 << 0;
+        const FRIENDS       = 1 << 1;
+        const BLOCKED       = 1 << 2;
+    }
+}
+
+serde_shims::impl_serde_for_bitflags!(UserRelationship);
+impl_schema_for_bitflags!(UserRelationship);
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct FullUser {
+    #[serde(flatten)]
+    pub user: User,
+    pub relation: UserRelationship,
+}
+
+bitflags::bitflags! {
+    pub struct UserBlockFlags: i16 {
+        const HIDE_OWN_MESSAGES = 1 << 0;
+    }
+}
+
+serde_shims::impl_serde_for_bitflags!(UserBlockFlags);
+impl_schema_for_bitflags!(UserBlockFlags);
+impl_sql_for_bitflags!(UserBlockFlags);

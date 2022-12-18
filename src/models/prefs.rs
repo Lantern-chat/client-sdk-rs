@@ -76,7 +76,13 @@ bitflags::bitflags! {
         const DEVELOPER_MODE                    = 1 << 15;
         const SHOW_DATE_CHANGE                  = 1 << 16;
 
-        const DEFAULT_FLAGS = Self::ALLOW_DMS.bits | Self::GROUP_LINES.bits | Self::ENABLE_SPELLCHECK.bits | Self::SHOW_DATE_CHANGE.bits;
+        const HIDE_LAST_ACTIVE                  = 1 << 17;
+
+        const DEFAULT_FLAGS =
+            Self::ALLOW_DMS.bits |
+            Self::GROUP_LINES.bits |
+            Self::ENABLE_SPELLCHECK.bits |
+            Self::SHOW_DATE_CHANGE.bits;
     }
 }
 
