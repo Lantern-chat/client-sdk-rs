@@ -26,6 +26,11 @@ impl UserPresenceFlags {
 pub struct UserPresence {
     pub flags: UserPresenceFlags,
 
+    /// approximately how many seconds ago they were active
+    /// not present in all events or if user has disabled it
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_active: Option<u64>,
+
     /// Updated-At timestamp as ISO-8061
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<Timestamp>,

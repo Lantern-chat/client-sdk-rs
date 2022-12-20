@@ -1,3 +1,5 @@
+//! Object data structures used within Lantern
+
 #![allow(unused_imports)]
 
 pub use smol_str::SmolStr;

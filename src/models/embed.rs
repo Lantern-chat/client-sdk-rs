@@ -52,15 +52,15 @@ pub struct Embed {
     ///
     /// See: <https://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/>
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub object: Option<EmbedMedia>,
+    pub object: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub image: Option<EmbedMedia>,
+    pub image: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub audio: Option<EmbedMedia>,
+    pub audio: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub video: Option<EmbedMedia>,
+    pub video: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub thumb: Option<EmbedMedia>,
+    pub thumb: Option<Box<EmbedMedia>>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fields: Vec<EmbedField>,
@@ -100,7 +100,7 @@ pub struct EmbedMedia {
 }
 
 impl EmbedMedia {
-    pub fn is_empty(this: &Option<EmbedMedia>) -> bool {
+    pub fn is_empty(this: &Option<Box<EmbedMedia>>) -> bool {
         match this {
             Some(ref e) => e.url.is_empty(),
             None => true,

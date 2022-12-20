@@ -152,7 +152,6 @@ pub mod events {
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct UserPresenceEvent {
         pub user: User,
-        pub presence: UserPresence,
     }
 
     #[derive(Debug, Serialize, Deserialize)]

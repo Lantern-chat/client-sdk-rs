@@ -191,11 +191,6 @@ pub struct User {
     pub discriminator: i32,
     pub flags: UserFlags,
 
-    /// approximately how many seconds ago they were active
-    /// not present in all events or if user has disabled it
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub last_active: Option<u64>,
-
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     pub profile: Nullable<UserProfile>,
 
@@ -206,6 +201,9 @@ pub struct User {
     /// Not present when user isn't self
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preferences: Option<UserPreferences>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub presence: Option<UserPresence>,
 }
 
 bitflags::bitflags! {

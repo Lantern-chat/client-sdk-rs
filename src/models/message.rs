@@ -58,9 +58,8 @@ pub struct Message {
 
     pub author: User,
 
-    /// Partial PartyMember
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub member: Option<PartyMember>,
+    pub member: Option<PartialPartyMember>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub thread_id: Option<Snowflake>,

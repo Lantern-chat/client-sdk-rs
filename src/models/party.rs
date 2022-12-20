@@ -92,10 +92,8 @@ impl_sql_for_bitflags!(PartyMemberFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct PartyMember {
-    /// User information
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub user: Option<User>,
+pub struct PartialPartyMember {
+    pub joined_at: Timestamp,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flags: Option<PartyMemberFlags>,
@@ -103,36 +101,21 @@ pub struct PartyMember {
     /// List of Role id snowflakes
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub roles: Option<Vec<Snowflake>>,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub presence: Option<UserPresence>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct FullPartyMember {
-    pub user: FullUser,
+pub struct PartyMember {
+    pub user: User,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub flags: Option<PartyMemberFlags>,
-
-    /// List of Role id snowflakes
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
-    pub roles: Option<Vec<Snowflake>>,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub presence: Option<UserPresence>,
-
-    pub joined_at: Timestamp,
+    #[serde(flatten)]
+    pub partial: PartialPartyMember,
 }
 
-impl From<FullPartyMember> for PartyMember {
-    fn from(p: FullPartyMember) -> Self {
-        PartyMember {
-            user: Some(p.user.user),
-            flags: p.flags,
-            roles: p.roles,
-            presence: p.presence,
-        }
+impl std::ops::Deref for PartyMember {
+    type Target = PartialPartyMember;
+
+    fn deref(&self) -> &Self::Target {
+        &self.partial
     }
 }
