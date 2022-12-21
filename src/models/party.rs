@@ -112,7 +112,7 @@ pub struct PartyMember {
     pub partial: PartialPartyMember,
 }
 
-impl std::ops::Deref for PartyMember {
+impl Deref for PartyMember {
     type Target = PartialPartyMember;
 
     fn deref(&self) -> &Self::Target {

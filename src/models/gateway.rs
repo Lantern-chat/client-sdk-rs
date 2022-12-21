@@ -151,7 +151,10 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct UserPresenceEvent {
-        pub user: User,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        party_id: Option<Snowflake>,
+
+        user: User,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -501,13 +504,7 @@ pub mod message {
             24 => MessageReactionRemoveAll {},
             25 => MessageReactionRemoveEmote {},
 
-            26 => PresenceUpdate {
-                #[serde(default, skip_serializing_if = "Option::is_none")]
-                party_id: Option<Snowflake>,
-
-                #[serde(flatten)]
-                inner: Box<UserPresenceEvent>,
-            },
+            26 => PresenceUpdate { #[serde(flatten)] inner: Box<UserPresenceEvent> },
             27 => TypingStart { #[serde(flatten)] t: Box<TypingStart> },
             28 => UserUpdate { user: Arc<User> },
 
