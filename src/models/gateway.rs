@@ -152,9 +152,9 @@ pub mod events {
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct UserPresenceEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        party_id: Option<Snowflake>,
+        pub party_id: Option<Snowflake>,
 
-        user: User,
+        pub user: User,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
