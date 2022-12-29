@@ -93,7 +93,8 @@ impl_sql_for_bitflags!(PartyMemberFlags);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PartialPartyMember {
-    pub joined_at: Timestamp,
+    /// Will be `None` if no longer in party
+    pub joined_at: Option<Timestamp>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flags: Option<PartyMemberFlags>,
