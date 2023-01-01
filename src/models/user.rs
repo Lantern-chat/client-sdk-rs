@@ -288,5 +288,6 @@ pub struct Relationship {
     pub rel: UserRelationship,
 
     /// If this relationship is awaiting action from you
+    #[serde(default, skip_serializing_if = "is_false")]
     pub pending: bool,
 }
