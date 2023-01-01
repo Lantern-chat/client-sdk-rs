@@ -206,33 +206,6 @@ pub struct User {
     pub presence: Option<UserPresence>,
 }
 
-bitflags::bitflags! {
-    pub struct FriendFlags: i16 {
-        /// If the friend-request has been accepted
-        const ACCEPTED = 1 << 0;
-
-        /// If the other user added the current user first
-        const ADDED_BY = 1 << 1;
-
-        /// Pins the user to the top of their friendlist
-        const FAVORITE = 1 << 6;
-    }
-}
-
-serde_shims::impl_serde_for_bitflags!(FriendFlags);
-impl_schema_for_bitflags!(FriendFlags);
-impl_sql_for_bitflags!(FriendFlags);
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct Friend {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub note: Option<SmolStr>,
-    pub flags: FriendFlags,
-    pub user: User,
-    pub since: Timestamp,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -257,32 +230,63 @@ mod tests {
     }
 }
 
-bitflags::bitflags! {
-    pub struct UserRelationship: i8 {
-        /// You share a party
-        const ASSOCIATED    = 1 << 0;
-        const FRIENDS       = 1 << 1;
-        const BLOCKED       = 1 << 2;
-    }
+/// Half of a user relationship
+#[rustfmt::skip]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(enum_primitive_derive::Primitive)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[repr(i8)] // two of these fit together to form a full i16 relationship in the database
+pub enum UserRelationship {
+    #[default]
+    None = 0,
+
+    Friend = 1,
+
+    //
+    // reserve some space for future relationships
+    //
+
+    /// Normal user blocking
+    Blocked = 100,
+
+    /// Blocking + hide messages from the blocked user
+    BlockedDangerous = 101,
 }
 
-serde_shims::impl_serde_for_bitflags!(UserRelationship);
-impl_schema_for_bitflags!(UserRelationship);
+/*
+UserA               UserB
+
+None                None                No relation
+                    Friend              UserB has sent a friend-request to UserA
+                    Blocked             UserB has blocked UserA
+                    BlockedDangerous    UserB has blocked UserA and reported them as dangerous
+
+Friend              None                UserA has sent a friend-request to UserB
+                    Friend              UserA and UserB are friends
+                    Blocked             Impossible combination, UserA's value will be set to None on blocked (if friended)
+                    BlockedDangerous    Impossible combination, UserA's value will be set to None on blocked (if friended)
+
+Blocked             None                UserA has blocked UserB
+                    Friend              Impossible combination, UserB's value will be set to None on blocked (if friended)
+                    Blocked             Both users have blocked each other
+                    BlockedDangerous    UserA has blocked UserB, but UserB has also blocked UserA and reported UserA as dangerous
+
+BlockedDangerous    None                UserA has blocked UserB and reported them as dangerous
+                    Friend              Impossible Combination, UserB's value will be set to None on blocked (if friended)
+                    Blocked             UserA has blocked UserB and reported them as dangerous, while UserB has also normally blocked UserA
+                    BlockedDangerous    Both users have blocked each other and reported each other as dangerous
+*/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct FullUser {
-    #[serde(flatten)]
+pub struct Relationship {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<SmolStr>,
     pub user: User,
-    pub relation: UserRelationship,
-}
+    pub since: Timestamp,
+    pub rel: UserRelationship,
 
-bitflags::bitflags! {
-    pub struct UserBlockFlags: i16 {
-        const HIDE_OWN_MESSAGES = 1 << 0;
-    }
+    /// If this relationship is awaiting action from you
+    pub pending: bool,
 }
-
-serde_shims::impl_serde_for_bitflags!(UserBlockFlags);
-impl_schema_for_bitflags!(UserBlockFlags);
-impl_sql_for_bitflags!(UserBlockFlags);

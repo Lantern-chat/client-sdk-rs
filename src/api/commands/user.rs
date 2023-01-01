@@ -30,23 +30,17 @@ command! {
     /// Clears all **other** sessions
     +struct ClearSessions -> (): DELETE("user" / "@me" / "sessions") {}
 
-    +struct GetFriends -> Vec<Friend>: GET("user" / "@me" / "friends") {}
+    +struct GetRelationships -> Vec<Relationship>: GET("user" / "@me" / "relationships") {}
 
-    /// Used for sending and accepting friend requests
-    +struct AddFriend -> Friend: POST("user" / "@me" / "friends" / user_id) {
-        pub user_id: Snowflake,
-    }
-
-    /// Used for rejecting a friend-request or removing an existing friend
-    +struct RemoveFriend -> (): DELETE("user" / "@me" / "friends" / user_id) {
-        pub user_id: Snowflake,
-    }
-
-    +struct PatchFriend -> Friend: PATCH("user" / "@me" / "friends" / user_id) {
+    +struct PatchRelationship -> Relationship: PATCH("user" / "@me" / "relationships" / user_id) {
         pub user_id: Snowflake,
 
-        ; #[derive(Default)] struct PatchFriendBody {
-            pub fav: Nullable<bool>,
+        ; #[derive(Default)] struct PatchRelationshipBody {
+            /// Your desired relationship with the other user
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            pub rel: Nullable<UserRelationship>,
+            /// Optional note to give the user
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             pub note: Nullable<SmolStr>,
         }
     }
@@ -75,7 +69,8 @@ command! {
         }
     }
 
-    +struct GetUser -> FullUser: GET("user" / user_id) {
+    /// Fetches full user information, including profile data
+    +struct GetUser -> User: GET("user" / user_id) {
         pub user_id: Snowflake,
     }
 
