@@ -254,6 +254,8 @@ pub enum UserRelationship {
     BlockedDangerous = 101,
 }
 
+impl_sql_for_enum_primitive!(UserRelationship);
+
 /*
 UserA               UserB
 

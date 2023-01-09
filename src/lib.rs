@@ -10,7 +10,7 @@ pub mod util {
     pub mod fixed;
 
     #[macro_use]
-    pub mod flags;
+    pub mod sql;
 }
 
 #[macro_use]
