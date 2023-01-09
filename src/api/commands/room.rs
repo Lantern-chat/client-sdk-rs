@@ -46,13 +46,13 @@ command! {
         pub room_id: Snowflake,
 
         ; #[derive(Default)] struct GetMessagesQuery {
-            #[serde(flatten)]
-            pub query: Option<MessageSearch>,
+            #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+            pub query: Option<Cursor>,
 
-            #[serde(default)]
+            #[serde(default, skip_serializing_if = "Option::is_none")]
             pub thread: Option<Snowflake>,
 
-            #[serde(default)]
+            #[serde(default, skip_serializing_if = "Option::is_none")]
             pub limit: Option<u8>,
         }
     }
@@ -93,14 +93,4 @@ command! {
             limit: Option<i8>,
         }
     }
-}
-
-/// Directional search query
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[serde(rename_all = "lowercase")]
-pub enum MessageSearch {
-    Exact(Snowflake),
-    After(Snowflake),
-    Before(Snowflake),
 }

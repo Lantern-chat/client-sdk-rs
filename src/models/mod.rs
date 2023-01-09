@@ -34,6 +34,16 @@ pub use self::{
     permission::*, prefs::*, presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
 };
 
+/// Directional search query
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "lowercase")]
+pub enum Cursor {
+    Exact(Snowflake),
+    After(Snowflake),
+    Before(Snowflake),
+}
+
 #[allow(unused)]
 #[inline]
 pub(crate) const fn is_false(value: &bool) -> bool {
