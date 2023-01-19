@@ -24,7 +24,7 @@ const MAX_LENGTH: usize = {
 };
 
 /// Raw base64-encoded auth tokens for users and bots.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]
 pub enum AuthToken {

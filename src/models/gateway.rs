@@ -162,6 +162,7 @@ pub mod events {
     pub struct MessageDeleteEvent {
         pub id: Snowflake,
         pub room_id: Snowflake,
+        pub user_id: Snowflake,
 
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<Snowflake>,
@@ -250,8 +251,8 @@ pub mod message {
             enum $name:ident {
                 $(
                     $(#[$variant_meta:meta])*
-                    $code:literal => $opcode:ident $(:$Default:ident)? {
-                        $( $(#[$field_meta:meta])* $field:ident : $ty:ty),*$(,)?
+                    $code:literal => $opcode:ident $(:$Default:ident)?  {
+                        $( $(#[$field_meta:meta])* $field:ident $(*$Deref:ident)? : $ty:ty),*$(,)?
                     }
                 ),*$(,)*
             }
@@ -277,6 +278,17 @@ pub mod message {
                     pub struct [<$opcode Payload>] {
                         $($(#[$field_meta])* pub $field : $ty,)*
                     }
+
+                    $($(
+                        impl std::ops::$Deref for [<$opcode Payload>] {
+                            type Target = $ty;
+
+                            #[inline(always)]
+                            fn deref(&self) -> &Self::Target {
+                                &self.$field
+                            }
+                        }
+                    )?)*
                 )*
             }
 
@@ -471,45 +483,45 @@ pub mod message {
 
             /// Acknowledgement of a heartbeat
             1 => HeartbeatAck: Default {},
-            2 => Ready { #[serde(flatten)] inner: Box<Ready> },
+            2 => Ready { #[serde(flatten)] inner *Deref: Box<Ready> },
 
             /// Sent when the session is no longer valid
             3 => InvalidSession: Default {},
 
-            4 => PartyCreate { #[serde(flatten)] inner: Box<Party> },
-            5 => PartyUpdate { #[serde(flatten)] inner: Box<PartyUpdateEvent> },
+            4 => PartyCreate { #[serde(flatten)] inner *Deref: Box<Party> },
+            5 => PartyUpdate { #[serde(flatten)] inner *Deref: Box<PartyUpdateEvent> },
             6 => PartyDelete { id: Snowflake },
 
-            7 => RoleCreate { #[serde(flatten)] inner: Box<Role> },
-            8 => RoleUpdate { #[serde(flatten)] inner: Box<Role> },
-            9 => RoleDelete { #[serde(flatten)] inner: Box<RoleDeleteEvent> },
+            7 => RoleCreate { #[serde(flatten)] inner *Deref: Box<Role> },
+            8 => RoleUpdate { #[serde(flatten)] inner *Deref: Box<Role> },
+            9 => RoleDelete { #[serde(flatten)] inner *Deref: Box<RoleDeleteEvent> },
 
-            10 => MemberAdd     { #[serde(flatten)] inner: Box<PartyMemberEvent> },
-            11 => MemberUpdate  { #[serde(flatten)] inner: Box<PartyMemberEvent> },
-            12 => MemberRemove  { #[serde(flatten)] inner: Arc<PartyMemberEvent> },
-            13 => MemberBan     { #[serde(flatten)] inner: Arc<PartyMemberEvent> },
-            14 => MemberUnban   { #[serde(flatten)] inner: Box<PartyMemberEvent> },
+            10 => MemberAdd     { #[serde(flatten)] inner *Deref: Box<PartyMemberEvent> },
+            11 => MemberUpdate  { #[serde(flatten)] inner *Deref: Box<PartyMemberEvent> },
+            12 => MemberRemove  { #[serde(flatten)] inner *Deref: Arc<PartyMemberEvent> },
+            13 => MemberBan     { #[serde(flatten)] inner *Deref: Arc<PartyMemberEvent> },
+            14 => MemberUnban   { #[serde(flatten)] inner *Deref: Box<PartyMemberEvent> },
 
-            15 => RoomCreate { #[serde(flatten)] room: Box<Room> },
-            16 => RoomUpdate { #[serde(flatten)] room: Box<Room> },
-            17 => RoomDelete { #[serde(flatten)] room: Box<RoomDeleteEvent> },
+            15 => RoomCreate { #[serde(flatten)] inner *Deref: Box<Room> },
+            16 => RoomUpdate { #[serde(flatten)] inner *Deref: Box<Room> },
+            17 => RoomDelete { #[serde(flatten)] inner *Deref: Box<RoomDeleteEvent> },
             18 => RoomPinsUpdate {},
 
-            19 => MessageCreate { #[serde(flatten)] msg: Box<RoomMessage> },
-            20 => MessageUpdate { #[serde(flatten)] msg: Box<RoomMessage> },
-            21 => MessageDelete { #[serde(flatten)] msg: Box<MessageDeleteEvent> },
+            19 => MessageCreate { #[serde(flatten)] inner *Deref: Box<RoomMessage> },
+            20 => MessageUpdate { #[serde(flatten)] inner *Deref: Box<RoomMessage> },
+            21 => MessageDelete { #[serde(flatten)] inner *Deref: Box<MessageDeleteEvent> },
 
-            22 => MessageReactionAdd { #[serde(flatten)] r: Box<UserReactionEvent> },
-            23 => MessageReactionRemove { #[serde(flatten)] r: Box<UserReactionEvent> },
+            22 => MessageReactionAdd { #[serde(flatten)] inner *Deref: Box<UserReactionEvent> },
+            23 => MessageReactionRemove { #[serde(flatten)] inner *Deref: Box<UserReactionEvent> },
             24 => MessageReactionRemoveAll {},
             25 => MessageReactionRemoveEmote {},
 
-            26 => PresenceUpdate { #[serde(flatten)] inner: Box<UserPresenceEvent> },
-            27 => TypingStart { #[serde(flatten)] t: Box<TypingStart> },
+            26 => PresenceUpdate { #[serde(flatten)] inner *Deref: Box<UserPresenceEvent> },
+            27 => TypingStart { #[serde(flatten)] inner *Deref: Box<TypingStart> },
             28 => UserUpdate { user: Arc<User> },
 
-            29 => ProfileUpdate { #[serde(flatten)] inner: Box<ProfileUpdateEvent> },
-            30 => RelationAdd { #[serde(flatten)] inner: Box<Relationship> },
+            29 => ProfileUpdate { #[serde(flatten)] inner *Deref: Box<ProfileUpdateEvent> },
+            30 => RelationAdd { #[serde(flatten)] inner *Deref: Box<Relationship> },
             31 => RelationRemove { user_id: Snowflake },
         }
     }
@@ -518,11 +530,11 @@ pub mod message {
         /// Messages sent from the client to the server
         enum ClientMsg {
             0 => Heartbeat: Default {},
-            1 => Identify { #[serde(flatten)] inner: Box<Identify> },
+            1 => Identify { #[serde(flatten)] inner *Deref: Box<Identify> },
             2 => Resume {
                 session: Snowflake,
             },
-            3 => SetPresence { #[serde(flatten)] inner: Box<SetPresence> },
+            3 => SetPresence { #[serde(flatten)] inner *Deref: Box<SetPresence> },
             4 => Subscribe { party_id: Snowflake },
             5 => Unsubscribe { party_id: Snowflake },
         }
@@ -583,6 +595,27 @@ pub mod message {
                 | ServerMsg::RelationAdd { .. }
                 | ServerMsg::RelationRemove { .. }
                     => return None,
+            })
+        }
+
+        /// If the event originated from a specific user, get their ID
+        pub fn user_id(&self) -> Option<Snowflake> {
+            Some(match self {
+                ServerMsg::MemberAdd(e) => e.member.user.id,
+                ServerMsg::MemberUpdate(e) => e.member.user.id,
+                ServerMsg::MemberRemove(e) => e.member.user.id,
+                ServerMsg::MemberBan(e) => e.member.user.id,
+                ServerMsg::MemberUnban(e) => e.member.user.id,
+
+                ServerMsg::MessageCreate(m) => m.author.id,
+                ServerMsg::MessageUpdate(m) => m.author.id,
+                ServerMsg::MessageDelete(m) => m.user_id,
+
+                ServerMsg::MessageReactionAdd(r) => r.user_id,
+                ServerMsg::MessageReactionRemove(r) => r.user_id,
+
+                ServerMsg::PresenceUpdate(p) => p.user.id,
+                _ => return None,
             })
         }
     }

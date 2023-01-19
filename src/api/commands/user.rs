@@ -20,7 +20,7 @@ command! {
             pub email: SmolStr,
             pub password: SmolStr,
 
-            #[serde(default)]
+            #[serde(default, skip_serializing_if = "Option::is_none")]
             pub totp: Option<SmolStr>,
         }
     }
@@ -28,7 +28,9 @@ command! {
     +struct GetSessions -> Vec<AnonymousSession>: GET("user" / "@me" / "sessions") {}
 
     /// Clears all **other** sessions
-    +struct ClearSessions -> (): DELETE("user" / "@me" / "sessions") {}
+    +struct ClearSessions -> (): DELETE("user" / "@me" / "sessions") {
+        // TODO: Maybe make TOTP required?
+    }
 
     +struct GetRelationships -> Vec<Relationship>: GET("user" / "@me" / "relationships") {}
 
