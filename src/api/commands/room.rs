@@ -54,6 +54,15 @@ command! {
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub limit: Option<u8>,
+
+            // TODO: Eventually supercede this with pin-folders
+            /// If true, return only messages in the channel which have been pinned
+            #[serde(default, skip_serializing_if = "crate::models::is_false")]
+            pub pinned: bool,
+
+            /// If true, return only messages in the channel which have been starred by us
+            #[serde(default, skip_serializing_if = "crate::models::is_false")]
+            pub starred: bool,
         }
     }
 

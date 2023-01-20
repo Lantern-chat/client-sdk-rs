@@ -77,6 +77,10 @@ pub struct Message {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pins: Vec<Snowflake>,
 
+    /// True if the message has been starred by the current user
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub starred: bool,
+
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub user_mentions: Vec<Snowflake>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -139,9 +143,7 @@ const _: () = {
             }
 
             Ok(match s.as_bytes()[0] {
-                b':' => EmoteOrEmoji::Emote {
-                    emote: s[1..].parse()?,
-                },
+                b':' => EmoteOrEmoji::Emote { emote: s[1..].parse()? },
                 _ => EmoteOrEmoji::Emoji {
                     emoji: percent_encoding::percent_decode_str(s).decode_utf8_lossy().into(),
                 },
