@@ -9,14 +9,17 @@ command! {
             #[serde(default)]
             pub content: SmolStr,
 
-            //#[serde(default, skip_serializing_if = "is_false")]
-            //pub tts: bool,
-
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub parent: Option<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
             pub attachments: Vec<Snowflake> where Room::ATTACH_FILES if !attachments.is_empty(),
+
+            #[serde(default, skip_serializing_if = "is_false")]
+            pub ephemeral: bool,
+
+            #[serde(default, skip_serializing_if = "is_false")]
+            pub tts: bool,
         }
     }
 
@@ -55,15 +58,35 @@ command! {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub limit: Option<u8>,
 
-            // TODO: Eventually supercede this with pin-folders
-            /// If true, return only messages in the channel which have been pinned
-            #[serde(default, skip_serializing_if = "crate::models::is_false")]
-            pub pinned: bool,
+            #[serde(default, skip_serializing_if = "Vec::is_empty")]
+            pub pinned: Vec<Snowflake>,
 
             /// If true, return only messages in the channel which have been starred by us
             #[serde(default, skip_serializing_if = "crate::models::is_false")]
             pub starred: bool,
         }
+    }
+
+    +struct PinMessage -> (): PUT("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+        pub pin_tag: Snowflake,
+    }
+
+    +struct UnpinMessage -> (): DELETE("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+        pub pin_tag: Snowflake,
+    }
+
+    +struct StarMessage -> (): PUT("room" / room_id / "messages" / msg_id / "star") {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+    }
+
+    +struct UnstarMessage -> (): DELETE("room" / room_id / "messages" / msg_id / "star") {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
     }
 
     +struct PutReaction -> (): PUT("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {

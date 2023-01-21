@@ -58,6 +58,8 @@ pub struct Party {
     pub position: i16,
 
     pub default_room: Snowflake,
+
+    pub pin_folders: Vec<PinFolder>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -119,4 +121,25 @@ impl Deref for PartyMember {
     fn deref(&self) -> &Self::Target {
         &self.partial
     }
+}
+
+bitflags::bitflags! {
+    pub struct PinFolderFlags: i32 {
+        const COLOR = 0x00_FF_FF_FFu32 as i32; // top 24 bits
+    }
+}
+
+serde_shims::impl_serde_for_bitflags!(PinFolderFlags);
+impl_schema_for_bitflags!(PinFolderFlags);
+impl_sql_for_bitflags!(PinFolderFlags);
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct PinFolder {
+    pub id: Snowflake,
+    pub name: SmolStr,
+    pub flags: PinFolderFlags,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<SmolStr>,
 }

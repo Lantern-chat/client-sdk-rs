@@ -183,16 +183,3 @@ pub struct Attachment {
     #[serde(flatten)]
     pub file: File,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct PinFolder {
-    pub id: Snowflake,
-    pub name: SmolStr,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub icon_id: Option<Snowflake>,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub description: Option<SmolStr>,
-}

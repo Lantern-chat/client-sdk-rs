@@ -38,14 +38,25 @@ command! {
         /// Infinite parameters may only be used with appropriate permissions
         struct CreatePartyInviteBody {
             /// If `None`, invite has infinite uses
-            #[serde(default)]
+            #[serde(default, skip_serializing_if = "Option::is_none")]
             pub max_uses: Option<u16>,
 
             /// If `None`, invite has infinite duration
-            #[serde(default)]
+            #[serde(default, skip_serializing_if = "Option::is_none")]
             pub duration: Option<u64>,
 
-            #[serde(default)]
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            pub description: Option<SmolStr>,
+        }
+    }
+
+    +struct CreatePinFolder -> PinFolder: POST("party" / party_id / "pins") {
+        pub party_id: Snowflake,
+
+        ; #[derive(Default)] struct CreatePinFolderForm {
+            pub name: SmolStr,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
             pub description: Option<SmolStr>,
         }
     }
