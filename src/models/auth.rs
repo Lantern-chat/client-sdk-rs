@@ -60,7 +60,10 @@ impl AuthToken {
 
     #[cfg(feature = "http")]
     pub fn headervalue(&self) -> Result<http::HeaderValue, http::header::InvalidHeaderValue> {
-        http::HeaderValue::from_str(&self.raw_header())
+        http::HeaderValue::from_str(&self.raw_header()).map(|mut h| {
+            h.set_sensitive(true);
+            h
+        })
     }
 
     pub fn from_header(mut value: &str) -> Result<Self, InvalidAuthToken> {

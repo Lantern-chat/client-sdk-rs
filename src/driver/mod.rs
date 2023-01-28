@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use headers::{ContentType, HeaderMapExt, HeaderValue};
+use headers::{ContentType, HeaderMapExt, HeaderName, HeaderValue};
 use http::Method;
 use reqwest::{Request, Url};
 
@@ -74,7 +74,8 @@ impl Driver {
     fn add_auth_header(&self, req: &mut Request) -> Result<(), DriverError> {
         match self.auth {
             Some(ref auth) => {
-                req.headers_mut().insert("Authorization", (**auth).clone());
+                req.headers_mut()
+                    .insert(HeaderName::from_static("authorization"), (**auth).clone());
             }
             None => return Err(DriverError::MissingAuthorization),
         }
@@ -106,8 +107,7 @@ impl Driver {
                         use serde::Serialize;
 
                         let mut pairs = url.query_pairs_mut();
-                        cmd.body()
-                            .serialize(serde_urlencoded::Serializer::new(&mut pairs))?;
+                        cmd.body().serialize(serde_urlencoded::Serializer::new(&mut pairs))?;
                     }
 
                     if let Some("") = url.query() {
@@ -191,6 +191,8 @@ where
     })
 }
 
+use base64::engine::{general_purpose::STANDARD, Engine};
+
 impl Driver {
     pub async fn patch_file(
         &self,
@@ -210,13 +212,16 @@ impl Driver {
         let response = self
             .inner
             .patch(path)
-            .header("Authorization", auth)
-            .header("Upload-Offset", offset)
+            .header(HeaderName::from_static("authorization"), auth)
+            .header(HeaderName::from_static("upload-offset"), offset)
             .header(
-                "Upload-Checksum",
-                format!("crc32 {}", base64::encode(&checksum.to_be_bytes())),
+                HeaderName::from_static("upload-checksum"),
+                format!("crc32 {}", STANDARD.encode(&checksum.to_be_bytes())),
             )
-            .header("Content-Type", "application/offset+octet-stream")
+            .header(
+                HeaderName::from_static("content-type"),
+                "application/offset+octet-stream",
+            )
             .body(chunk)
             .send()
             .await?;
@@ -224,7 +229,7 @@ impl Driver {
         let status = response.status();
 
         if status.is_success() {
-            if let Some(offset) = response.headers().get("Upload-Offset") {
+            if let Some(offset) = response.headers().get(HeaderName::from_static("upload-offset")) {
                 return Ok(offset.to_str()?.parse()?);
             }
         }
