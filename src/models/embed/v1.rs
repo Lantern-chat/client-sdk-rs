@@ -4,9 +4,9 @@ use super::*;
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "lowercase")]
 pub enum EmbedType {
-    Image,
+    Img,
     Audio,
-    Video,
+    Vid,
     Html,
     Link,
     Article,
@@ -20,7 +20,7 @@ pub enum EmbedType {
 /// should always be properly sandboxed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct Embed {
+pub struct EmbedV1 {
     /// Timestamp when the embed was retreived
     pub ts: Timestamp,
 
@@ -36,29 +36,32 @@ pub struct Embed {
 
     /// Description, usually from the Open-Graph API
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub description: Option<SmolStr>,
+    pub desc: Option<SmolStr>,
 
+    /// Accent Color
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub color: Option<i32>,
+    pub col: Option<i32>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub author: Option<EmbedAuthor>,
 
     /// oEmbed Provider
     #[serde(default, skip_serializing_if = "EmbedProvider::is_none")]
-    pub provider: EmbedProvider,
+    pub pro: EmbedProvider,
 
     /// HTML and similar objects
     ///
     /// See: <https://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/>
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub object: Option<Box<EmbedMedia>>,
+    pub obj: Option<Box<EmbedMedia>>,
+    /// Image media
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub image: Option<Box<EmbedMedia>>,
+    pub img: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub audio: Option<Box<EmbedMedia>>,
+    /// Video media
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub video: Option<Box<EmbedMedia>>,
+    pub vid: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub thumb: Option<Box<EmbedMedia>>,
 
@@ -155,23 +158,23 @@ impl EmbedField {
     }
 }
 
-impl Default for Embed {
+impl Default for EmbedV1 {
     #[inline]
-    fn default() -> Embed {
-        Embed {
+    fn default() -> EmbedV1 {
+        EmbedV1 {
             ts: Timestamp::now_utc(),
             ty: EmbedType::Link,
             url: None,
             title: None,
-            description: None,
-            color: None,
+            desc: None,
+            col: None,
             author: None,
-            provider: EmbedProvider::default(),
-            image: None,
+            pro: EmbedProvider::default(),
+            img: None,
             audio: None,
-            video: None,
+            vid: None,
             thumb: None,
-            object: None,
+            obj: None,
             fields: Vec::new(),
         }
     }
