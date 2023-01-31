@@ -36,12 +36,19 @@ pub struct Driver {
 }
 
 pub(crate) fn generic_client() -> reqwest::ClientBuilder {
-    reqwest::Client::builder()
+    #[allow(unused_mut)]
+    let mut builder = reqwest::Client::builder()
         .user_agent("Mozilla/5.0 (compatible; Lantern Driver SDK)")
         .gzip(true)
         .deflate(true)
-        .brotli(true)
-        .http2_adaptive_window(true)
+        .http2_adaptive_window(true);
+
+    #[cfg(feature = "brotli")]
+    {
+        builder = builder.brotli(true);
+    }
+
+    builder
 }
 
 impl Driver {
