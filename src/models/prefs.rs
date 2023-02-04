@@ -20,9 +20,7 @@ impl Default for Locale {
     }
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[repr(u16)]
 #[allow(non_camel_case_types)]
 pub enum Font {
@@ -77,6 +75,10 @@ bitflags::bitflags! {
         const SHOW_DATE_CHANGE                  = 1 << 16;
 
         const HIDE_LAST_ACTIVE                  = 1 << 17;
+
+        /// Show grey background color for images
+        /// (helps keep transparent pixels consistent)
+        const SHOW_GREY_IMAGE_BG                = 1 << 18;
 
         const DEFAULT_FLAGS =
             Self::ALLOW_DMS.bits |
