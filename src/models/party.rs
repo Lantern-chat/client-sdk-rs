@@ -36,34 +36,6 @@ impl_sql_for_bitflags!(SecurityFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct Party {
-    #[serde(flatten)]
-    pub partial: PartialParty,
-
-    /// Id of owner user
-    pub owner: Snowflake,
-
-    pub security: SecurityFlags,
-
-    pub roles: Vec<Role>,
-
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub emotes: Vec<Emote>,
-
-    pub avatar: Option<SmolStr>,
-
-    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    pub banner: Nullable<SmolStr>,
-
-    pub position: i16,
-
-    pub default_room: Snowflake,
-
-    pub pin_folders: Vec<PinFolder>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct PartialParty {
     pub id: Snowflake,
 
@@ -72,6 +44,36 @@ pub struct PartialParty {
 
     /// Discription of the party, if publicly listed
     pub description: Option<SmolStr>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct Party {
+    #[serde(flatten)]
+    pub partial: PartialParty,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<SmolStr>,
+
+    #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    pub banner: Nullable<SmolStr>,
+
+    pub default_room: Snowflake,
+
+    /// Position of party is user's party list, will be null if not joined
+    #[serde(default)]
+    pub position: Option<i16>,
+
+    pub security: SecurityFlags,
+
+    /// Id of owner user
+    pub owner: Snowflake,
+
+    pub roles: Vec<Role>,
+
+    pub emotes: Vec<Emote>,
+
+    pub pin_folders: Vec<PinFolder>,
 }
 
 impl Deref for Party {
