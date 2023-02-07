@@ -80,11 +80,17 @@ bitflags::bitflags! {
         /// (helps keep transparent pixels consistent)
         const SHOW_GREY_IMAGE_BG                = 1 << 18;
 
-        const DEFAULT_FLAGS =
-            Self::ALLOW_DMS.bits |
-            Self::GROUP_LINES.bits |
-            Self::ENABLE_SPELLCHECK.bits |
-            Self::SHOW_DATE_CHANGE.bits;
+        /// When multiple attachments are present, condense them
+        /// into a grid to avoid cluttering the channel
+        const SHOW_ATTACHMENT_GRID              = 1 << 19;
+
+        const DEFAULT_FLAGS = 0
+            | Self::ALLOW_DMS.bits
+            | Self::GROUP_LINES.bits
+            | Self::ENABLE_SPELLCHECK.bits
+            | Self::SHOW_DATE_CHANGE.bits
+            | Self::SHOW_GREY_IMAGE_BG.bits
+            | Self::SHOW_ATTACHMENT_GRID.bits;
     }
 }
 

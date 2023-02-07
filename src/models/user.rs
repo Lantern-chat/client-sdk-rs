@@ -29,19 +29,37 @@ bitflags::bitflags! {
 
         const RESERVED_4            = 1 << 15;
 
-        const RESERVED = Self::RESERVED_1.bits | Self::RESERVED_2.bits | Self::RESERVED_3.bits | Self::RESERVED_4.bits;
+        const RESERVED = 0
+            | Self::RESERVED_1.bits
+            | Self::RESERVED_2.bits
+            | Self::RESERVED_3.bits
+            | Self::RESERVED_4.bits;
 
         /// Always strip these from public responses
-        const PRIVATE_FLAGS = Self::BANNED.bits | Self::VERIFIED.bits | Self::MFA_ENABLED.bits | Self::NEEDS_PASSWORD_RESET.bits | Self::EXTRA_STORAGE.bits | Self::RESERVED.bits;
+        const PRIVATE_FLAGS = 0
+            | Self::BANNED.bits
+            | Self::VERIFIED.bits
+            | Self::MFA_ENABLED.bits
+            | Self::NEEDS_PASSWORD_RESET.bits
+            | Self::EXTRA_STORAGE.bits
+            | Self::RESERVED.bits;
 
         /// elevation level integer
-        const ELEVATION     = Self::ELEVATION_1.bits | Self::ELEVATION_2.bits | Self::ELEVATION_3.bits;
+        const ELEVATION     = 0
+            | Self::ELEVATION_1.bits
+            | Self::ELEVATION_2.bits
+            | Self::ELEVATION_3.bits;
 
         /// premium level integer
-        const PREMIUM       = Self::PREMIUM_1.bits | Self::PREMIUM_2.bits | Self::PREMIUM_3.bits;
+        const PREMIUM       = 0
+            | Self::PREMIUM_1.bits
+            | Self::PREMIUM_2.bits
+            | Self::PREMIUM_3.bits;
 
         /// extra storage level integer
-        const EXTRA_STORAGE = Self::EXTRA_STORAGE_1.bits | Self::EXTRA_STORAGE_2.bits;
+        const EXTRA_STORAGE = 0
+            | Self::EXTRA_STORAGE_1.bits
+            | Self::EXTRA_STORAGE_2.bits;
     }
 }
 

@@ -61,14 +61,15 @@ bitflags::bitflags! {
         /// existing messages using the "edit" API
         const EDIT_NEW_ATTACHMENT   = 1 << 13;
 
-        const DEFAULT               = Self::VIEW_ROOM.bits |
-                                      Self::READ_MESSAGE_HISTORY.bits |
-                                      Self::SEND_MESSAGES.bits |
-                                      Self::USE_EXTERNAL_EMOTES.bits |
-                                      Self::ADD_REACTIONS.bits |
-                                      Self::EMBED_LINKS.bits |
-                                      Self::ATTACH_FILES.bits |
-                                      Self::SEND_TTS_MESSAGES.bits;
+        const DEFAULT = 0
+            | Self::VIEW_ROOM.bits
+            | Self::READ_MESSAGE_HISTORY.bits
+            | Self::SEND_MESSAGES.bits
+            | Self::USE_EXTERNAL_EMOTES.bits
+            | Self::ADD_REACTIONS.bits
+            | Self::EMBED_LINKS.bits
+            | Self::ATTACH_FILES.bits
+            | Self::SEND_TTS_MESSAGES.bits;
     }
 
     /// Permissions that make sense on stream rooms
@@ -82,7 +83,9 @@ bitflags::bitflags! {
         /// Allows a user to acquire priority speaker
         const PRIORITY_SPEAKER  = 1 << 3;
 
-        const DEFAULT           = Self::CONNECT.bits | Self::SPEAK.bits;
+        const DEFAULT = 0
+            | Self::CONNECT.bits
+            | Self::SPEAK.bits;
     }
 }
 

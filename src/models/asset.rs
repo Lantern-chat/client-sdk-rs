@@ -19,14 +19,24 @@ bitflags::bitflags! {
         const FORMAT_AVIF = 1 << 13;
         const FORMAT_WEBM = 1 << 14;
 
-        const FORMATS = Self::FORMAT_PNG.bits | Self::FORMAT_JPEG.bits | Self::FORMAT_GIF.bits | Self::FORMAT_AVIF.bits | Self::FORMAT_WEBM.bits;
+        const FORMATS = 0
+            | Self::FORMAT_PNG.bits
+            | Self::FORMAT_JPEG.bits
+            | Self::FORMAT_GIF.bits
+            | Self::FORMAT_AVIF.bits
+            | Self::FORMAT_WEBM.bits;
 
         /// These formats don't have widespread support yet, so don't include them by default
-        const MAYBE_UNSUPPORTED_FORMATS = Self::FORMAT_AVIF.bits;
+        const MAYBE_UNSUPPORTED_FORMATS = 0
+            | Self::FORMAT_AVIF.bits;
 
-        const FLAGS = Self::HAS_ALPHA.bits | Self::ANIMATED.bits;
+        const FLAGS = 0
+            | Self::HAS_ALPHA.bits
+            | Self::ANIMATED.bits;
 
-        const FORMATS_AND_FLAGS = Self::FORMATS.bits | Self::FLAGS.bits;
+        const FORMATS_AND_FLAGS = 0
+            | Self::FORMATS.bits
+            | Self::FLAGS.bits;
     }
 }
 
