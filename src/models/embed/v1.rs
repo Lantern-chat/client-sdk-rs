@@ -67,17 +67,18 @@ pub struct EmbedV1 {
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fields: Vec<EmbedField>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub footer: Option<EmbedFooter>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedFooter {
     pub text: SmolStr,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub icon_url: Option<SmolStr>,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub proxy_icon_url: Option<SmolStr>,
+    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    pub icon: Option<Box<EmbedMedia>>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -135,11 +136,8 @@ pub struct EmbedAuthor {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub url: Option<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub icon_url: Option<SmolStr>,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub proxy_icon_url: Option<SmolStr>,
+    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    pub icon: Option<Box<EmbedMedia>>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -176,6 +174,7 @@ impl Default for EmbedV1 {
             thumb: None,
             obj: None,
             fields: Vec::new(),
+            footer: None,
         }
     }
 }
