@@ -105,6 +105,10 @@ pub struct EmbedFooter {
     pub icon: MaybeEmbedMedia,
 }
 
+pub type UrlSignature = FixedStr<27>;
+
+crate::impl_fixedstr_schema!(UrlSignature, "Base-64 encoded cryptographic signature");
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedMedia {
@@ -116,7 +120,7 @@ pub struct EmbedMedia {
 
     /// Cryptographic signature for use with the proxy server
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub sig: Option<SmolStr>,
+    pub sig: Option<FixedStr<27>>,
 
     /// height
     #[serde(default, skip_serializing_if = "Option::is_none")]

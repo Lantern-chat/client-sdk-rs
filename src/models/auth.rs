@@ -9,6 +9,9 @@ use crate::util::fixed::FixedStr;
 pub type BearerToken = FixedStr<28>;
 pub type BotToken = FixedStr<48>;
 
+crate::impl_fixedstr_schema!(BotToken, "Base-64 encoded auth token");
+crate::impl_fixedstr_schema!(BearerToken, "Base-64 encoded auth token");
+
 const BEARER_PREFIX: &str = "Bearer ";
 const BOT_PREFIX: &str = "Bot ";
 
@@ -150,48 +153,4 @@ mod serde_impl {
             deserializer.deserialize_str(AuthTokenVisitor)
         }
     }
-}
-
-#[cfg(feature = "schema")]
-mod schema_impl {
-    use super::{BearerToken, BotToken};
-
-    use schemars::_serde_json::json;
-    use schemars::{
-        schema::{InstanceType, Metadata, Schema, SchemaObject, SingleOrVec},
-        JsonSchema,
-    };
-
-    macro_rules! impl_schema {
-        ($name:ident) => {
-            impl JsonSchema for $name {
-                fn schema_name() -> String {
-                    stringify!($name).to_owned()
-                }
-
-                fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> Schema {
-                    let mut obj = SchemaObject {
-                        metadata: Some(Box::new(Metadata {
-                            description: Some(format!(
-                                "{} (Base-64 encoded auth token)",
-                                stringify!($name)
-                            )),
-                            ..Default::default()
-                        })),
-                        instance_type: Some(SingleOrVec::Single(Box::new(InstanceType::String))),
-                        ..Default::default()
-                    };
-
-                    obj.string().pattern = Some(format!("[a-fA-F0-9]{{{}}}", $name::LEN));
-                    obj.string().min_length = Some($name::LEN as u32);
-                    obj.string().max_length = Some($name::LEN as u32);
-
-                    Schema::Object(obj)
-                }
-            }
-        };
-    }
-
-    impl_schema!(BotToken);
-    impl_schema!(BearerToken);
 }

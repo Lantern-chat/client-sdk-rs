@@ -151,3 +151,40 @@ mod serde_impl {
         }
     }
 }
+
+#[macro_export]
+macro_rules! impl_fixedstr_schema {
+    ($name:ident, $desc:expr) => {
+        #[cfg(feature = "schema")]
+        const _: () = {
+            use schemars::_serde_json::json;
+            use schemars::{
+                schema::{InstanceType, Metadata, Schema, SchemaObject, SingleOrVec},
+                JsonSchema,
+            };
+
+            impl JsonSchema for $name {
+                fn schema_name() -> String {
+                    stringify!($name).to_owned()
+                }
+
+                fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> Schema {
+                    let mut obj = SchemaObject {
+                        metadata: Some(Box::new(Metadata {
+                            description: Some(concat!(stringify!($name), " (", $desc, ")").to_owned()),
+                            ..Default::default()
+                        })),
+                        instance_type: Some(SingleOrVec::Single(Box::new(InstanceType::String))),
+                        ..Default::default()
+                    };
+
+                    obj.string().pattern = Some(format!("[a-fA-F0-9]{{{}}}", $name::LEN));
+                    obj.string().min_length = Some($name::LEN as u32);
+                    obj.string().max_length = Some($name::LEN as u32);
+
+                    Schema::Object(obj)
+                }
+            }
+        };
+    };
+}

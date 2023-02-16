@@ -29,6 +29,8 @@ pub mod sf;
 pub mod thread;
 pub mod user;
 
+use crate::util::fixed::FixedStr;
+
 pub use self::{
     asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*,
     permission::*, prefs::*, presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
