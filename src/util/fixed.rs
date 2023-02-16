@@ -152,7 +152,6 @@ mod serde_impl {
     }
 }
 
-#[macro_export]
 macro_rules! impl_fixedstr_schema {
     ($name:ident, $desc:expr) => {
         #[cfg(feature = "schema")]
@@ -188,3 +187,5 @@ macro_rules! impl_fixedstr_schema {
         };
     };
 }
+
+pub(crate) use impl_fixedstr_schema;

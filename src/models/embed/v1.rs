@@ -136,7 +136,7 @@ pub struct EmbedFooter {
 
 pub type UrlSignature = FixedStr<27>;
 
-crate::impl_fixedstr_schema!(UrlSignature, "Base-64 encoded cryptographic signature");
+crate::util::fixed::impl_fixedstr_schema!(UrlSignature, "Base-64 encoded cryptographic signature");
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

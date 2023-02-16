@@ -9,8 +9,8 @@ use crate::util::fixed::FixedStr;
 pub type BearerToken = FixedStr<28>;
 pub type BotToken = FixedStr<48>;
 
-crate::impl_fixedstr_schema!(BotToken, "Base-64 encoded auth token");
-crate::impl_fixedstr_schema!(BearerToken, "Base-64 encoded auth token");
+crate::util::fixed::impl_fixedstr_schema!(BotToken, "Base-64 encoded auth token");
+crate::util::fixed::impl_fixedstr_schema!(BearerToken, "Base-64 encoded auth token");
 
 const BEARER_PREFIX: &str = "Bearer ";
 const BOT_PREFIX: &str = "Bot ";
