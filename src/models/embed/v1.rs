@@ -12,6 +12,13 @@ pub enum EmbedType {
     Article,
 }
 
+fn is_none_or_empty(value: &Option<SmolStr>) -> bool {
+    match value {
+        Some(ref value) => value.is_empty(),
+        None => true,
+    }
+}
+
 pub type MaybeEmbedMedia = Option<Box<EmbedMedia>>;
 
 /// An embed is metadata taken from a given URL by loading said URL, parsing any meta tags, and fetching
@@ -27,24 +34,24 @@ pub struct EmbedV1 {
     pub ts: Timestamp,
 
     /// URL fetched
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
 
     /// Embed type
     pub ty: EmbedType,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub title: Option<SmolStr>,
 
     /// Description, usually from the Open-Graph API
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub desc: Option<SmolStr>,
 
     /// Accent Color
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub col: Option<u32>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "EmbedAuthor::is_none")]
     pub author: Option<EmbedAuthor>,
 
     /// oEmbed Provider
@@ -75,6 +82,28 @@ pub struct EmbedV1 {
 }
 
 impl EmbedV1 {
+    pub fn is_plain_link(&self) -> bool {
+        if self.ty != EmbedType::Link
+            || self.url.is_none()
+            || self.title.is_some()
+            || self.desc.is_some()
+            || self.col.is_some()
+            || !EmbedAuthor::is_none(&self.author)
+            || !EmbedProvider::is_none(&self.pro)
+            || !EmbedMedia::is_empty(&self.obj)
+            || !EmbedMedia::is_empty(&self.img)
+            || !EmbedMedia::is_empty(&self.audio)
+            || !EmbedMedia::is_empty(&self.vid)
+            || !EmbedMedia::is_empty(&self.thumb)
+            || !self.fields.is_empty()
+            || self.footer.is_some()
+        {
+            return false;
+        }
+
+        true
+    }
+
     /// Visit each [`EmbedMedia`] to mutate them (such as to generate the proxy signature)
     pub fn visit_media_mut<F>(&mut self, mut f: F)
     where
@@ -115,7 +144,7 @@ pub struct EmbedMedia {
     pub url: SmolStr,
 
     /// Non-visible description of the embedded media
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub alt: Option<SmolStr>,
 
     /// Cryptographic signature for use with the proxy server
@@ -130,7 +159,7 @@ pub struct EmbedMedia {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub w: Option<i32>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub mime: Option<SmolStr>,
 }
 
@@ -155,16 +184,27 @@ impl EmbedMedia {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedProvider {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub name: Option<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
 }
 
 impl EmbedProvider {
-    pub const fn is_none(&self) -> bool {
-        self.name.is_none() && self.url.is_none()
+    pub fn is_none(&self) -> bool {
+        is_none_or_empty(&self.name) && is_none_or_empty(&self.url)
+    }
+}
+
+impl EmbedAuthor {
+    pub fn is_none(this: &Option<Self>) -> bool {
+        match this {
+            Some(ref this) => {
+                this.name.is_empty() && is_none_or_empty(&this.url) && EmbedMedia::is_empty(&this.icon)
+            }
+            None => true,
+        }
     }
 }
 
@@ -173,7 +213,7 @@ impl EmbedProvider {
 pub struct EmbedAuthor {
     pub name: SmolStr,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
 
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
