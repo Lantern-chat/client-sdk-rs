@@ -108,6 +108,39 @@ impl EmbedV1 {
         true
     }
 
+    pub fn visit_text_mut<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&mut SmolStr),
+    {
+        fn visit_text_opt_mut<F>(text: &mut Option<SmolStr>, mut f: F)
+        where
+            F: FnMut(&mut SmolStr),
+        {
+            if let Some(ref mut value) = *text {
+                f(value);
+            }
+        }
+
+        visit_text_opt_mut(&mut self.title, &mut f);
+        visit_text_opt_mut(&mut self.desc, &mut f);
+        visit_text_opt_mut(&mut self.pro.name, &mut f);
+
+        if let Some(ref mut author) = self.author {
+            f(&mut author.name);
+        }
+
+        self.visit_media_mut(|media| visit_text_opt_mut(&mut media.alt, &mut f));
+
+        for field in &mut self.fields {
+            f(&mut field.name);
+            f(&mut field.value);
+        }
+
+        if let Some(ref mut footer) = self.footer {
+            f(&mut footer.text);
+        }
+    }
+
     /// Visit each [`EmbedMedia`] to mutate them (such as to generate the proxy signature)
     pub fn visit_media_mut<F>(&mut self, mut f: F)
     where
