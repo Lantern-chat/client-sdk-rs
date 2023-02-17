@@ -4,8 +4,10 @@ use super::*;
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "lowercase")]
 pub enum EmbedType {
+    #[serde(alias = "image")]
     Img,
     Audio,
+    #[serde(alias = "video")]
     Vid,
     Html,
     Link,
@@ -23,39 +25,40 @@ pub type MaybeEmbedMedia = Option<Box<EmbedMedia>>;
 
 /// An embed is metadata taken from a given URL by loading said URL, parsing any meta tags, and fetching
 /// extra information from oEmbed sources.
-///
-/// Typically, embeds contain title, description, etc. plus a thumbnail. However, direct media
-/// may be embedded directly either via a URL (`embed_url`) or arbitrary HTML (`embed_html`), of which
-/// should always be properly sandboxed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedV1 {
     /// Timestamp when the embed was retreived
     pub ts: Timestamp,
 
+    /// Embed type
+    #[serde(alias = "type")]
+    pub ty: EmbedType,
+
     /// URL fetched
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
 
-    /// Embed type
-    pub ty: EmbedType,
+    /// Canonical URL
+    #[serde(default, skip_serializing_if = "is_none_or_empty", alias = "canonical")]
+    pub can: Option<SmolStr>,
 
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub title: Option<SmolStr>,
 
     /// Description, usually from the Open-Graph API
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(default, skip_serializing_if = "is_none_or_empty", alias = "description")]
     pub desc: Option<SmolStr>,
 
     /// Accent Color
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none", alias = "color")]
     pub col: Option<u32>,
 
     #[serde(default, skip_serializing_if = "EmbedAuthor::is_none")]
     pub author: Option<EmbedAuthor>,
 
     /// oEmbed Provider
-    #[serde(default, skip_serializing_if = "EmbedProvider::is_none")]
+    #[serde(default, skip_serializing_if = "EmbedProvider::is_none", alias = "provider")]
     pub pro: EmbedProvider,
 
     /// HTML and similar objects
@@ -64,12 +67,12 @@ pub struct EmbedV1 {
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub obj: MaybeEmbedMedia,
     /// Image media
-    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
     pub img: MaybeEmbedMedia,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub audio: MaybeEmbedMedia,
     /// Video media
-    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "video")]
     pub vid: MaybeEmbedMedia,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub thumb: MaybeEmbedMedia,
@@ -85,8 +88,9 @@ impl EmbedV1 {
     pub fn is_plain_link(&self) -> bool {
         if self.ty != EmbedType::Link
             || self.url.is_none()
-            || self.title.is_some()
-            || self.desc.is_some()
+            || !is_none_or_empty(&self.can)
+            || !is_none_or_empty(&self.title)
+            || !is_none_or_empty(&self.desc)
             || self.col.is_some()
             || !EmbedAuthor::is_none(&self.author)
             || !EmbedProvider::is_none(&self.pro)
@@ -152,11 +156,11 @@ pub struct EmbedMedia {
     pub sig: Option<FixedStr<27>>,
 
     /// height
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none", alias = "height")]
     pub h: Option<i32>,
 
     /// witdth
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none", alias = "width")]
     pub w: Option<i32>,
 
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
@@ -243,6 +247,7 @@ impl Default for EmbedV1 {
             ts: Timestamp::UNIX_EPOCH,
             ty: EmbedType::Link,
             url: None,
+            can: None,
             title: None,
             desc: None,
             col: None,
