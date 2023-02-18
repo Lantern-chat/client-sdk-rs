@@ -174,6 +174,8 @@ impl EmbedV1 {
         EmbedMedia::visit_mut(&mut self.vid, &mut f);
         EmbedMedia::visit_mut(&mut self.thumb, &mut f);
 
+        EmbedMedia::visit_mut(&mut self.pro.icon, &mut f);
+
         if let Some(ref mut footer) = self.footer {
             EmbedMedia::visit_mut(&mut footer.icon, &mut f);
         }
@@ -252,11 +254,14 @@ pub struct EmbedProvider {
 
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
+
+    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    pub icon: MaybeEmbedMedia,
 }
 
 impl EmbedProvider {
     pub fn is_none(&self) -> bool {
-        is_none_or_empty(&self.name) && is_none_or_empty(&self.url)
+        is_none_or_empty(&self.name) && is_none_or_empty(&self.url) && EmbedMedia::is_empty(&self.icon)
     }
 }
 
