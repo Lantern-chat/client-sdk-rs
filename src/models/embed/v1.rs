@@ -35,6 +35,10 @@ pub struct EmbedV1 {
     #[serde(alias = "type")]
     pub ty: EmbedType,
 
+    /// Adult Content
+    #[serde(default, skip_serializing_if = "is_false", alias = "adult")]
+    pub a: bool,
+
     /// URL fetched
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
@@ -289,6 +293,7 @@ impl Default for EmbedV1 {
         EmbedV1 {
             ts: Timestamp::UNIX_EPOCH,
             ty: EmbedType::Link,
+            a: false,
             url: None,
             can: None,
             title: None,
