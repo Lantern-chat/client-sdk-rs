@@ -14,6 +14,21 @@ pub enum EmbedType {
     Article,
 }
 
+bitflags::bitflags! {
+    pub struct EmbedFlags: u8 {
+        /// This embed contains spoilered content and should be displayed as such
+        const SPOILER   = 1 << 0;
+
+        /// This embed may contain content marked as "adult"
+        ///
+        /// NOTE: This is not always accurate, and is provided on a best-effort basis
+        const ADULT     = 1 << 1;
+    }
+}
+
+serde_shims::impl_serde_for_bitflags!(EmbedFlags);
+impl_schema_for_bitflags!(EmbedFlags);
+
 fn is_none_or_empty(value: &Option<SmolStr>) -> bool {
     match value {
         Some(ref value) => value.is_empty(),
@@ -35,9 +50,12 @@ pub struct EmbedV1 {
     #[serde(alias = "type")]
     pub ty: EmbedType,
 
-    /// Adult Content
-    #[serde(default, skip_serializing_if = "is_false", alias = "adult")]
-    pub a: bool,
+    #[serde(
+        default = "EmbedFlags::empty",
+        skip_serializing_if = "EmbedFlags::is_empty",
+        alias = "flags"
+    )]
+    pub f: EmbedFlags,
 
     /// URL fetched
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
@@ -293,7 +311,7 @@ impl Default for EmbedV1 {
         EmbedV1 {
             ts: Timestamp::UNIX_EPOCH,
             ty: EmbedType::Link,
-            a: false,
+            f: EmbedFlags::empty(),
             url: None,
             can: None,
             title: None,
