@@ -159,6 +159,10 @@ impl EmbedV1 {
         if let Some(ref mut author) = self.author {
             EmbedMedia::visit_mut(&mut author.icon, &mut f);
         }
+
+        for field in &mut self.fields {
+            EmbedMedia::visit_mut(&mut field.img, &mut f);
+        }
     }
 }
 
@@ -260,16 +264,22 @@ pub struct EmbedAuthor {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedField {
-    name: SmolStr,
-    value: SmolStr,
+    #[serde(default, skip_serializing_if = "SmolStr::is_empty")]
+    pub name: SmolStr,
+    #[serde(default, skip_serializing_if = "SmolStr::is_empty")]
+    pub value: SmolStr,
 
-    #[serde(default, skip_serializing_if = "is_false")]
-    inline: bool,
+    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
+    pub img: MaybeEmbedMedia,
+
+    /// Should use block-formatting
+    #[serde(default, skip_serializing_if = "is_false", alias = "blk", alias = "block")]
+    pub b: bool,
 }
 
 impl EmbedField {
     pub fn is_empty(&self) -> bool {
-        self.name.is_empty() || self.value.is_empty()
+        (self.name.is_empty() || self.value.is_empty()) && !self.img.is_some()
     }
 }
 
