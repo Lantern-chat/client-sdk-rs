@@ -51,51 +51,65 @@ pub struct EmbedV1 {
     pub ty: EmbedType,
 
     #[serde(
+        rename = "f",
+        alias = "flags",
         default = "EmbedFlags::empty",
-        skip_serializing_if = "EmbedFlags::is_empty",
-        alias = "flags"
+        skip_serializing_if = "EmbedFlags::is_empty"
     )]
-    pub f: EmbedFlags,
+    pub flags: EmbedFlags,
 
     /// URL fetched
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
 
     /// Canonical URL
-    #[serde(default, skip_serializing_if = "is_none_or_empty", alias = "canonical")]
-    pub can: Option<SmolStr>,
+    #[serde(rename = "c", alias = "canonical", default, skip_serializing_if = "is_none_or_empty")]
+    pub canonical: Option<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(rename = "t", alias = "title", default, skip_serializing_if = "is_none_or_empty")]
     pub title: Option<SmolStr>,
 
     /// Description, usually from the Open-Graph API
-    #[serde(default, skip_serializing_if = "is_none_or_empty", alias = "description")]
-    pub desc: Option<SmolStr>,
+    #[serde(
+        rename = "d",
+        alias = "description",
+        default,
+        skip_serializing_if = "is_none_or_empty"
+    )]
+    pub description: Option<SmolStr>,
 
     /// Accent Color
     #[serde(default, skip_serializing_if = "Option::is_none", alias = "color")]
-    pub col: Option<u32>,
+    pub color: Option<u32>,
 
     #[serde(default, skip_serializing_if = "EmbedAuthor::is_none")]
     pub author: Option<EmbedAuthor>,
 
     /// oEmbed Provider
-    #[serde(default, skip_serializing_if = "EmbedProvider::is_none", alias = "provider")]
-    pub pro: EmbedProvider,
+    #[serde(
+        rename = "p",
+        alias = "provider",
+        default,
+        skip_serializing_if = "EmbedProvider::is_none"
+    )]
+    pub provider: EmbedProvider,
 
     /// HTML and similar objects
     ///
     /// See: <https://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/>
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub obj: MaybeEmbedMedia,
-    /// Image media
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
     pub img: MaybeEmbedMedia,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub audio: MaybeEmbedMedia,
-    /// Video media
-    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "video")]
-    pub vid: MaybeEmbedMedia,
+    #[serde(
+        rename = "vid",
+        alias = "video",
+        default,
+        skip_serializing_if = "EmbedMedia::is_empty"
+    )]
+    pub video: MaybeEmbedMedia,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub thumb: MaybeEmbedMedia,
 
@@ -110,16 +124,16 @@ impl EmbedV1 {
     pub fn is_plain_link(&self) -> bool {
         if self.ty != EmbedType::Link
             || self.url.is_none()
-            || !is_none_or_empty(&self.can)
+            || !is_none_or_empty(&self.canonical)
             || !is_none_or_empty(&self.title)
-            || !is_none_or_empty(&self.desc)
-            || self.col.is_some()
+            || !is_none_or_empty(&self.description)
+            || self.color.is_some()
             || !EmbedAuthor::is_none(&self.author)
-            || !EmbedProvider::is_none(&self.pro)
+            || !EmbedProvider::is_none(&self.provider)
             || !EmbedMedia::is_empty(&self.obj)
             || !EmbedMedia::is_empty(&self.img)
             || !EmbedMedia::is_empty(&self.audio)
-            || !EmbedMedia::is_empty(&self.vid)
+            || !EmbedMedia::is_empty(&self.video)
             || !EmbedMedia::is_empty(&self.thumb)
             || !self.fields.is_empty()
             || self.footer.is_some()
@@ -144,8 +158,8 @@ impl EmbedV1 {
         }
 
         visit_text_opt_mut(&mut self.title, &mut f);
-        visit_text_opt_mut(&mut self.desc, &mut f);
-        visit_text_opt_mut(&mut self.pro.name, &mut f);
+        visit_text_opt_mut(&mut self.description, &mut f);
+        visit_text_opt_mut(&mut self.provider.name, &mut f);
 
         if let Some(ref mut author) = self.author {
             f(&mut author.name);
@@ -171,10 +185,10 @@ impl EmbedV1 {
         EmbedMedia::visit_mut(&mut self.obj, &mut f);
         EmbedMedia::visit_mut(&mut self.img, &mut f);
         EmbedMedia::visit_mut(&mut self.audio, &mut f);
-        EmbedMedia::visit_mut(&mut self.vid, &mut f);
+        EmbedMedia::visit_mut(&mut self.video, &mut f);
         EmbedMedia::visit_mut(&mut self.thumb, &mut f);
 
-        EmbedMedia::visit_mut(&mut self.pro.icon, &mut f);
+        EmbedMedia::visit_mut(&mut self.provider.icon, &mut f);
 
         if let Some(ref mut footer) = self.footer {
             EmbedMedia::visit_mut(&mut footer.icon, &mut f);
@@ -193,9 +207,10 @@ impl EmbedV1 {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedFooter {
+    #[serde(rename = "t", alias = "text")]
     pub text: SmolStr,
 
-    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub icon: MaybeEmbedMedia,
 }
 
@@ -206,6 +221,7 @@ crate::util::fixed::impl_fixedstr_schema!(UrlSignature, "Base-64 encoded cryptog
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedMedia {
+    #[serde(rename = "u", alias = "url")]
     pub url: SmolStr,
 
     /// Non-visible description of the embedded media
@@ -213,18 +229,18 @@ pub struct EmbedMedia {
     pub alt: Option<SmolStr>,
 
     /// Cryptographic signature for use with the proxy server
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub sig: Option<FixedStr<27>>,
+    #[serde(rename = "s", alias = "signature", default, skip_serializing_if = "Option::is_none")]
+    pub signature: Option<FixedStr<27>>,
 
     /// height
-    #[serde(default, skip_serializing_if = "Option::is_none", alias = "height")]
-    pub h: Option<i32>,
+    #[serde(rename = "h", alias = "height", default, skip_serializing_if = "Option::is_none")]
+    pub height: Option<i32>,
 
     /// witdth
-    #[serde(default, skip_serializing_if = "Option::is_none", alias = "width")]
-    pub w: Option<i32>,
+    #[serde(rename = "w", alias = "width", default, skip_serializing_if = "Option::is_none")]
+    pub width: Option<i32>,
 
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(rename = "m", alias = "mime", default, skip_serializing_if = "is_none_or_empty")]
     pub mime: Option<SmolStr>,
 }
 
@@ -249,13 +265,13 @@ impl EmbedMedia {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedProvider {
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(rename = "n", alias = "name", default, skip_serializing_if = "is_none_or_empty")]
     pub name: Option<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub icon: MaybeEmbedMedia,
 }
 
@@ -279,29 +295,30 @@ impl EmbedAuthor {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedAuthor {
+    #[serde(rename = "n", alias = "name")]
     pub name: SmolStr,
 
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
     pub url: Option<SmolStr>,
 
-    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
+    #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub icon: MaybeEmbedMedia,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct EmbedField {
-    #[serde(default, skip_serializing_if = "SmolStr::is_empty")]
+    #[serde(rename = "n", alias = "name", default, skip_serializing_if = "SmolStr::is_empty")]
     pub name: SmolStr,
-    #[serde(default, skip_serializing_if = "SmolStr::is_empty")]
+    #[serde(rename = "v", alias = "value", default, skip_serializing_if = "SmolStr::is_empty")]
     pub value: SmolStr,
 
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
     pub img: MaybeEmbedMedia,
 
     /// Should use block-formatting
-    #[serde(default, skip_serializing_if = "is_false", alias = "blk", alias = "block")]
-    pub b: bool,
+    #[serde(rename = "b", alias = "block", default, skip_serializing_if = "is_false")]
+    pub block: bool,
 }
 
 impl EmbedField {
@@ -316,17 +333,17 @@ impl Default for EmbedV1 {
         EmbedV1 {
             ts: Timestamp::UNIX_EPOCH,
             ty: EmbedType::Link,
-            f: EmbedFlags::empty(),
+            flags: EmbedFlags::empty(),
             url: None,
-            can: None,
+            canonical: None,
             title: None,
-            desc: None,
-            col: None,
+            description: None,
+            color: None,
             author: None,
-            pro: EmbedProvider::default(),
+            provider: EmbedProvider::default(),
             img: None,
             audio: None,
-            vid: None,
+            video: None,
             thumb: None,
             obj: None,
             fields: Vec::new(),
