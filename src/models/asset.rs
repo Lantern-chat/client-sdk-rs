@@ -66,7 +66,7 @@ impl AssetFlags {
     }
 
     pub fn from_ext(ext: &str) -> Self {
-        static FORMAT_EXTS: &[(AssetFlags, &'static str)] = &[
+        static FORMAT_EXTS: &[(AssetFlags, &str)] = &[
             (AssetFlags::FORMAT_PNG, "png"),
             (AssetFlags::FORMAT_JPEG, "jpeg"),
             (AssetFlags::FORMAT_JPEG, "jpg"),

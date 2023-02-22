@@ -323,7 +323,7 @@ pub struct EmbedField {
 
 impl EmbedField {
     pub fn is_empty(&self) -> bool {
-        (self.name.is_empty() || self.value.is_empty()) && !self.img.is_some()
+        (self.name.is_empty() || self.value.is_empty()) && EmbedMedia::is_empty(&self.img)
     }
 }
 

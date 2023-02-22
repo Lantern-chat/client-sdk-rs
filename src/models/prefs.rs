@@ -263,7 +263,7 @@ impl UserPreference {
             Self::Temp => match value.as_f64() {
                 Some(temp) => {
                     kind = UserPreferenceErrorKind::InvalidValue;
-                    965.0 <= temp && temp <= 12000.0
+                    (965.0..=12000.0).contains(&temp)
                 }
                 _ => false,
             },
@@ -292,7 +292,7 @@ impl UserPreference {
             Self::ChatFontSize | Self::UiFontSize => match value.as_u64() {
                 Some(value) => {
                     kind = UserPreferenceErrorKind::InvalidValue;
-                    8 <= value && value <= 32
+                    (8..=32).contains(&value)
                 }
                 _ => false,
             },

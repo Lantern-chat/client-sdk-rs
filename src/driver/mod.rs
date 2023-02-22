@@ -161,7 +161,7 @@ impl Driver {
             });
         }
 
-        if body.len() == 0 || std::mem::size_of::<CMD::Result>() == 0 {
+        if body.is_empty() || std::mem::size_of::<CMD::Result>() == 0 {
             // if Result is a zero-size type, this is likely optimized away entirely.
             // Otherwise, if the body is empty, try to deserialize an empty object
             return Ok(serde_json::from_slice(b"{}")?);
@@ -223,7 +223,7 @@ impl Driver {
             .header(HeaderName::from_static("upload-offset"), offset)
             .header(
                 HeaderName::from_static("upload-checksum"),
-                format!("crc32 {}", STANDARD.encode(&checksum.to_be_bytes())),
+                format!("crc32 {}", STANDARD.encode(checksum.to_be_bytes())),
             )
             .header(
                 HeaderName::from_static("content-type"),
@@ -244,9 +244,9 @@ impl Driver {
         let ct = response.headers().typed_get::<ContentType>();
         let body = response.bytes().await?;
 
-        return Err(match deserialize_ct(&body, ct) {
+        Err(match deserialize_ct(&body, ct) {
             Ok(api_error) => DriverError::ApiError(api_error),
             Err(_) => DriverError::GenericDriverError(status),
-        });
+        })
     }
 }

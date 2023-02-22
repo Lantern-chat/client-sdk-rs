@@ -119,9 +119,7 @@ mod rusqlite_impl {
     impl FromSql for Snowflake {
         fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
             match value {
-                ValueRef::Integer(i) if i != 0 => unsafe {
-                    Ok(Snowflake(NonZeroU64::new_unchecked(i as u64)))
-                },
+                ValueRef::Integer(i) if i != 0 => unsafe { Ok(Snowflake(NonZeroU64::new_unchecked(i as u64))) },
                 ValueRef::Integer(_) => Err(FromSqlError::OutOfRange(0)),
                 _ => Err(FromSqlError::InvalidType),
             }
@@ -180,7 +178,7 @@ mod serde_impl {
                 }
 
                 fn visit_str<E: Error>(self, v: &str) -> Result<Self::Value, E> {
-                    Snowflake::from_str(v).map_err(|e| E::custom(&format!("Invalid Snowflake: {}", e)))
+                    Snowflake::from_str(v).map_err(|e| E::custom(format!("Invalid Snowflake: {e}")))
                 }
             }
 
