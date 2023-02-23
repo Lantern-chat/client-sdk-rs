@@ -79,10 +79,10 @@ pub struct EmbedV1 {
     pub description: Option<SmolStr>,
 
     /// Accent Color
-    #[serde(default, skip_serializing_if = "Option::is_none", alias = "color")]
+    #[serde(rename = "ac", default, skip_serializing_if = "Option::is_none", alias = "color")]
     pub color: Option<u32>,
 
-    #[serde(default, skip_serializing_if = "EmbedAuthor::is_none")]
+    #[serde(rename = "au", default, skip_serializing_if = "EmbedAuthor::is_none")]
     pub author: Option<EmbedAuthor>,
 
     /// oEmbed Provider
