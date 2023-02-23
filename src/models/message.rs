@@ -122,7 +122,7 @@ const _: () = {
     impl fmt::Display for EmoteOrEmoji {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match self {
-                EmoteOrEmoji::Emoji { emoji } => percent_encode(emoji.as_bytes(), &NON_ALPHANUMERIC).fmt(f),
+                EmoteOrEmoji::Emoji { emoji } => percent_encode(emoji.as_bytes(), NON_ALPHANUMERIC).fmt(f),
                 EmoteOrEmoji::Emote { emote } => {
                     f.write_str(":")?;
                     emote.fmt(f)

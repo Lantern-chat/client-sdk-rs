@@ -1,11 +1,10 @@
-use std::future::Future;
 use std::num::NonZeroUsize;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-use futures::{FutureExt, Sink, SinkExt, Stream};
+use futures::{future::BoxFuture, FutureExt, Sink, SinkExt, Stream};
 
 use crate::client::Client;
 use crate::models::gateway::message::{ClientMsg, ServerMsg};
@@ -24,7 +23,7 @@ use super::{GatewayError, GatewaySocket};
 /// servers will reconnections will lead to rate-limiting and possibly automated bans.
 pub struct GatewayConnection {
     client: Client,
-    connecting: Option<Pin<Box<dyn Future<Output = Result<GatewaySocket, GatewayError>>>>>,
+    connecting: Option<BoxFuture<'static, Result<GatewaySocket, GatewayError>>>,
     socket: Option<GatewaySocket>,
     control: Arc<GatewayConnectionControl>,
 }
@@ -81,10 +80,7 @@ impl GatewayConnection {
     }
 
     /// Acquire a pinned projection of the socket, or poll the connecting future.
-    fn poll_project_socket(
-        &mut self,
-        cx: &mut Context,
-    ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
+    fn poll_project_socket(&mut self, cx: &mut Context) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         // fast path, project socket
         if let Some(ref mut socket) = self.socket {
             return Poll::Ready(Ok(Pin::new(socket)));
@@ -164,7 +160,7 @@ impl Sink<ClientMsg> for GatewayConnection {
             Poll::Ready(Err(err)) => Err(err),
         };
 
-        if let Err(_) = res {
+        if res.is_err() {
             self.socket = None; // drop socket
         }
 
@@ -189,7 +185,7 @@ impl Sink<ClientMsg> for GatewayConnection {
             Err(e) => Err(e),
         };
 
-        if let Err(_) = res {
+        if res.is_err() {
             self.socket = None; // drop socket
         }
 

@@ -58,7 +58,9 @@ impl<const N: usize> FixedStr<N> {
         FixedStr { data: [c as u8; N] }
     }
 
-    /// Create a string of \0 values.
+    /// # Safety
+    ///
+    /// Create a string of `\0` values. Don't use this in client code.
     pub const unsafe fn zeroized() -> FixedStr<N> {
         FixedStr { data: [0; N] }
     }
@@ -135,7 +137,7 @@ mod serde_impl {
                 type Value = FixedStr<N>;
 
                 fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                    write!(f, "a string of exactly {} bytes", N)
+                    write!(f, "a string of exactly {N} bytes")
                 }
 
                 #[inline]

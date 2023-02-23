@@ -1,6 +1,6 @@
 //! Object data structures used within Lantern
 
-#![allow(unused_imports)]
+#![allow(unused_imports, clippy::identity_op)]
 
 pub use smol_str::SmolStr;
 pub use timestamp::Timestamp;
