@@ -15,7 +15,7 @@ pub enum EmbedType {
 }
 
 bitflags::bitflags! {
-    pub struct EmbedFlags: u8 {
+    pub struct EmbedFlags: i16 {
         /// This embed contains spoilered content and should be displayed as such
         const SPOILER   = 1 << 0;
 
@@ -28,6 +28,7 @@ bitflags::bitflags! {
 
 serde_shims::impl_serde_for_bitflags!(EmbedFlags);
 impl_schema_for_bitflags!(EmbedFlags);
+impl_sql_for_bitflags!(EmbedFlags);
 
 fn is_none_or_empty(value: &Option<SmolStr>) -> bool {
     match value {
