@@ -122,15 +122,13 @@ pub struct EmbedV1 {
 }
 
 impl EmbedV1 {
+    // NOTE: Provider, canonical, and title can be skipped here, as by themselves it's a very boring embed
     pub fn is_plain_link(&self) -> bool {
         if self.ty != EmbedType::Link
             || self.url.is_none()
-            || !is_none_or_empty(&self.canonical)
-            || !is_none_or_empty(&self.title)
             || !is_none_or_empty(&self.description)
             || self.color.is_some()
             || !EmbedAuthor::is_none(&self.author)
-            || !EmbedProvider::is_none(&self.provider)
             || !EmbedMedia::is_empty(&self.obj)
             || !EmbedMedia::is_empty(&self.img)
             || !EmbedMedia::is_empty(&self.audio)
@@ -166,7 +164,7 @@ impl EmbedV1 {
             f(&mut author.name);
         }
 
-        self.visit_media_mut(|media| visit_text_opt_mut(&mut media.alt, &mut f));
+        self.visit_media_mut(|media| visit_text_opt_mut(&mut media.description, &mut f));
 
         for field in &mut self.fields {
             f(&mut field.name);
@@ -226,8 +224,13 @@ pub struct EmbedMedia {
     pub url: SmolStr,
 
     /// Non-visible description of the embedded media
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
-    pub alt: Option<SmolStr>,
+    #[serde(
+        rename = "d",
+        alias = "description",
+        default,
+        skip_serializing_if = "is_none_or_empty"
+    )]
+    pub description: Option<SmolStr>,
 
     /// Cryptographic signature for use with the proxy server
     #[serde(rename = "s", alias = "signature", default, skip_serializing_if = "Option::is_none")]
@@ -243,9 +246,29 @@ pub struct EmbedMedia {
 
     #[serde(rename = "m", alias = "mime", default, skip_serializing_if = "is_none_or_empty")]
     pub mime: Option<SmolStr>,
+
+    #[serde(
+        rename = "a",
+        alias = "alternate",
+        default,
+        skip_serializing_if = "EmbedMedia::is_empty"
+    )]
+    pub alternate: MaybeEmbedMedia,
 }
 
 impl EmbedMedia {
+    /// If `this` is is empty, but the alternate field is not empty, set this to the alternate
+    pub fn normalize(this: &mut EmbedMedia) {
+        if let Some(ref mut alternate) = this.alternate {
+            alternate.alternate = None;
+
+            if this.url.is_empty() {
+                // SAFETY: We literally just checked that this.alternate is Some
+                *this = unsafe { *this.alternate.take().unwrap_unchecked() };
+            }
+        }
+    }
+
     pub fn is_empty(this: &MaybeEmbedMedia) -> bool {
         match this {
             Some(ref e) => e.url.is_empty(),
