@@ -163,25 +163,33 @@ impl_sql_for_bitflags!(ExtraUserProfileBits);
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 pub struct UserProfile {
+    #[cfg_attr(feature = "builder", builder(default))]
     pub bits: UserProfileBits,
 
     #[serde(default, skip_serializing_if = "ExtraUserProfileBits::is_empty")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub extra: ExtraUserProfileBits,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub nick: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub avatar: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub banner: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub status: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub bio: Nullable<SmolStr>,
 }
 

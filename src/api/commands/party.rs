@@ -25,7 +25,9 @@ command! {
     +struct UpdateMemberProfile -> UserProfile: PATCH("party" / party_id / "members" / "profile") {
         pub party_id: Snowflake,
 
-        ; struct UpdateMemberProfileBody {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct UpdateMemberProfileBody {
             #[serde(flatten)]
             profile: user::UpdateUserProfileBody,
         }
@@ -36,16 +38,20 @@ command! {
 
         ;
         /// Infinite parameters may only be used with appropriate permissions
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct CreatePartyInviteBody {
             /// If `None`, invite has infinite uses
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub max_uses: Option<u16>,
 
             /// If `None`, invite has infinite duration
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub duration: Option<u64>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub description: Option<SmolStr>,
         }
     }
@@ -53,10 +59,14 @@ command! {
     +struct CreatePinFolder -> PinFolder: POST("party" / party_id / "pins") {
         pub party_id: Snowflake,
 
-        ; #[derive(Default)] struct CreatePinFolderForm {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[derive(Default)] struct CreatePinFolderForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub name: SmolStr,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub description: Option<SmolStr>,
         }
     }

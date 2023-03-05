@@ -37,14 +37,14 @@ fn is_none_or_empty(value: &Option<SmolStr>) -> bool {
     }
 }
 
-pub type MaybeEmbedMedia = Option<Box<EmbedMedia>>;
-
 /// An embed is metadata taken from a given URL by loading said URL, parsing any meta tags, and fetching
 /// extra information from oEmbed sources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 pub struct EmbedV1 {
     /// Timestamp when the embed was retreived
+    #[cfg_attr(feature = "builder", builder(default = Timestamp::now_utc()))]
     pub ts: Timestamp,
 
     /// Embed type
@@ -57,17 +57,21 @@ pub struct EmbedV1 {
         default = "EmbedFlags::empty",
         skip_serializing_if = "EmbedFlags::is_empty"
     )]
+    #[cfg_attr(feature = "builder", builder(default = EmbedFlags::empty()))]
     pub flags: EmbedFlags,
 
     /// URL fetched
     #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub url: Option<SmolStr>,
 
     /// Canonical URL
     #[serde(rename = "c", alias = "canonical", default, skip_serializing_if = "is_none_or_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub canonical: Option<SmolStr>,
 
     #[serde(rename = "t", alias = "title", default, skip_serializing_if = "is_none_or_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub title: Option<SmolStr>,
 
     /// Description, usually from the Open-Graph API
@@ -77,13 +81,16 @@ pub struct EmbedV1 {
         default,
         skip_serializing_if = "is_none_or_empty"
     )]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub description: Option<SmolStr>,
 
     /// Accent Color
     #[serde(rename = "ac", default, skip_serializing_if = "Option::is_none", alias = "color")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub color: Option<u32>,
 
     #[serde(rename = "au", default, skip_serializing_if = "EmbedAuthor::is_none")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub author: Option<EmbedAuthor>,
 
     /// oEmbed Provider
@@ -93,31 +100,39 @@ pub struct EmbedV1 {
         default,
         skip_serializing_if = "EmbedProvider::is_none"
     )]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub provider: EmbedProvider,
 
     /// HTML and similar objects
     ///
     /// See: <https://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/>
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub obj: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub obj: Option<BoxedEmbedMedia>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
-    pub img: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub img: Option<BoxedEmbedMedia>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub audio: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub audio: Option<BoxedEmbedMedia>,
     #[serde(
         rename = "vid",
         alias = "video",
         default,
         skip_serializing_if = "EmbedMedia::is_empty"
     )]
-    pub video: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub video: Option<BoxedEmbedMedia>,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub thumb: MaybeEmbedMedia,
+    pub thumb: Option<BoxedEmbedMedia>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub fields: Vec<EmbedField>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub footer: Option<EmbedFooter>,
 }
 
@@ -205,12 +220,66 @@ impl EmbedV1 {
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 pub struct EmbedFooter {
     #[serde(rename = "t", alias = "text")]
+    #[cfg_attr(feature = "builder", builder(setter(into)))]
     pub text: SmolStr,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub icon: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub icon: Option<BoxedEmbedMedia>,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[repr(transparent)]
+pub struct BoxedEmbedMedia(Box<EmbedMedia>);
+
+impl BoxedEmbedMedia {
+    pub fn read(self) -> EmbedMedia {
+        *self.0
+    }
+}
+
+impl std::ops::Deref for BoxedEmbedMedia {
+    type Target = EmbedMedia;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for BoxedEmbedMedia {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl From<EmbedMedia> for Option<BoxedEmbedMedia> {
+    fn from(value: EmbedMedia) -> Self {
+        Some(value.into())
+    }
+}
+
+impl From<Box<EmbedMedia>> for Option<BoxedEmbedMedia> {
+    fn from(value: Box<EmbedMedia>) -> Self {
+        Some(value.into())
+    }
+}
+
+impl From<EmbedMedia> for BoxedEmbedMedia {
+    fn from(value: EmbedMedia) -> Self {
+        BoxedEmbedMedia(Box::new(value))
+    }
+}
+
+impl From<Box<EmbedMedia>> for BoxedEmbedMedia {
+    fn from(value: Box<EmbedMedia>) -> Self {
+        BoxedEmbedMedia(value)
+    }
 }
 
 pub type UrlSignature = FixedStr<27>;
@@ -219,6 +288,7 @@ crate::util::fixed::impl_fixedstr_schema!(UrlSignature, "Base-64 encoded cryptog
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 pub struct EmbedMedia {
     #[serde(rename = "u", alias = "url")]
     pub url: SmolStr,
@@ -230,21 +300,26 @@ pub struct EmbedMedia {
         default,
         skip_serializing_if = "is_none_or_empty"
     )]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub description: Option<SmolStr>,
 
     /// Cryptographic signature for use with the proxy server
     #[serde(rename = "s", alias = "signature", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub signature: Option<FixedStr<27>>,
 
     /// height
     #[serde(rename = "h", alias = "height", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub height: Option<i32>,
 
     /// witdth
     #[serde(rename = "w", alias = "width", default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub width: Option<i32>,
 
     #[serde(rename = "m", alias = "mime", default, skip_serializing_if = "is_none_or_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub mime: Option<SmolStr>,
 
     #[serde(
@@ -253,7 +328,8 @@ pub struct EmbedMedia {
         default,
         skip_serializing_if = "EmbedMedia::is_empty"
     )]
-    pub alternate: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub alternate: Option<BoxedEmbedMedia>,
 }
 
 impl EmbedMedia {
@@ -264,19 +340,19 @@ impl EmbedMedia {
 
             if this.url.is_empty() {
                 // SAFETY: We literally just checked that this.alternate is Some
-                *this = unsafe { *this.alternate.take().unwrap_unchecked() };
+                *this = unsafe { this.alternate.take().unwrap_unchecked().read() };
             }
         }
     }
 
-    pub fn is_empty(this: &MaybeEmbedMedia) -> bool {
+    pub fn is_empty(this: &Option<BoxedEmbedMedia>) -> bool {
         match this {
             Some(ref e) => e.url.is_empty(),
             None => true,
         }
     }
 
-    pub fn visit_mut<F>(this: &mut MaybeEmbedMedia, mut f: F)
+    pub fn visit_mut<F>(this: &mut Option<BoxedEmbedMedia>, mut f: F)
     where
         F: FnMut(&mut EmbedMedia),
     {
@@ -288,15 +364,19 @@ impl EmbedMedia {
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 pub struct EmbedProvider {
     #[serde(rename = "n", alias = "name", default, skip_serializing_if = "is_none_or_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub name: Option<SmolStr>,
 
     #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub url: Option<SmolStr>,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub icon: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub icon: Option<BoxedEmbedMedia>,
 }
 
 impl EmbedProvider {
@@ -318,30 +398,39 @@ impl EmbedAuthor {
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 pub struct EmbedAuthor {
     #[serde(rename = "n", alias = "name")]
+    #[cfg_attr(feature = "builder", builder(setter(into)))]
     pub name: SmolStr,
 
     #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub url: Option<SmolStr>,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
-    pub icon: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub icon: Option<BoxedEmbedMedia>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 pub struct EmbedField {
     #[serde(rename = "n", alias = "name", default, skip_serializing_if = "SmolStr::is_empty")]
+    #[cfg_attr(feature = "builder", builder(setter(into)))]
     pub name: SmolStr,
     #[serde(rename = "v", alias = "value", default, skip_serializing_if = "SmolStr::is_empty")]
+    #[cfg_attr(feature = "builder", builder(setter(into)))]
     pub value: SmolStr,
 
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
-    pub img: MaybeEmbedMedia,
+    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    pub img: Option<BoxedEmbedMedia>,
 
     /// Should use block-formatting
     #[serde(rename = "b", alias = "block", default, skip_serializing_if = "is_false")]
+    #[cfg_attr(feature = "builder", builder(default))]
     pub block: bool,
 }
 

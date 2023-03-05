@@ -2,21 +2,27 @@ use super::*;
 
 command! {
     +struct CreateFile -> Snowflake: POST("file") {
-        ; struct CreateFileBody {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct CreateFileBody {
             pub filename: SmolStr,
 
             pub size: i32,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into, strip_option)))]
             pub mime: Option<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(strip_option)))]
             pub width: Option<i32>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(strip_option)))]
             pub height: Option<i32>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub preview: Option<String>,
         }
     }

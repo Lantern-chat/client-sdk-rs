@@ -12,8 +12,11 @@ command! {
     +struct RedeemInvite -> (): POST("invite" / code / "redeem") {
         pub code: SmolStr,
 
-        ; struct RedeemInviteBody {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct RedeemInviteBody {
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub nickname: Option<SmolStr>,
         }
     }

@@ -5,20 +5,27 @@ command! {
     +struct CreateMessage -> Message: POST("room" / room_id / "messages") where Room::SEND_MESSAGES {
         pub room_id: Snowflake,
 
-        ; struct CreateMessageBody {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct CreateMessageBody {
             #[serde(default)]
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub content: SmolStr,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub parent: Option<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub attachments: Vec<Snowflake> where Room::ATTACH_FILES if !attachments.is_empty(),
 
             #[serde(default, skip_serializing_if = "is_false")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub ephemeral: bool,
 
             #[serde(default, skip_serializing_if = "is_false")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub tts: bool,
         }
     }
@@ -27,11 +34,15 @@ command! {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
 
-        ; struct EditMessageBody {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct EditMessageBody {
             #[serde(default)]
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub content: SmolStr,
 
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub attachments: Vec<Snowflake>,
         }
     }
@@ -48,21 +59,28 @@ command! {
     +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where Room::READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
 
-        ; #[derive(Default)] struct GetMessagesQuery {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[derive(Default)] struct GetMessagesQuery {
             #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub query: Option<Cursor>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub thread: Option<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub limit: Option<u8>,
 
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub pinned: Vec<Snowflake>,
 
             /// If true, return only messages in the channel which have been starred by us
             #[serde(default, skip_serializing_if = "crate::models::is_false")]
+            #[cfg_attr(feature = "builder", builder(default))]
             pub starred: bool,
         }
     }
@@ -118,10 +136,14 @@ command! {
         pub msg_id: Snowflake,
         pub emote_id: EmoteOrEmoji,
 
-        ; struct GetReactionsForm {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct GetReactionsForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             after: Option<Snowflake>,
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
             limit: Option<i8>,
         }
     }
