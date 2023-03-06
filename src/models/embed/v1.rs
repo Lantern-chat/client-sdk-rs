@@ -137,6 +137,13 @@ pub struct EmbedV1 {
 }
 
 impl EmbedV1 {
+    pub fn has_fullsize_media(&self) -> bool {
+        !EmbedMedia::is_empty(&self.obj)
+            || !EmbedMedia::is_empty(&self.img)
+            || !EmbedMedia::is_empty(&self.audio)
+            || !EmbedMedia::is_empty(&self.video)
+    }
+
     // NOTE: Provider, canonical, and title can be skipped here, as by themselves it's a very boring embed
     pub fn is_plain_link(&self) -> bool {
         if self.ty != EmbedType::Link
@@ -144,10 +151,7 @@ impl EmbedV1 {
             || !is_none_or_empty(&self.description)
             || self.color.is_some()
             || !EmbedAuthor::is_none(&self.author)
-            || !EmbedMedia::is_empty(&self.obj)
-            || !EmbedMedia::is_empty(&self.img)
-            || !EmbedMedia::is_empty(&self.audio)
-            || !EmbedMedia::is_empty(&self.video)
+            || self.has_fullsize_media()
             || !EmbedMedia::is_empty(&self.thumb)
             || !self.fields.is_empty()
             || self.footer.is_some()
@@ -237,8 +241,34 @@ pub struct EmbedFooter {
 pub struct BoxedEmbedMedia(Box<EmbedMedia>);
 
 impl BoxedEmbedMedia {
+    #[inline(always)]
     pub fn read(self) -> EmbedMedia {
         *self.0
+    }
+
+    #[inline]
+    pub fn with_url(mut self, url: impl Into<SmolStr>) -> Self {
+        self.url = url.into();
+        self
+    }
+
+    #[inline]
+    pub fn with_dims(mut self, width: i32, height: i32) -> Self {
+        self.width = Some(width);
+        self.height = Some(height);
+        self
+    }
+
+    #[inline]
+    pub fn with_mime(mut self, mime: impl Into<SmolStr>) -> Self {
+        self.mime = Some(mime.into());
+        self
+    }
+
+    #[inline]
+    pub fn with_description(mut self, description: impl Into<SmolStr>) -> Self {
+        self.description = Some(description.into());
+        self
     }
 }
 
