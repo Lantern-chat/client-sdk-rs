@@ -297,12 +297,16 @@ pub mod message {
             #[async_trait::async_trait]
             pub trait [<$name Handlers>]<U = ()>: Sized {
                 /// Dispatches a message to the appropriate event handler
-                async fn dispatch(self, msg: $name) -> U {
+                fn dispatch<'async_trait>(self, msg: $name)
+                    -> std::pin::Pin<Box<dyn std::future::Future<Output = U> + Send + 'async_trait>>
+                where
+                    Self: Send + 'async_trait,
+                {
                     match msg {
                         $($name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }) => {
                             self.[<on_ $opcode:snake>]($($field,)*)
                         })*
-                    }.await
+                    }
                 }
 
                 /// Callback for unhandled messages
@@ -313,8 +317,12 @@ pub mod message {
                     #[doc = ""]
                     #[doc = "Handler callback for [" $name "::" $opcode "]"]
                     #[inline(always)]
-                    async fn [<on_ $opcode:snake>](self, $($field: $ty,)*) -> U {
-                        self.fallback($name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* })).await
+                    fn [<on_ $opcode:snake>]<'async_trait>(self, $($field: $ty,)*)
+                        -> std::pin::Pin<Box<dyn std::future::Future<Output = U> + Send + 'async_trait>>
+                    where
+                        Self: Send + 'async_trait,
+                    {
+                        self.fallback($name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }))
                     }
                 )*
             }
