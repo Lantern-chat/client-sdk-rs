@@ -86,7 +86,8 @@ bitflags::bitflags! {
 
         const SMALLER_ATTACHMENTS               = 1 << 20;
 
-        const HIDE_EMBEDS                       = 1 << 21;
+        const HIDE_ALL_EMBEDS                   = 1 << 21;
+        const HIDE_NSFW_EMBEDS                  = 1 << 22;
 
         const DEFAULT_FLAGS = 0
             | Self::ALLOW_DMS.bits
