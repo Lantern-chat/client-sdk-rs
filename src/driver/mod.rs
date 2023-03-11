@@ -12,19 +12,14 @@ use crate::{
     models::{AuthToken, Snowflake},
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Encoding {
+    #[default]
     JSON,
 
     #[cfg(feature = "cbor")]
     CBOR,
-}
-
-impl Default for Encoding {
-    fn default() -> Self {
-        Encoding::JSON
-    }
 }
 
 #[derive(Clone)]
@@ -227,7 +222,7 @@ impl Driver {
             )
             .header(
                 HeaderName::from_static("content-type"),
-                "application/offset+octet-stream",
+                HeaderValue::from_static("application/offset+octet-stream"),
             )
             .body(chunk)
             .send()

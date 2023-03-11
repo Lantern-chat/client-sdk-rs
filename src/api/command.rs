@@ -39,6 +39,7 @@ pub trait Command: sealed::Sealed {
     fn body(&self) -> &Self::Body;
 
     /// Hint given to preallocate body size, only used for query strings
+    #[inline(always)]
     fn body_size_hint(&self) -> usize {
         0
     }
@@ -321,6 +322,7 @@ macro_rules! command {
 
         $(#[$($meta)*])*
         #[derive(Debug)]
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         pub struct $name {
             $($(#[$($field_meta)*])* $field_vis $field_name: $field_ty, )*
 
