@@ -296,10 +296,10 @@ pub mod message {
             pub struct [<Dynamic $name Handlers>]<C, U = (), S = ()> {
                 state: S,
 
-                fallback: Box<dyn Fn(&S, C, $name) -> futures::future::BoxFuture<'static, U> + Send + Sync>,
+                fallback: Box<dyn Fn(&S, C, $name) -> BoxFuture<'static, U> + Send + Sync>,
 
                 $(
-                    [<$opcode:snake _handler>]: Option<Box<dyn Fn(&S, C, $($ty,)*) -> futures::future::BoxFuture<'static, U> + Send + Sync>>,
+                    [<$opcode:snake _handler>]: Option<Box<dyn Fn(&S, C, $($ty,)*) -> BoxFuture<'static, U> + Send + Sync>>,
                 )*
             }
 
@@ -315,7 +315,7 @@ pub mod message {
                 pub fn new<F, R>(fallback: F) -> Self
                 where
                     F: Fn(&(), C, $name) -> R + Send + Sync + 'static,
-                    R: std::future::Future<Output = U> + Send + 'static
+                    R: Future<Output = U> + Send + 'static
                 {
                     Self::new_with_state((), fallback)
                 }
@@ -326,7 +326,7 @@ pub mod message {
                 pub fn new_with_state<F, R>(state: S, fallback: F) -> Self
                 where
                     F: Fn(&S, C, $name) -> R + Send + Sync + 'static,
-                    R: std::future::Future<Output = U> + Send + 'static
+                    R: Future<Output = U> + Send + 'static
                 {
                     Self {
                         state,
@@ -344,7 +344,7 @@ pub mod message {
                     pub fn [<on_ $opcode:snake>]<F, R>(&mut self, cb: F) -> &mut Self
                     where
                         F: Fn(&S, C, $($ty,)*) -> R + Send + Sync + 'static,
-                        R: std::future::Future<Output = U> + Send + 'static,
+                        R: Future<Output = U> + Send + 'static,
                     {
                         assert!(
                             self.[<$opcode:snake _handler>].is_none(),
@@ -366,7 +366,7 @@ pub mod message {
 
                 $(
                     fn [<$opcode:snake>]<'life0, 'async_trait>(&'life0 self, ctx: C, $($field: $ty,)*)
-                        -> std::pin::Pin<Box<dyn std::future::Future<Output = U> + Send + 'async_trait>>
+                        -> std::pin::Pin<Box<dyn Future<Output = U> + Send + 'async_trait>>
                     where
                         'life0: 'async_trait, Self: 'async_trait,
                     {
@@ -384,7 +384,7 @@ pub mod message {
             pub trait [<$name Handlers>]<C, U = ()>: Send + Sync where C: Send + 'static {
                 /// Dispatches a message to the appropriate event handler
                 fn dispatch<'life0, 'async_trait>(&'life0 self, ctx: C, msg: $name)
-                    -> std::pin::Pin<Box<dyn std::future::Future<Output = U> + Send + 'async_trait>>
+                    -> std::pin::Pin<Box<dyn Future<Output = U> + Send + 'async_trait>>
                 where
                     'life0: 'async_trait, Self: 'async_trait,
                 {
@@ -404,7 +404,7 @@ pub mod message {
                     #[doc = "Handler callback for [" $name "::" $opcode "]"]
                     #[inline(always)]
                     fn [<$opcode:snake>]<'life0, 'async_trait>(&'life0 self, ctx: C, $($field: $ty,)*)
-                        -> std::pin::Pin<Box<dyn std::future::Future<Output = U> + Send + 'async_trait>>
+                        -> std::pin::Pin<Box<dyn Future<Output = U> + Send + 'async_trait>>
                     where
                         'life0: 'async_trait, Self: 'async_trait,
                     {
@@ -558,6 +558,7 @@ pub mod message {
         }}
     }
 
+    use futures::future::{BoxFuture, Future};
     use std::sync::Arc;
 
     use crate::models::{

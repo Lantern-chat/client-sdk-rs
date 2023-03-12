@@ -1,3 +1,5 @@
+use crate::api::error::{ApiError, ApiErrorCode};
+
 #[derive(Debug, thiserror::Error)]
 pub enum DriverError {
     #[error("Reqwest Error: {0}")]
@@ -23,7 +25,7 @@ pub enum DriverError {
     CborDecodeError(#[from] ciborium::de::Error<std::io::Error>),
 
     #[error("Api Error: {0:?}")]
-    ApiError(crate::api::error::ApiError),
+    ApiError(ApiError),
 
     #[error("Generic Driver Error: {0}")]
     GenericDriverError(http::StatusCode),
@@ -39,4 +41,10 @@ pub enum DriverError {
 
     #[error("Header Parse Error: {0}")]
     HeaderParseError(#[from] http::header::ToStrError),
+}
+
+impl DriverError {
+    pub fn is_not_found(&self) -> bool {
+        matches!(self, DriverError::ApiError(err) if err.code == ApiErrorCode::NotFound)
+    }
 }
