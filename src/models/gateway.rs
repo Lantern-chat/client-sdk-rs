@@ -293,38 +293,57 @@ pub mod message {
             }
 
             #[cfg(feature = "framework")]
-            pub struct [<Dynamic $name Handlers>]<C, U = ()> {
-                fallback: Box<dyn Fn(C, $name) -> futures::future::BoxFuture<'static, U> + Send + Sync>,
+            pub struct [<Dynamic $name Handlers>]<C, U = (), S = ()> {
+                state: S,
+
+                fallback: Box<dyn Fn(&S, C, $name) -> futures::future::BoxFuture<'static, U> + Send + Sync>,
 
                 $(
-                    [<$opcode:snake _handler>]: Option<Box<dyn Fn(C, $($ty,)*) -> futures::future::BoxFuture<'static, U> + Send + Sync>>,
+                    [<$opcode:snake _handler>]: Option<Box<dyn Fn(&S, C, $($ty,)*) -> futures::future::BoxFuture<'static, U> + Send + Sync>>,
                 )*
             }
 
             #[cfg(feature = "framework")]
-            impl<C> Default for [<Dynamic $name Handlers>]<C, ()> {
+            impl<C> Default for [<Dynamic $name Handlers>]<C, (), ()> {
                 fn default() -> Self {
-                    Self::new(|_, _| async {})
+                    Self::new(|_, _, _| async {})
                 }
             }
 
             #[cfg(feature = "framework")]
-            impl<C, U> [<Dynamic $name Handlers>]<C, U> {
+            impl<C, U> [<Dynamic $name Handlers>]<C, U, ()> {
                 pub fn new<F, R>(fallback: F) -> Self
                 where
-                    F: Fn(C, $name) -> R + Send + Sync + 'static,
+                    F: Fn(&(), C, $name) -> R + Send + Sync + 'static,
+                    R: std::future::Future<Output = U> + Send + 'static
+                {
+                    Self::new_with_state((), fallback)
+                }
+            }
+
+            #[cfg(feature = "framework")]
+            impl<C, U, S> [<Dynamic $name Handlers>]<C, U, S> {
+                pub fn new_with_state<F, R>(state: S, fallback: F) -> Self
+                where
+                    F: Fn(&S, C, $name) -> R + Send + Sync + 'static,
                     R: std::future::Future<Output = U> + Send + 'static
                 {
                     Self {
-                        fallback: Box::new(move |ctx, msg| Box::pin(fallback(ctx, msg)) ),
+                        state,
+                        fallback: Box::new(move |this, ctx, msg| Box::pin(fallback(this, ctx, msg)) ),
                         $([<$opcode:snake _handler>]: None,)*
                     }
+                }
+
+                #[inline(always)]
+                pub fn state(&self) -> &S {
+                    &self.state
                 }
 
                 $(
                     pub fn [<on_ $opcode:snake>]<F, R>(&mut self, cb: F) -> &mut Self
                     where
-                        F: Fn(C, $($ty,)*) -> R + Send + Sync + 'static,
+                        F: Fn(&S, C, $($ty,)*) -> R + Send + Sync + 'static,
                         R: std::future::Future<Output = U> + Send + 'static,
                     {
                         assert!(
@@ -332,7 +351,7 @@ pub mod message {
                             concat!("Cannot have more than one listener for ", stringify!([<on_ $opcode:snake>]))
                         );
 
-                        self.[<$opcode:snake _handler>] = Some(Box::new(move |ctx, $($field,)*| Box::pin(cb(ctx, $($field,)*))));
+                        self.[<$opcode:snake _handler>] = Some(Box::new(move |this, ctx, $($field,)*| Box::pin(cb(this, ctx, $($field,)*))));
                         self
                     }
                 )*
@@ -340,9 +359,9 @@ pub mod message {
 
             #[cfg(feature = "framework")]
             #[async_trait::async_trait]
-            impl<C: Send + 'static, U> [<$name Handlers>]<C, U> for [<Dynamic $name Handlers>]<C, U> {
+            impl<C: Send + 'static, U, S> [<$name Handlers>]<C, U> for [<Dynamic $name Handlers>]<C, U, S> where S: Send + Sync {
                 async fn fallback(&self, ctx: C, msg: $name) -> U {
-                    (self.fallback)(ctx, msg).await
+                    (self.fallback)(&self.state, ctx, msg).await
                 }
 
                 $(
@@ -352,8 +371,8 @@ pub mod message {
                         'life0: 'async_trait, Self: 'async_trait,
                     {
                         match self.[<$opcode:snake _handler>] {
-                            Some(ref cb) => cb(ctx, $($field,)*),
-                            None => (self.fallback)(ctx, $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }))
+                            Some(ref cb) => cb(&self.state, ctx, $($field,)*),
+                            None => (self.fallback)(&self.state, ctx, $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }))
                         }
                     }
                 )*
