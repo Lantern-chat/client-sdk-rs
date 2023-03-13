@@ -70,12 +70,11 @@ impl StandardContext {
     }
 }
 
-use parking_lot::Mutex;
-use tokio::sync::oneshot;
+use tokio::sync::Notify;
 
 pub struct InternalEventHandlers<H> {
     pub user: H,
-    heartbeat: Mutex<Option<oneshot::Sender<()>>>,
+    heartbeat: Arc<Notify>,
     interval: AtomicU32,
 }
 
@@ -83,24 +82,16 @@ impl<H> InternalEventHandlers<H> {
     pub fn new(state: H) -> Self {
         InternalEventHandlers {
             user: state,
-            heartbeat: Mutex::default(),
+            heartbeat: Default::default(),
             interval: AtomicU32::new(45_000),
         }
     }
 
     fn setup_new_heartbeat(&self, ctx: StandardContext) {
-        let (tx, mut rx) = oneshot::channel();
-
-        {
-            // kill the pending missed heartbeat behavior and setup new kill signal
-            let mut hb = self.heartbeat.lock();
-            if let Some(hb) = hb.take() {
-                let _ = hb.send(());
-            }
-            *hb = Some(tx);
-        }
-
+        let hb = self.heartbeat.clone();
         let interval = self.interval.load(SeqCst);
+
+        hb.notify_waiters();
         tokio::spawn(async move {
             let duration = tokio::time::Duration::from_millis(interval as u64);
 
@@ -118,7 +109,7 @@ impl<H> InternalEventHandlers<H> {
 
             tokio::select! {
                 biased;
-                _ = &mut rx => return,
+                _ = hb.notified() => return,
                 _ = &mut sleep => ctx.close(),
             };
         });
