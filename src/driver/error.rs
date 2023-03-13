@@ -45,6 +45,10 @@ pub enum DriverError {
 
 impl DriverError {
     pub fn is_not_found(&self) -> bool {
-        matches!(self, DriverError::ApiError(err) if err.code == ApiErrorCode::NotFound)
+        match self {
+            DriverError::ApiError(err) => err.code == ApiErrorCode::NotFound,
+            DriverError::ReqwestError(err) => err.status() == Some(reqwest::StatusCode::NOT_FOUND),
+            _ => false,
+        }
     }
 }

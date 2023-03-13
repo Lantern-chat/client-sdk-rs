@@ -80,7 +80,10 @@ impl GatewayConnection {
     }
 
     /// Acquire a pinned projection of the socket, or poll the connecting future.
-    fn poll_project_socket(&mut self, cx: &mut Context) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
+    fn poll_project_socket(
+        &mut self,
+        cx: &mut Context<'_>,
+    ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         // fast path, project socket
         if let Some(ref mut socket) = self.socket {
             return Poll::Ready(Ok(Pin::new(socket)));
@@ -93,7 +96,7 @@ impl GatewayConnection {
     #[inline(never)]
     fn poll_project_socket_cold(
         &mut self,
-        cx: &mut Context,
+        cx: &mut Context<'_>,
     ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         // if there is no connecting future, set one up
         if self.connecting.is_none() {
@@ -153,7 +156,7 @@ impl Stream for GatewayConnection {
 impl Sink<ClientMsg> for GatewayConnection {
     type Error = GatewayError;
 
-    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), GatewayError>> {
+    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), GatewayError>> {
         let res = match self.poll_project_socket(cx) {
             Poll::Pending => return Poll::Pending,
             Poll::Ready(Ok(socket)) => futures::ready!(socket.poll_ready(cx)),
@@ -179,7 +182,7 @@ impl Sink<ClientMsg> for GatewayConnection {
         }
     }
 
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), GatewayError>> {
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), GatewayError>> {
         let res = match futures::ready!(self.poll_project_socket(cx)) {
             Ok(socket) => futures::ready!(socket.poll_flush(cx)),
             Err(e) => Err(e),
@@ -192,7 +195,7 @@ impl Sink<ClientMsg> for GatewayConnection {
         Poll::Ready(res)
     }
 
-    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), GatewayError>> {
+    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), GatewayError>> {
         // ensure it won't reconnect automatically
         self.control.closed.store(true, Ordering::SeqCst);
 

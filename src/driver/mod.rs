@@ -27,13 +27,13 @@ pub struct Driver {
     pub(crate) inner: reqwest::Client,
     pub(crate) encoding: Encoding,
     pub(crate) uri: Arc<str>,
-    pub(crate) auth: Option<Arc<HeaderValue>>,
+    pub(crate) auth: Option<Arc<(AuthToken, HeaderValue)>>,
 }
 
 pub(crate) fn generic_client() -> reqwest::ClientBuilder {
     #[allow(unused_mut)]
     let mut builder = reqwest::Client::builder()
-        .user_agent("Mozilla/5.0 (compatible; Lantern Driver SDK)")
+        .user_agent("Lantern SDK/1.0 (bot; https://github.com/Lantern-chat)")
         .gzip(true)
         .deflate(true)
         .http2_adaptive_window(true);
@@ -66,7 +66,7 @@ impl Driver {
 
     pub fn set_token(&mut self, token: Option<AuthToken>) -> Result<(), DriverError> {
         self.auth = match token {
-            Some(token) => Some(Arc::new(token.headervalue()?)),
+            Some(token) => Some(Arc::new((token, token.headervalue()?))),
             None => None,
         };
 
@@ -77,7 +77,7 @@ impl Driver {
         match self.auth {
             Some(ref auth) => {
                 req.headers_mut()
-                    .insert(HeaderName::from_static("authorization"), (**auth).clone());
+                    .insert(HeaderName::from_static("authorization"), auth.1.clone());
             }
             None => return Err(DriverError::MissingAuthorization),
         }
@@ -85,6 +85,18 @@ impl Driver {
         Ok(())
     }
 
+    /// Same as [`execute`], but will return an `Option` if the API returned 404 Not Found.
+    pub async fn execute_opt<CMD: Command>(&self, cmd: CMD) -> Result<Option<CMD::Result>, DriverError> {
+        match self.execute(cmd).await {
+            Ok(value) => Ok(Some(value)),
+            Err(e) if e.is_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Execute the given command, taking care of all body and query parameters automatically.
+    ///
+    /// If you would like an `Option` for not-found values, use [`execute_opt`] instead.
     pub async fn execute<CMD: Command>(&self, cmd: CMD) -> Result<CMD::Result, DriverError> {
         let mut path = format!("{}/api/v1/", self.uri);
 
@@ -203,7 +215,7 @@ impl Driver {
         chunk: bytes::Bytes,
     ) -> Result<u64, DriverError> {
         let auth = match self.auth {
-            Some(ref auth) => (**auth).clone(),
+            Some(ref auth) => auth.1.clone(),
             None => return Err(DriverError::MissingAuthorization),
         };
 

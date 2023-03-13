@@ -1,108 +1,99 @@
+#![allow(clippy::type_complexity)]
+
 use std::sync::Arc;
 
 use crate::{
-    client::{Client, ClientError},
-    driver::{Driver, DriverError},
+    client::Client,
+    gateway::{GatewayConnection, GatewayConnectionControl},
 };
 
-use super::{DynamicServerMsgHandlers, ServerMsg, ServerMsgHandlers};
+use futures::{stream::SplitSink, SinkExt, StreamExt};
+use tokio::sync::mpsc;
 
-#[derive(Debug, thiserror::Error)]
-pub enum StandardError {
-    #[error(transparent)]
-    ClientError(#[from] ClientError),
+mod ctx;
+mod error;
+mod util;
 
-    #[error(transparent)]
-    DriverError(#[from] DriverError),
-}
+pub use ctx::StandardContext;
+pub use error::{StandardError, StandardErrorExt};
 
-pub type StandardResult<T> = Result<T, StandardError>;
+use self::ctx::InternalEventHandlers;
 
-pub type StandardDynamicHandler<S> = DynamicServerMsgHandlers<StandardContext, StandardResult<()>, S>;
+use super::{ClientMsg, DynamicServerMsgHandlers, ServerMsgHandlers};
 
-struct InternalEventHandlers<H> {
-    user: H,
-}
+/// Dynamic [`ServerMsgHandlers`](super::ServerMsgHandlers) suitable for simpler bot applications
+pub type StandardDynamicHandler<S, E> = DynamicServerMsgHandlers<StandardContext, Result<(), E>, S>;
 
-use std::{future::Future, pin::Pin};
+/// Simple [`Standard`] with a [`StandardError`]
+pub type SimpleStandard<H> = Standard<H, StandardError>;
 
-#[async_trait::async_trait]
-impl<H> ServerMsgHandlers<StandardContext, StandardResult<()>> for InternalEventHandlers<H>
-where
-    H: ServerMsgHandlers<StandardContext, StandardResult<()>>,
-{
-    #[inline(always)]
-    fn fallback<'life0, 'async_trait>(
-        &'life0 self,
-        ctx: StandardContext,
-        msg: ServerMsg,
-    ) -> Pin<Box<dyn Future<Output = StandardResult<()>> + Send + 'async_trait>>
-    where
-        'life0: 'async_trait,
-        Self: 'async_trait,
-    {
-        self.user.dispatch(ctx, msg)
-    }
-}
+/// Runs whenever an error occurs
+type ErrorCb<H, E> = Arc<dyn Fn(E, StandardContext, &H) + Send + Sync + 'static>;
+/// Runs once after first gateway connection is established
+type StartCb<H, E> = Box<dyn FnOnce(StandardContext, &mut H) -> Result<(), E>>;
 
-struct StandardContextInner {
-    client: Client,
-}
-
-#[derive(Clone)]
-pub struct StandardContext(Arc<StandardContextInner>);
-
-impl StandardContext {
-    pub fn client(&self) -> &Client {
-        &self.0.client
-    }
-
-    pub fn driver(&self) -> Driver {
-        self.client().driver()
-    }
-}
-
-pub struct Standard<H> {
-    state: InternalEventHandlers<H>,
+pub struct Standard<H, E: StandardErrorExt = StandardError> {
+    state: ctx::InternalEventHandlers<H>,
     ctx: StandardContext,
-    on_error: Option<Box<dyn Fn(StandardError, &H) + Send + 'static>>,
+    gateway: GatewayConnection,
+    on_error: Option<ErrorCb<H, E>>,
+    on_start: Option<StartCb<H, E>>,
+    rx: mpsc::UnboundedReceiver<ctx::StandardResponse>,
 }
 
-impl Standard<StandardDynamicHandler<()>> {
+impl<E: StandardErrorExt> Standard<StandardDynamicHandler<(), E>, E> {
     pub fn new(client: Client) -> Self {
         Self::new_with_state(client, ())
     }
 }
 
-impl<S> Standard<StandardDynamicHandler<S>>
+impl<S, E: StandardErrorExt> Standard<StandardDynamicHandler<S, E>, E>
 where
     S: Send + Sync + 'static,
 {
     pub fn new_with_state(client: Client, state: S) -> Self {
         Self::new_with_handlers(
             client,
-            StandardDynamicHandler::new_with_state(state, |_, _, _| async { Ok(()) }),
+            StandardDynamicHandler::new_raw_with_state(state, Box::new(|_, _, _| Box::pin(util::ZSTOkFut::new()))),
         )
     }
 }
 
-impl<H> Standard<H>
+impl<H: 'static, E: StandardErrorExt> Standard<H, E>
 where
-    H: ServerMsgHandlers<StandardContext, StandardResult<()>>,
+    H: ServerMsgHandlers<StandardContext, Result<(), E>>,
 {
     pub fn new_with_handlers(client: Client, state: H) -> Self {
+        let (ctx, rx) = StandardContext::new(client.clone());
+
         Standard {
-            state: InternalEventHandlers { user: state },
-            ctx: StandardContext(Arc::new(StandardContextInner { client })),
+            state: ctx::InternalEventHandlers::new(state),
+            gateway: GatewayConnection::new(client),
+            ctx,
+            rx,
             on_error: None,
+            on_start: None,
         }
     }
 
+    /// Setup a callback for any errors that occur during the connection lifetime
     pub fn on_error<F>(&mut self, cb: F) -> &mut Self
     where
-        F: Fn(StandardError, &H) + Send + 'static,
+        F: Fn(E, StandardContext, &H) + Send + Sync + 'static,
     {
-        self.on_error = Some(Box::new(cb));
+        self.on_error = Some(Arc::new(cb));
+        self
+    }
+
+    /// Setup a callback to run once after the first gateway connection is established,
+    /// but before any kind of authentication is made.
+    ///
+    /// If the gateway reconnects, this will not be rerun.
+    pub fn on_start<F>(&mut self, cb: F) -> &mut Self
+    where
+        F: FnOnce(StandardContext, &mut H) -> Result<(), E> + 'static,
+    {
+        self.on_start = Some(Box::new(cb));
         self
     }
 
@@ -114,19 +105,100 @@ where
         &self.ctx
     }
 
-    async fn dispatch_event(self, msg: ServerMsg) {
-        if let Err(e) = self.state.dispatch(self.ctx.clone(), msg).await {
-            if let Some(ref err_cb) = self.on_error {
-                err_cb(e, &self.state.user);
-            }
-        }
+    pub fn gateway_control(&self) -> Arc<GatewayConnectionControl> {
+        self.gateway.control()
     }
 
-    pub async fn run(self) -> StandardResult<()> {
-        let gateway = crate::gateway::GatewayConnection::new(self.ctx().client().clone());
+    pub async fn run(self) -> Result<(), E> {
+        let Standard {
+            mut state,
+            ctx,
+            mut gateway,
+            on_error,
+            on_start,
+            rx,
+        } = self;
 
-        // TODO
+        // connect to gateway first, split streams
+        let (gw_tx, mut gw_rx) = {
+            gateway.connect().await?;
+            gateway.split()
+        };
+
+        if let Some(on_start) = on_start {
+            if let Err(e) = on_start(ctx.clone(), &mut state.user) {
+                if let Some(ref err_cb) = on_error {
+                    err_cb(e, ctx.clone(), &state.user);
+                }
+            }
+        }
+
+        let (kill, mut alive) = tokio::sync::oneshot::channel::<()>();
+
+        // state has been finalized, wrap it in Arc to share among server/client tasks
+        let state = Arc::new(state);
+
+        // start running client msg task
+        let client_task = tokio::spawn(run_client(
+            rx,
+            gw_tx,
+            state.clone(),
+            ctx.clone(),
+            on_error.clone(),
+            kill,
+        ));
+
+        // begin listening for events on current task
+        loop {
+            let event = tokio::select! {
+                biased;
+                _ = &mut alive => break,
+                event = gw_rx.next() => match event {
+                    Some(event) => event,
+                    None => break,
+                },
+            };
+
+            let res = match event {
+                Err(e) => Err(e.into()),
+                Ok(msg) => state.dispatch(ctx.clone(), msg).await,
+            };
+
+            if let Err(e) = res {
+                if let Some(ref err_cb) = on_error {
+                    err_cb(e, ctx.clone(), &state.user);
+                }
+            }
+        }
+
+        let _ = client_task.await;
 
         Ok(())
+    }
+}
+
+async fn run_client<H, E: StandardErrorExt>(
+    mut rx: mpsc::UnboundedReceiver<ctx::StandardResponse>,
+    mut gw_tx: SplitSink<GatewayConnection, ClientMsg>,
+    state: Arc<InternalEventHandlers<H>>,
+    ctx: StandardContext,
+    on_error: Option<ErrorCb<H, E>>,
+    kill: tokio::sync::oneshot::Sender<()>,
+) {
+    while let Some(resp) = rx.recv().await {
+        match resp {
+            ctx::StandardResponse::Message(msg) => {
+                if let Err(e) = gw_tx.send(msg).await {
+                    if let Some(ref err_cb) = on_error {
+                        err_cb(e.into(), ctx.clone(), &state.user);
+                    }
+                }
+            }
+            ctx::StandardResponse::Close => {
+                rx.close();
+                let _ = kill.send(());
+                return;
+            }
+        }
     }
 }

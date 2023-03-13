@@ -39,6 +39,22 @@ pub struct UserPresence {
     pub activity: Option<AnyActivity>,
 }
 
+impl UserPresence {
+    pub const fn new(flags: UserPresenceFlags) -> Self {
+        UserPresence {
+            flags,
+            activity: None,
+            last_active: None,
+            updated_at: None,
+        }
+    }
+
+    pub fn with_activty(mut self, activity: Option<AnyActivity>) -> Self {
+        self.activity = activity;
+        self
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(untagged)]

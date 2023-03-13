@@ -15,7 +15,7 @@ mod file;
 
 struct ClientInner {
     inner: reqwest::Client,
-    auth: ArcSwapOption<HeaderValue>,
+    auth: ArcSwapOption<(AuthToken, HeaderValue)>,
     uri: Arc<str>,
     preferred_encoding: ArcSwap<Encoding>,
 }
@@ -52,13 +52,20 @@ impl Client {
     pub fn set_auth(&self, token: Option<AuthToken>) -> Result<(), ClientError> {
         self.0.auth.store(match token {
             None => None,
-            Some(token) => Some(Arc::new(match token.headervalue() {
-                Ok(header) => header,
-                Err(e) => return Err(ClientError::DriverError(DriverError::from(e))),
-            })),
+            Some(token) => Some(Arc::new((
+                token,
+                match token.headervalue() {
+                    Ok(header) => header,
+                    Err(e) => return Err(ClientError::DriverError(DriverError::from(e))),
+                },
+            ))),
         });
 
         Ok(())
+    }
+
+    pub fn auth(&self) -> Option<AuthToken> {
+        self.0.auth.load().as_ref().map(|auth| auth.0)
     }
 
     pub fn set_preferred_encoding(&self, encoding: Encoding) {
