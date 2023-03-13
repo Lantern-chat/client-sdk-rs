@@ -10,6 +10,8 @@ use crate::{
 use futures::{stream::SplitSink, SinkExt, StreamExt};
 use tokio::sync::mpsc;
 
+pub mod cmd;
+
 mod ctx;
 mod error;
 mod util;
