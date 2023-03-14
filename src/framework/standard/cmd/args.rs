@@ -46,8 +46,8 @@ impl<'a> ArgumentSplitter<'a> {
                     }
                     last_idx = idx + 1; // skip ws
                 }
-                '"' | '\u{201C}' => {
-                    let end_token = if token == '"' { token } else { '\u{201D}' };
+                '`' | '"' | '\u{201C}' => {
+                    let end_token = if token != '\u{201C}' { token } else { '\u{201D}' };
                     let token_len = token.len_utf8();
 
                     // text"text" without whitespace
@@ -95,27 +95,24 @@ mod test {
 
     #[test]
     fn test_arg_splitter() {
-        fn do_test<I>(args: &str, expected: impl IntoIterator<IntoIter = I>)
-        where
-            I: ExactSizeIterator<Item = &'static &'static str>,
-        {
+        fn do_test(args: &str, expected: &[&str]) {
             let mut i = 0;
-            let expected = expected.into_iter();
-            let expected_len = expected.len();
             for (a, &b) in ArgumentSplitter::split(args).iter().zip(expected) {
                 assert_eq!(a, b, "Argument mismatch for {args} on argument {i}");
                 i += 1;
             }
-            assert_eq!(i, expected_len, "Length mismatch!");
+            assert_eq!(i, expected.len(), "Length mismatch!");
         }
 
         do_test("Hello,    World!    ", &["Hello,", "World!"]);
         do_test("    \"Testing\"", &["Testing"]);
         do_test("    Testing\"", &["Testing", ""]);
-        do_test("    \"Testing", &["Testing"]);
-        do_test("    \"Testing\"   \"\"", &["Testing", ""]);
-        do_test("    \"Testing\"   \"  \"", &["Testing", "  "]);
+        do_test("    \"Test ing", &["Test ing"]);
+        do_test("    \"Test ing\"   \"\"", &["Test ing", ""]);
+        do_test("    \"Test ing\"   \"  \"", &["Test ing", "  "]);
+        do_test("    `Test ing`   \"  \"", &["Test ing", "  "]);
         do_test(" This is \u{201C}a test", &["This", "is", "a test"]);
         do_test(" This is \u{201C}a test\u{201D}", &["This", "is", "a test"]);
+        do_test("test\"test", &["test", "test"]);
     }
 }
