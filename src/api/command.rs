@@ -6,7 +6,7 @@ pub(crate) mod sealed {
     pub trait Sealed {}
 }
 
-use crate::models::Permission;
+use crate::models::Permissions;
 
 bitflags::bitflags! {
     pub struct CommandFlags: u8 {
@@ -45,7 +45,7 @@ pub trait Command: sealed::Sealed {
     }
 
     /// Computes required permissions
-    fn perms(&self) -> Permission;
+    fn perms(&self) -> Permissions;
 
     /// Insert any additional headers required to perform this command
     #[inline(always)]
@@ -133,7 +133,7 @@ macro_rules! command {
             $head:tt $(/ $tail:tt)*
         )
         // permissions
-        $(where $($kind:ident::$perm:ident)|+)?
+        $(where $($perm:ident)|+)?
 
         // HTTP Headers
         $($($(#[$header_meta:meta])* $header_name:literal => $header_vis:vis $header_field:ident: $header_ty:ty),+ $(,)*)?
@@ -144,7 +144,7 @@ macro_rules! command {
                 $(#[$($field_meta:tt)*])*
                 $field_vis:vis $field_name:ident: $field_ty:ty $(
                     // conditional additional permissions
-                    where $($field_kind:ident::$field_perm:ident)|+ if $cond:expr
+                    where $($field_perm:ident)|+ if $cond:expr
                 )?
 
             ),* $(,)*
@@ -159,7 +159,7 @@ macro_rules! command {
 
                         $(#[$($body_field_meta:tt)*])*
                         $body_field_vis:vis $body_field_name:ident: $body_field_ty:ty $(
-                            where $($body_field_kind:ident::$body_field_perm:ident)|+ if $body_field_cond:expr
+                            where $($body_field_perm:ident)|+ if $body_field_cond:expr
                         )?
 
                     ),* $(,)*
@@ -182,8 +182,8 @@ macro_rules! command {
             ;
 
             #[allow(unused_mut, unused_variables, deprecated)]
-            fn perms(&self) -> Permission {
-                let mut base = crate::perms!($($($kind::$perm)|+)?);
+            fn perms(&self) -> Permissions {
+                let mut base = crate::perms!($($($perm)|+)?);
 
                 let $name {
                     $(ref $field_name,)*
@@ -197,7 +197,7 @@ macro_rules! command {
 
                 $($(
                     if $cond {
-                        base |= crate::perms!($($field_kind::$field_perm)|+)
+                        base |= crate::perms!($(Permissions::$field_perm)|+)
                     }
                 )?)*
 

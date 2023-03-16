@@ -160,6 +160,8 @@ mod serde_impl {
         where
             D: Deserializer<'de>,
         {
+            return deserializer.deserialize_any(SnowflakeVisitor);
+
             struct SnowflakeVisitor;
 
             impl<'de> Visitor<'de> for SnowflakeVisitor {
@@ -181,8 +183,6 @@ mod serde_impl {
                     Snowflake::from_str(v).map_err(|e| E::custom(format!("Invalid Snowflake: {e}")))
                 }
             }
-
-            deserializer.deserialize_any(SnowflakeVisitor)
         }
     }
 }

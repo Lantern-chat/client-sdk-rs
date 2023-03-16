@@ -2,7 +2,7 @@ use super::*;
 
 command! {
     /// Create message command
-    +struct CreateMessage -> Message: POST("room" / room_id / "messages") where Room::SEND_MESSAGES {
+    +struct CreateMessage -> Message: POST("room" / room_id / "messages") where SEND_MESSAGES {
         pub room_id: Snowflake,
 
         ;
@@ -18,7 +18,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Vec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            pub attachments: Vec<Snowflake> where Room::ATTACH_FILES if !attachments.is_empty(),
+            pub attachments: Vec<Snowflake> where ATTACH_FILES if !attachments.is_empty(),
 
             #[serde(default, skip_serializing_if = "is_false")]
             #[cfg_attr(feature = "builder", builder(default))]
@@ -30,7 +30,7 @@ command! {
         }
     }
 
-    +struct EditMessage -> Message: PATCH("room" / room_id / "messages" / msg_id) where Room::SEND_MESSAGES {
+    +struct EditMessage -> Message: PATCH("room" / room_id / "messages" / msg_id) where SEND_MESSAGES {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
 
@@ -47,16 +47,16 @@ command! {
         }
     }
 
-    +struct GetMessage -> Message: GET("room" / room_id / "messages" / msg_id) where Room::READ_MESSAGE_HISTORY {
+    +struct GetMessage -> Message: GET("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
     }
 
-    +struct StartTyping -> (): POST("room" / room_id / "typing") where Room::SEND_MESSAGES {
+    +struct StartTyping -> (): POST("room" / room_id / "typing") where SEND_MESSAGES {
         pub room_id: Snowflake,
     }
 
-    +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where Room::READ_MESSAGE_HISTORY {
+    +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
 
         ;

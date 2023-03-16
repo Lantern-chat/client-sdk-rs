@@ -22,7 +22,7 @@ pub struct Role {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub avatar: Option<SmolStr>,
     pub name: SmolStr,
-    pub permissions: Permission,
+    pub permissions: Permissions,
     pub color: Option<u32>,
     pub position: i16,
     pub flags: RoleFlags,
@@ -34,6 +34,6 @@ impl Role {
     }
 
     pub fn is_admin(&self) -> bool {
-        self.permissions.is_admin()
+        self.permissions.contains(Permissions::ADMINISTRATOR)
     }
 }
