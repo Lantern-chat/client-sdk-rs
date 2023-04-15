@@ -2,6 +2,9 @@ use std::ops::Deref;
 
 use super::*;
 
+pub mod prefs;
+pub use prefs::*;
+
 bitflags::bitflags! {
     pub struct PartyFlags: i16 {
         /// Top 6 bits are a language code

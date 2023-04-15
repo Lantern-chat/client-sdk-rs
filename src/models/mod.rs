@@ -20,7 +20,6 @@ pub mod invite;
 pub mod message;
 pub mod party;
 pub mod permission;
-pub mod prefs;
 pub mod presence;
 pub mod role;
 pub mod room;
@@ -29,11 +28,17 @@ pub mod sf;
 pub mod thread;
 pub mod user;
 
+#[cfg(not(feature = "ahash"))]
+type Hasher = std::collections::hash_map::RandomState;
+
+#[cfg(feature = "ahash")]
+type Hasher = ahash::RandomState;
+
 use crate::util::fixed::FixedStr;
 
 pub use self::{
-    asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*,
-    permission::*, prefs::*, presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
+    asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,
+    presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
 };
 
 /// Directional search query

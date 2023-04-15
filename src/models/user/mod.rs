@@ -1,5 +1,8 @@
 use super::*;
 
+pub mod prefs;
+pub use prefs::*;
+
 bitflags::bitflags! {
     /// NOTE: Remember to clear flag caches when they change
     pub struct UserFlags: i32 {

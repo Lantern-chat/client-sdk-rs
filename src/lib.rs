@@ -11,6 +11,8 @@ pub mod util {
 
     #[macro_use]
     pub mod sql;
+
+    pub mod prefs;
 }
 
 #[macro_use]

@@ -98,6 +98,18 @@ bitflags::bitflags! {
 serde_shims::impl_serde_for_bitflags!(UserPrefsFlags);
 impl_sql_for_bitflags!(UserPrefsFlags);
 
+impl From<u64> for UserPrefsFlags {
+    fn from(value: u64) -> Self {
+        UserPrefsFlags::from_bits_truncate(value as _)
+    }
+}
+
+impl Default for UserPrefsFlags {
+    fn default() -> Self {
+        Self::DEFAULT_FLAGS
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Hash, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum UserPreference {
@@ -150,82 +162,20 @@ impl fmt::Display for UserPreference {
     }
 }
 
-#[cfg(not(feature = "ahash"))]
-type Hasher = std::collections::hash_map::RandomState;
+use crate::util::prefs::*;
 
-#[cfg(feature = "ahash")]
-type Hasher = ahash::RandomState;
+pub type UserPreferences = PreferenceMap<UserPreference, Hasher>;
+pub type UserPreferenceError = PreferenceError<UserPreference>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-pub struct UserPreferences(HashMap<UserPreference, Value, Hasher>);
+impl Preference for UserPreference {
+    type Flags = UserPrefsFlags;
 
-#[derive(Debug, Clone, Copy)]
-pub struct UserPreferenceError {
-    pub field: UserPreference,
-    pub kind: UserPreferenceErrorKind,
-}
+    const FLAGS_KEY: Self = UserPreference::Flags;
 
-impl fmt::Display for UserPreferenceError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let kind = match self.kind {
-            UserPreferenceErrorKind::InvalidType => "is invalid type",
-            UserPreferenceErrorKind::InvalidValue => "has an invalid value",
-        };
-        write!(f, "User Preference Error: \"{}\" {}", self.field, kind)
-    }
-}
+    fn validate(&self, value: &Value) -> Result<(), UserPreferenceError> {
+        let mut kind = PreferenceErrorKind::InvalidType;
 
-impl std::error::Error for UserPreferenceError {}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum UserPreferenceErrorKind {
-    InvalidType,
-    InvalidValue,
-}
-
-impl UserPreferences {
-    pub fn validate(&self) -> Result<(), UserPreferenceError> {
-        for (field, value) in self.0.iter() {
-            field.validate(value)?;
-        }
-
-        Ok(())
-    }
-
-    pub fn clean(&mut self) {
-        self.0.retain(|field, value| field.validate(value).is_ok())
-    }
-
-    pub fn flags(&self) -> UserPrefsFlags {
-        match self.0.get(&UserPreference::Flags).and_then(Value::as_u64) {
-            Some(value) => UserPrefsFlags::from_bits_truncate(value as _),
-            None => UserPrefsFlags::DEFAULT_FLAGS,
-        }
-    }
-
-    pub fn nullify_defaults(&mut self) {
-        let flags = self.flags();
-
-        for (field, value) in self.0.iter_mut() {
-            if field.is_default(value, flags) {
-                *value = Value::Null;
-            }
-        }
-    }
-
-    pub fn merge(&mut self, new: &mut Self) {
-        for (field, value) in new.0.drain() {
-            self.0.insert(field, value);
-        }
-    }
-}
-
-impl UserPreference {
-    pub fn validate(self, value: &Value) -> Result<(), UserPreferenceError> {
-        let mut kind = UserPreferenceErrorKind::InvalidType;
-
-        let valid_type = match self {
+        let valid_type = match *self {
             // NULL values are not allowed
             _ if value.is_null() => false,
 
@@ -235,7 +185,7 @@ impl UserPreference {
             // they are numbered it's easy to check
             Self::Locale => match value.as_u64() {
                 Some(value) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
                     value < Locale::__MAX_LOCALE as u64
                 }
                 _ => false,
@@ -243,14 +193,14 @@ impl UserPreference {
             // Check docs for this, but values can only be from 0-3 inclusive
             Self::FriendAdd => match value.as_u64() {
                 Some(value) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
                     value <= 3
                 }
                 _ => false,
             },
             Self::Flags => match value.as_u64() {
                 Some(value) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
 
                     // contained within 2^32 AND a valid flag
                     value <= (u32::MAX as u64) && UserPrefsFlags::from_bits(value as i32).is_some()
@@ -260,7 +210,7 @@ impl UserPreference {
             // Color temperature in kelvin degrees
             Self::Temp => match value.as_f64() {
                 Some(temp) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
                     (965.0..=12000.0).contains(&temp)
                 }
                 _ => false,
@@ -274,14 +224,14 @@ impl UserPreference {
             // Fonts must be in the list, which is easily checked by parsing the enum
             Self::ChatFont | Self::UiFont => match value.as_u64() {
                 Some(value) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
                     value < Font::__MAX_FONT as u64
                 }
                 _ => false,
             },
             Self::TabSize => match value.as_u64() {
                 Some(value) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
                     value > 0 && value < 64
                 }
                 _ => false,
@@ -289,14 +239,14 @@ impl UserPreference {
             // Font sizes can be floats for smooth scaling, but must be positive
             Self::ChatFontSize | Self::UiFontSize => match value.as_u64() {
                 Some(value) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
                     (8..=32).contains(&value)
                 }
                 _ => false,
             },
             Self::Pad => match value.as_u64() {
                 Some(value) => {
-                    kind = UserPreferenceErrorKind::InvalidValue;
+                    kind = PreferenceErrorKind::InvalidValue;
                     value <= 32
                 }
                 _ => false,
@@ -304,14 +254,14 @@ impl UserPreference {
         };
 
         if !valid_type {
-            Err(UserPreferenceError { field: self, kind })
+            Err(PreferenceError { field: *self, kind })
         } else {
             Ok(())
         }
     }
 
-    fn is_default(self, value: &Value, flags: UserPrefsFlags) -> bool {
-        match self {
+    fn is_default(&self, value: &Value, flags: UserPrefsFlags) -> bool {
+        match *self {
             Self::Flags => value.as_u64() == Some(UserPrefsFlags::DEFAULT_FLAGS.bits() as u64),
             Self::ChatFontSize | Self::UiFontSize => value.as_u64() == Some(16),
             Self::Temp => value.as_f64() == Some(7500.0),
