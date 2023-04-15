@@ -190,12 +190,7 @@ impl Permissions {
         unsafe { std::mem::transmute(self) }
     }
 
-    pub fn compute_overwrites(
-        mut self,
-        overwrites: &[Overwrite],
-        roles: &[Snowflake],
-        user_id: Snowflake,
-    ) -> Permissions {
+    pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {
         if self.contains(Permissions::ADMINISTRATOR) {
             return Permissions::all();
         }
@@ -234,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_print_admin() {
-        println!("{:?}", Permissions::default());
-        println!("{:?}", Permissions::ADMINISTRATOR);
+        println!("{:?}", Permissions::default().to_i64());
+        println!("{:?}", Permissions::ADMINISTRATOR.to_i64());
     }
 }

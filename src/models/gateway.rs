@@ -562,7 +562,9 @@ pub mod message {
         }}
     }
 
+    #[cfg(feature = "framework")]
     use futures::future::{BoxFuture, Future};
+
     use std::sync::Arc;
 
     use crate::models::{

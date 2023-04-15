@@ -5,19 +5,14 @@ use serde_json::Value;
 
 use super::*;
 
-#[derive(Debug, Clone, Copy, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(Default, Debug, Clone, Copy, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[allow(non_camel_case_types)]
 #[repr(u16)]
 pub enum Locale {
+    #[default]
     enUS = 0,
 
     __MAX_LOCALE,
-}
-
-impl Default for Locale {
-    fn default() -> Locale {
-        Locale::enUS
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]

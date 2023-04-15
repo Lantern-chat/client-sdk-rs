@@ -5,7 +5,7 @@ use super::*;
 bitflags::bitflags! {
     pub struct PartyFlags: i16 {
         /// Top 6 bits are a language code
-        const LANGUAGE = 0b111_111 << (16 - 6);
+        const LANGUAGE = 0b111111 << (16 - 6);
     }
 
     #[derive(Default)]
@@ -29,7 +29,7 @@ impl_sql_for_bitflags!(SecurityFlags);
 
 //#[derive(Debug, Clone, Serialize, Deserialize)]
 //#[serde(untagged)]
-//pub enum UnvailableParty {
+//pub enum UnavailableParty {
 //    Available(Party),
 //    Unavailable { id: Snowflake, unavailable: bool },
 //}
@@ -42,7 +42,7 @@ pub struct PartialParty {
     /// Party name
     pub name: SmolStr,
 
-    /// Discription of the party, if publicly listed
+    /// Description of the party, if publicly listed
     pub description: Option<SmolStr>,
 }
 

@@ -25,23 +25,17 @@ impl MessageFlags {
 }
 
 #[rustfmt::skip]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[derive(enum_primitive_derive::Primitive)]
 #[repr(i16)]
 pub enum MessageKind {
+    #[default]
     Normal  = 0,
     Welcome = 1,
     Ephemeral = 2,
     Unavailable = 3,
-}
-
-impl Default for MessageKind {
-    #[inline(always)]
-    fn default() -> MessageKind {
-        MessageKind::Normal
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
