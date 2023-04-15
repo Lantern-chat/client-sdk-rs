@@ -41,7 +41,8 @@ bitflags::bitflags! {
         const MANAGE_NICKNAMES      = 1 << 8;
         const MANAGE_ROLES          = 1 << 9;
         const MANAGE_WEBHOOKS       = 1 << 10;
-        const MANAGE_EMOJIS         = 1 << 11;
+        /// Allows members to add or remove custom emoji, stickers or sounds.
+        const MANAGE_EXPRESSIONS    = 1 << 11;
         const MOVE_MEMBERS          = 1 << 12;
         const CHANGE_NICKNAME       = 1 << 13;
         const MANAGE_PERMS          = 1 << 14;

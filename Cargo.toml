@@ -9,6 +9,7 @@ license = "GPL-3.0-only"
 
 [patch.crates-io]
 smol_str = { git = "https://github.com/Lantern-chat/smol_str" }
+iso8601-timestamp = { git = "https://github.com/Lantern-chat/iso8601-timestamp" }
 
 [dependencies]
 timestamp = { package = "iso8601-timestamp", version = "0.2" }
@@ -38,7 +39,7 @@ ahash = { version = "0.8", optional = true }
 
 postgres-types = { version = "0.2.1", optional = true }
 bytes = { version = "1", optional = true }
-rusqlite = { version = "0.28.0", optional = true }
+rusqlite = { version = "0.29.0", optional = true }
 
 crc32fast = { version = "1", optional = true }
 ciborium = { version = "0.2", optional = true }
@@ -85,7 +86,8 @@ brotli = ["reqwest?/brotli"]
 # Realtime gateway support
 gateway = ["tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
 
-framework = ["client", "gateway", "async-trait", "tokio/macros", "smallvec"]
+framework_utils = ["smallvec"]
+framework = ["client", "gateway", "async-trait", "tokio/macros", "framework_utils"]
 
 # Efficient binary Encoding
 cbor = ["ciborium"]

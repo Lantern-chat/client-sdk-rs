@@ -78,6 +78,7 @@ macro_rules! format_path {
 }
 
 // Similar to the above, but concatenates the path together for usage in schemas
+#[cfg(feature = "schema")]
 macro_rules! schema_path {
     ([$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
         schema_path!([$($value,)+ $next] [$(/ $tail)*])

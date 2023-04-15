@@ -7,10 +7,11 @@ bitflags::bitflags! {
         const MENTIONS_HERE     = 1 << 2;
         const TTS               = 1 << 3;
         const SUPRESS_EMBEDS    = 1 << 4;
+        const HAS_LINK          = 1 << 5;
 
         /// Top 6 bits are a language code,
         /// which is never actually exposed to users.
-        const LANGUAGE          = 0b111_111 << (16 - 6);
+        const LANGUAGE          = 0b111111 << (16 - 6);
     }
 }
 

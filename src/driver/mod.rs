@@ -85,7 +85,7 @@ impl Driver {
         Ok(())
     }
 
-    /// Same as [`execute`], but will return an `Option` if the API returned 404 Not Found.
+    /// Same as [`execute`](Driver::execute), but will return an `Option` if the API returned 404 Not Found.
     pub async fn execute_opt<CMD: Command>(&self, cmd: CMD) -> Result<Option<CMD::Result>, DriverError> {
         match self.execute(cmd).await {
             Ok(value) => Ok(Some(value)),
@@ -96,7 +96,7 @@ impl Driver {
 
     /// Execute the given command, taking care of all body and query parameters automatically.
     ///
-    /// If you would like an `Option` for not-found values, use [`execute_opt`] instead.
+    /// If you would like an `Option` for not-found values, use [`execute_opt`](Driver::execute_opt) instead.
     pub async fn execute<CMD: Command>(&self, cmd: CMD) -> Result<CMD::Result, DriverError> {
         let mut path = format!("{}/api/v1/", self.uri);
 
