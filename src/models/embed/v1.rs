@@ -75,12 +75,7 @@ pub struct EmbedV1 {
     pub title: Option<SmolStr>,
 
     /// Description, usually from the Open-Graph API
-    #[serde(
-        rename = "d",
-        alias = "description",
-        default,
-        skip_serializing_if = "is_none_or_empty"
-    )]
+    #[serde(rename = "d", alias = "description", default, skip_serializing_if = "is_none_or_empty")]
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub description: Option<SmolStr>,
 
@@ -94,12 +89,7 @@ pub struct EmbedV1 {
     pub author: Option<EmbedAuthor>,
 
     /// oEmbed Provider
-    #[serde(
-        rename = "p",
-        alias = "provider",
-        default,
-        skip_serializing_if = "EmbedProvider::is_none"
-    )]
+    #[serde(rename = "p", alias = "provider", default, skip_serializing_if = "EmbedProvider::is_none")]
     #[cfg_attr(feature = "builder", builder(default))]
     pub provider: EmbedProvider,
 
@@ -115,21 +105,16 @@ pub struct EmbedV1 {
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub audio: Option<BoxedEmbedMedia>,
-    #[serde(
-        rename = "vid",
-        alias = "video",
-        default,
-        skip_serializing_if = "EmbedMedia::is_empty"
-    )]
+    #[serde(rename = "vid", alias = "video", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub video: Option<BoxedEmbedMedia>,
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     pub thumb: Option<BoxedEmbedMedia>,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-    pub fields: Vec<EmbedField>,
+    pub fields: ThinVec<EmbedField>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "builder", builder(default))]
@@ -324,12 +309,7 @@ pub struct EmbedMedia {
     pub url: SmolStr,
 
     /// Non-visible description of the embedded media
-    #[serde(
-        rename = "d",
-        alias = "description",
-        default,
-        skip_serializing_if = "is_none_or_empty"
-    )]
+    #[serde(rename = "d", alias = "description", default, skip_serializing_if = "is_none_or_empty")]
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub description: Option<SmolStr>,
 
@@ -352,12 +332,7 @@ pub struct EmbedMedia {
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub mime: Option<SmolStr>,
 
-    #[serde(
-        rename = "a",
-        alias = "alternate",
-        default,
-        skip_serializing_if = "EmbedMedia::is_empty"
-    )]
+    #[serde(rename = "a", alias = "alternate", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "builder", builder(default, setter(into)))]
     pub alternate: Option<BoxedEmbedMedia>,
 }
@@ -418,9 +393,7 @@ impl EmbedProvider {
 impl EmbedAuthor {
     pub fn is_none(this: &Option<Self>) -> bool {
         match this {
-            Some(ref this) => {
-                this.name.is_empty() && is_none_or_empty(&this.url) && EmbedMedia::is_empty(&this.icon)
-            }
+            Some(ref this) => this.name.is_empty() && is_none_or_empty(&this.url) && EmbedMedia::is_empty(&this.icon),
             None => true,
         }
     }
@@ -489,7 +462,7 @@ impl Default for EmbedV1 {
             video: None,
             thumb: None,
             obj: None,
-            fields: Vec::new(),
+            fields: ThinVec::new(),
             footer: None,
         }
     }

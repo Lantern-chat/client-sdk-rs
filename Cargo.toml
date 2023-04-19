@@ -8,7 +8,8 @@ license = "GPL-3.0-only"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [patch.crates-io]
-smol_str = { git = "https://github.com/Lantern-chat/smol_str" }
+smol_str = { git = "https://github.com/Lantern-chat/smol_str", branch = "0.2" }
+thin-vec = { git = "https://github.com/Lantern-chat/thin-vec" }
 iso8601-timestamp = { git = "https://github.com/Lantern-chat/iso8601-timestamp" }
 
 [dependencies]
@@ -23,7 +24,8 @@ enum-primitive-derive = "0.2"
 num-traits = "0.2"
 itoa = "1"
 time = { version = "0.3", features = ["macros"] }
-smol_str = { version = "0.1", features = ["serde"] }
+smol_str = { version = "0.2", features = ["serde"] }
+thin-vec = { version = "0.2.12", features = ["serde"] }
 arrayvec = { version = "0.7.1", features = ["serde"] }
 paste = "1"
 static_assertions = "1"
@@ -68,11 +70,11 @@ smallvec = { version = "1.10.0", optional = true }
 [features]
 _internal_common = ["thiserror"]
 
-schema = ["schemars", "okapi", "timestamp/schema", "smol_str/schema"]
+schema = ["schemars", "okapi", "timestamp/schema", "smol_str/schema", "thin-vec/schemars"]
 
-pg = ["postgres-types", "bytes", "timestamp/pg"]
+pg = ["postgres-types", "bytes", "timestamp/pg", "thin-vec/postgres"]
 rusqlite = ["dep:rusqlite", "timestamp/rusqlite"]
-api = ["http", "_internal_common", "percent-encoding"] # http required for Method
+api = ["http", "_internal_common", "percent-encoding"]                # http required for Method
 
 # Low-level command execution
 driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]

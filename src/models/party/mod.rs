@@ -2,17 +2,12 @@ use std::ops::Deref;
 
 use super::*;
 
-pub mod prefs;
+mod prefs;
 pub use prefs::*;
 
 bitflags::bitflags! {
-    pub struct PartyFlags: i16 {
-        /// Top 6 bits are a language code
-        const LANGUAGE = 0b111111 << (16 - 6);
-    }
-
     #[derive(Default)]
-    pub struct SecurityFlags: i16 {
+    pub struct PartyFlags: i32 {
         /// Must have a verified email address
         const EMAIL         = 1 << 0;
         /// Must have a verified phone number
@@ -23,12 +18,22 @@ bitflags::bitflags! {
         const NEW_MEMBER    = 1 << 3;
         /// Must have MFA enabled
         const MFA_ENABLED   = 1 << 4;
+
+        /// Top 6 bits are a language code
+        const LANGUAGE = 0b11_11_11 << (32 - 6);
+
+        const SECURITY = 0
+            | Self::EMAIL.bits
+            | Self::PHONE.bits
+            | Self::NEW_USER.bits
+            | Self::NEW_MEMBER.bits
+            | Self::MFA_ENABLED.bits;
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(SecurityFlags);
-impl_schema_for_bitflags!(SecurityFlags);
-impl_sql_for_bitflags!(SecurityFlags);
+serde_shims::impl_serde_for_bitflags!(PartyFlags);
+impl_schema_for_bitflags!(PartyFlags);
+impl_sql_for_bitflags!(PartyFlags);
 
 //#[derive(Debug, Clone, Serialize, Deserialize)]
 //#[serde(untagged)]
@@ -55,6 +60,8 @@ pub struct Party {
     #[serde(flatten)]
     pub partial: PartialParty,
 
+    pub flags: PartyFlags,
+
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub avatar: Option<SmolStr>,
 
@@ -67,16 +74,14 @@ pub struct Party {
     #[serde(default)]
     pub position: Option<i16>,
 
-    pub security: SecurityFlags,
-
     /// Id of owner user
     pub owner: Snowflake,
 
-    pub roles: Vec<Role>,
+    pub roles: ThinVec<Role>,
 
-    pub emotes: Vec<Emote>,
+    pub emotes: ThinVec<Emote>,
 
-    pub pin_folders: Vec<PinFolder>,
+    pub pin_folders: ThinVec<PinFolder>,
 }
 
 impl Deref for Party {
@@ -108,7 +113,7 @@ pub struct PartialPartyMember {
 
     /// List of Role id snowflakes
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
-    pub roles: Option<Vec<Snowflake>>,
+    pub roles: Option<ThinVec<Snowflake>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

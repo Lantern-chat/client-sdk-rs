@@ -8,10 +8,12 @@ bitflags::bitflags! {
         const TTS               = 1 << 3;
         const SUPRESS_EMBEDS    = 1 << 4;
         const HAS_LINK          = 1 << 5;
+        /// Set if the message has been starred by the user requesting it
+        const STARRED           = 1 << 6;
 
         /// Top 6 bits are a language code,
         /// which is never actually exposed to users.
-        const LANGUAGE          = 0b111111 << (16 - 6);
+        const LANGUAGE          = 0b11_11_11 << (16 - 6);
     }
 }
 
@@ -57,9 +59,7 @@ pub struct Message {
     pub member: Option<PartialPartyMember>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub thread_id: Option<Snowflake>,
-
-    pub created_at: Timestamp,
+    pub parent: Option<Snowflake>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub edited_at: Option<Timestamp>,
@@ -69,28 +69,27 @@ pub struct Message {
 
     pub flags: MessageFlags,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub pins: Vec<Snowflake>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub pins: ThinVec<Snowflake>,
 
-    /// True if the message has been starred by the current user
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub starred: bool,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub user_mentions: ThinVec<Snowflake>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub role_mentions: ThinVec<Snowflake>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub room_mentions: ThinVec<Snowflake>,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub user_mentions: Vec<Snowflake>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub role_mentions: Vec<Snowflake>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub room_mentions: Vec<Snowflake>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub reactions: ThinVec<Reaction>,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub reactions: Vec<Reaction>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub attachments: ThinVec<Attachment>,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub attachments: Vec<Attachment>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub embeds: ThinVec<Embed>,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub embeds: Vec<Embed>,
+    #[serde(default, skip_serializing_if = "is_default")]
+    pub score: i32,
 }
 
 /// Simple enum for custom emote ids or emoji symbols
@@ -161,7 +160,7 @@ pub struct ReactionShorthand {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ReactionFull {
     pub emote: EmoteOrEmoji,
-    pub users: Vec<Snowflake>,
+    pub users: ThinVec<Snowflake>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

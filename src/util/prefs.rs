@@ -1,4 +1,4 @@
-use std::collections::hash_map::{HashMap, RandomState};
+use std::collections::hash_map::{self, HashMap, RandomState};
 use std::{fmt, hash};
 
 use serde_json::Value;
@@ -92,5 +92,20 @@ impl<P: Preference, H: Default + hash::BuildHasher> PreferenceMap<P, H> {
         for (field, value) in new.0.drain() {
             self.0.insert(field, value);
         }
+    }
+
+    /// Attempts to insert the preference value, after validating it. Returns `true` if a
+    /// value already existed for this preference.
+    pub fn try_insert(&mut self, pref: P, value: Value) -> Result<bool, PreferenceError<P>> {
+        pref.validate(&value)?;
+        Ok(self.0.insert(pref, value).is_some())
+    }
+
+    pub fn get(&self, pref: P) -> Option<&Value> {
+        self.0.get(&pref)
+    }
+
+    pub fn iter(&self) -> hash_map::Iter<P, Value> {
+        self.0.iter()
     }
 }

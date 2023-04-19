@@ -1,6 +1,6 @@
 use super::*;
 
-pub mod prefs;
+mod prefs;
 pub use prefs::*;
 
 bitflags::bitflags! {
@@ -97,8 +97,7 @@ impl UserFlags {
     }
 
     pub const fn with_elevation(self, ev: ElevationLevel) -> Self {
-        self.difference(Self::ELEVATION)
-            .union(Self::from_bits_truncate(((ev as u8) as i32) << 6))
+        self.difference(Self::ELEVATION).union(Self::from_bits_truncate(((ev as u8) as i32) << 6))
     }
 
     pub fn premium_level(self) -> u8 {
@@ -109,9 +108,7 @@ impl UserFlags {
         ((self & Self::EXTRA_STORAGE).bits() >> 13) as u8
     }
 
-    pub const SYSTEM_USER: UserFlags = UserFlags::empty()
-        .with_elevation(ElevationLevel::System)
-        .union(UserFlags::VERIFIED);
+    pub const SYSTEM_USER: UserFlags = UserFlags::empty().with_elevation(ElevationLevel::System).union(UserFlags::VERIFIED);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -221,7 +218,7 @@ pub struct User {
     pub flags: UserFlags,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    pub profile: Nullable<UserProfile>,
+    pub profile: Nullable<Box<UserProfile>>,
 
     /// Not present when user isn't self
     #[serde(default, skip_serializing_if = "Option::is_none")]

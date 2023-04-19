@@ -3,6 +3,7 @@
 #![allow(unused_imports, clippy::identity_op)]
 
 pub use smol_str::SmolStr;
+pub use thin_vec::ThinVec;
 pub use timestamp::Timestamp;
 
 pub mod nullable;
@@ -101,6 +102,13 @@ impl<T> IsEmpty for &[T] {
 }
 
 impl<T> IsEmpty for Vec<T> {
+    #[inline]
+    fn _is_empty(&self) -> bool {
+        self.is_empty()
+    }
+}
+
+impl<T> IsEmpty for ThinVec<T> {
     #[inline]
     fn _is_empty(&self) -> bool {
         self.is_empty()

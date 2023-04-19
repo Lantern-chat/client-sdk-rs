@@ -5,8 +5,9 @@
 ///
 /// Similarly, not all gateway events provide all information in objects. Again, user profiles
 /// are notable in that biographies are typically excluded in events to save on bandwidth.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Nullable<T> {
+    #[default]
     Undefined,
     Null,
     Some(T),
@@ -52,12 +53,6 @@ impl<T> Nullable<T> {
             Nullable::Null => Nullable::Null,
             Nullable::Undefined => Nullable::Undefined,
         }
-    }
-}
-
-impl<T> Default for Nullable<T> {
-    fn default() -> Self {
-        Nullable::Undefined
     }
 }
 

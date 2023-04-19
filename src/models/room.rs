@@ -1,21 +1,24 @@
+use num_traits::FromPrimitive;
 use std::num::NonZeroU32;
 
 use super::*;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, enum_primitive_derive::Primitive)]
+#[repr(u8)]
+pub enum RoomKind {
+    Text = 0,
+    DirectMessage = 1,
+    GroupMessage = 2,
+    Voice = 3,
+    Feed = 4,
+    // max value cannot exceed 15
+}
+
 bitflags::bitflags! {
     pub struct RoomFlags: i16 {
-        const TEXT    = 1 << 0;
-        const DIRECT  = 1 << 1;
-        const VOICE   = 1 << 2;
-        const GROUP   = 1 << 3;
+        const KIND    = 0xF; // first four bits are the kind
         const NSFW    = 1 << 4;
         const DEFAULT = 1 << 5;
-
-        /// Private rooms are those where @everyone cannot view them
-        const PRIVATE = 1 << 6;
-
-        /// Forum-style room
-        const FORUM   = 1 << 7;
     }
 }
 
@@ -23,10 +26,20 @@ serde_shims::impl_serde_for_bitflags!(RoomFlags);
 impl_schema_for_bitflags!(RoomFlags);
 impl_sql_for_bitflags!(RoomFlags);
 
+impl RoomFlags {
+    pub fn kind(self) -> RoomKind {
+        // all rooms derive from the text room, so basic queries
+        // will still function if the SDK is not updated as it should
+        RoomKind::from_i16(self.bits & 0xF).unwrap_or(RoomKind::Text)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Room {
     pub id: Snowflake,
+
+    pub flags: RoomFlags,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub party_id: Option<Snowflake>,
@@ -41,8 +54,6 @@ pub struct Room {
     /// Sort order
     pub position: i16,
 
-    pub flags: RoomFlags,
-
     /// Slow-mode rate limit, in seconds
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<NonZeroU32>,
@@ -52,8 +63,8 @@ pub struct Room {
     pub parent_id: Option<Snowflake>,
 
     /// Permission overwrites for this room
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub overwrites: Vec<Overwrite>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    pub overwrites: ThinVec<Overwrite>,
     // /// Direct/Group Message Users
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]
     // pub recipients: Vec<User>,

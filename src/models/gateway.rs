@@ -123,8 +123,8 @@ pub mod events {
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct Ready {
         pub user: User,
-        pub dms: Vec<Room>,
-        pub parties: Vec<Party>,
+        pub dms: ThinVec<Room>,
+        pub parties: ThinVec<Party>,
         pub session: Snowflake,
     }
 

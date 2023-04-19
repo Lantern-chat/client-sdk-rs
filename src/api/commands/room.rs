@@ -16,9 +16,13 @@ command! {
             #[cfg_attr(feature = "builder", builder(default))]
             pub parent: Option<Snowflake>,
 
-            #[serde(default, skip_serializing_if = "Vec::is_empty")]
+            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            pub attachments: Vec<Snowflake> where ATTACH_FILES if !attachments.is_empty(),
+            pub attachments: ThinVec<Snowflake> where ATTACH_FILES if !attachments.is_empty(),
+
+            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub embeds: ThinVec<Embed> where EMBED_LINKS if !embeds.is_empty(),
 
             #[serde(default, skip_serializing_if = "is_false")]
             #[cfg_attr(feature = "builder", builder(default))]
@@ -41,9 +45,9 @@ command! {
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub content: SmolStr,
 
-            #[serde(default, skip_serializing_if = "Vec::is_empty")]
+            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            pub attachments: Vec<Snowflake>,
+            pub attachments: ThinVec<Snowflake>,
         }
     }
 
@@ -74,9 +78,9 @@ command! {
             #[cfg_attr(feature = "builder", builder(default))]
             pub limit: Option<u8>,
 
-            #[serde(default, skip_serializing_if = "Vec::is_empty")]
+            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            pub pinned: Vec<Snowflake>,
+            pub pinned: ThinVec<Snowflake>,
 
             /// If true, return only messages in the channel which have been starred by us
             #[serde(default, skip_serializing_if = "crate::models::is_false")]

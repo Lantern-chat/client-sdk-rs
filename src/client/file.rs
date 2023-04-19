@@ -35,7 +35,7 @@ impl Client {
             },
             width: None,
             height: None,
-            mime: mime.map(SmolStr::from),
+            mime: mime.map(|m| SmolStr::from(m.as_ref())),
             preview: None,
         };
 
@@ -79,28 +79,19 @@ impl Client {
 
             read += buffer.len() as u64;
 
-            let new_offset = self
-                .driver()
-                .patch_file(file_id, offset, buffer.split().freeze().into())
-                .await?;
+            let new_offset = self.driver().patch_file(file_id, offset, buffer.split().freeze().into()).await?;
 
             if new_offset != read {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::UnexpectedEof,
-                    "Upload request returned unexpected offset",
-                )
-                .into());
+                return Err(
+                    std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "Upload request returned unexpected offset").into(),
+                );
             }
 
             progress(read, file_size);
         }
 
         if file_size != read {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::UnexpectedEof,
-                "File stream terminated too early",
-            )
-            .into());
+            return Err(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "File stream terminated too early").into());
         }
 
         Ok(file_id)
