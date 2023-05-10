@@ -121,10 +121,31 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    pub struct ReadyParty {
+        pub party: Party,
+        pub me: PartyMember,
+    }
+
+    impl std::ops::Deref for ReadyParty {
+        type Target = Party;
+
+        fn deref(&self) -> &Party {
+            &self.party
+        }
+    }
+
+    impl std::ops::DerefMut for ReadyParty {
+        fn deref_mut(&mut self) -> &mut Party {
+            &mut self.party
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub struct Ready {
         pub user: User,
         pub dms: ThinVec<Room>,
-        pub parties: ThinVec<Party>,
+        pub parties: ThinVec<ReadyParty>,
         pub session: Snowflake,
     }
 
