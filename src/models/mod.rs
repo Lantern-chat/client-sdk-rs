@@ -5,6 +5,7 @@
 pub use smol_str::SmolStr;
 pub use thin_vec::ThinVec;
 pub use timestamp::Timestamp;
+pub use triomphe::Arc;
 
 pub mod nullable;
 

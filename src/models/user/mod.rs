@@ -218,7 +218,7 @@ pub struct User {
     pub flags: UserFlags,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    pub profile: Nullable<Box<UserProfile>>,
+    pub profile: Nullable<Arc<UserProfile>>,
 
     /// Not present when user isn't self
     #[serde(default, skip_serializing_if = "Option::is_none")]

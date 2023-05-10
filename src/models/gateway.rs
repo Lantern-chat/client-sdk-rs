@@ -565,12 +565,10 @@ pub mod message {
     #[cfg(feature = "framework")]
     use futures::future::{BoxFuture, Future};
 
-    use std::sync::Arc;
-
     use crate::models::{
         commands::{Identify, SetPresence},
         events::*,
-        Intent, Message as RoomMessage, Party, PartyMember, Relationship, Role, User, UserPresence,
+        Arc, Intent, Message as RoomMessage, Party, PartyMember, Relationship, Role, User, UserPresence,
     };
 
     type Room = (); // TODO
@@ -584,45 +582,45 @@ pub mod message {
 
             /// Acknowledgement of a heartbeat
             1 => HeartbeatAck: Default {},
-            2 => Ready { #[serde(flatten)] inner *Deref: Box<Ready> },
+            2 => Ready { #[serde(flatten)] inner *Deref: Arc<Ready> },
 
             /// Sent when the session is no longer valid
             3 => InvalidSession: Default {},
 
-            4 => PartyCreate { #[serde(flatten)] inner *Deref: Box<Party> },
-            5 => PartyUpdate { #[serde(flatten)] inner *Deref: Box<PartyUpdateEvent> },
+            4 => PartyCreate { #[serde(flatten)] inner *Deref: Arc<Party> },
+            5 => PartyUpdate { #[serde(flatten)] inner *Deref: Arc<PartyUpdateEvent> },
             6 => PartyDelete { id: Snowflake },
 
-            7 => RoleCreate { #[serde(flatten)] inner *Deref: Box<Role> },
-            8 => RoleUpdate { #[serde(flatten)] inner *Deref: Box<Role> },
-            9 => RoleDelete { #[serde(flatten)] inner *Deref: Box<RoleDeleteEvent> },
+            7 => RoleCreate { #[serde(flatten)] inner *Deref: Arc<Role> },
+            8 => RoleUpdate { #[serde(flatten)] inner *Deref: Arc<Role> },
+            9 => RoleDelete { #[serde(flatten)] inner *Deref: Arc<RoleDeleteEvent> },
 
-            10 => MemberAdd     { #[serde(flatten)] inner *Deref: Box<PartyMemberEvent> },
-            11 => MemberUpdate  { #[serde(flatten)] inner *Deref: Box<PartyMemberEvent> },
+            10 => MemberAdd     { #[serde(flatten)] inner *Deref: Arc<PartyMemberEvent> },
+            11 => MemberUpdate  { #[serde(flatten)] inner *Deref: Arc<PartyMemberEvent> },
             12 => MemberRemove  { #[serde(flatten)] inner *Deref: Arc<PartyMemberEvent> },
             13 => MemberBan     { #[serde(flatten)] inner *Deref: Arc<PartyMemberEvent> },
-            14 => MemberUnban   { #[serde(flatten)] inner *Deref: Box<PartyMemberEvent> },
+            14 => MemberUnban   { #[serde(flatten)] inner *Deref: Arc<PartyMemberEvent> },
 
-            15 => RoomCreate { #[serde(flatten)] inner *Deref: Box<Room> },
-            16 => RoomUpdate { #[serde(flatten)] inner *Deref: Box<Room> },
-            17 => RoomDelete { #[serde(flatten)] inner *Deref: Box<RoomDeleteEvent> },
+            15 => RoomCreate { #[serde(flatten)] inner *Deref: Arc<Room> },
+            16 => RoomUpdate { #[serde(flatten)] inner *Deref: Arc<Room> },
+            17 => RoomDelete { #[serde(flatten)] inner *Deref: Arc<RoomDeleteEvent> },
             18 => RoomPinsUpdate {},
 
-            19 => MessageCreate { #[serde(flatten)] inner *Deref: Box<RoomMessage> },
-            20 => MessageUpdate { #[serde(flatten)] inner *Deref: Box<RoomMessage> },
-            21 => MessageDelete { #[serde(flatten)] inner *Deref: Box<MessageDeleteEvent> },
+            19 => MessageCreate { #[serde(flatten)] inner *Deref: Arc<RoomMessage> },
+            20 => MessageUpdate { #[serde(flatten)] inner *Deref: Arc<RoomMessage> },
+            21 => MessageDelete { #[serde(flatten)] inner *Deref: Arc<MessageDeleteEvent> },
 
-            22 => MessageReactionAdd { #[serde(flatten)] inner *Deref: Box<UserReactionEvent> },
-            23 => MessageReactionRemove { #[serde(flatten)] inner *Deref: Box<UserReactionEvent> },
+            22 => MessageReactionAdd { #[serde(flatten)] inner *Deref: Arc<UserReactionEvent> },
+            23 => MessageReactionRemove { #[serde(flatten)] inner *Deref: Arc<UserReactionEvent> },
             24 => MessageReactionRemoveAll {},
             25 => MessageReactionRemoveEmote {},
 
-            26 => PresenceUpdate { #[serde(flatten)] inner *Deref: Box<UserPresenceEvent> },
-            27 => TypingStart { #[serde(flatten)] inner *Deref: Box<TypingStart> },
+            26 => PresenceUpdate { #[serde(flatten)] inner *Deref: Arc<UserPresenceEvent> },
+            27 => TypingStart { #[serde(flatten)] inner *Deref: Arc<TypingStart> },
             28 => UserUpdate { user: Arc<User> },
 
-            29 => ProfileUpdate { #[serde(flatten)] inner *Deref: Box<ProfileUpdateEvent> },
-            30 => RelationAdd { #[serde(flatten)] inner *Deref: Box<Relationship> },
+            29 => ProfileUpdate { #[serde(flatten)] inner *Deref: Arc<ProfileUpdateEvent> },
+            30 => RelationAdd { #[serde(flatten)] inner *Deref: Arc<Relationship> },
             31 => RelationRemove { user_id: Snowflake },
         }
     }
