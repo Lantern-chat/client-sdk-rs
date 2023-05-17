@@ -15,8 +15,8 @@ pub use nullable::Nullable;
 
 pub mod embed {
     pub use ::embed::{
-        BoxedEmbedMedia, Embed, EmbedAuthor, EmbedField, EmbedFlags, EmbedFooter, EmbedMedia, EmbedProvider, EmbedType, EmbedV1,
-        UrlSignature,
+        v1, BoxedEmbedMedia, Embed, EmbedAuthor, EmbedField, EmbedFlags, EmbedFooter, EmbedMedia, EmbedProvider, EmbedType,
+        EmbedV1, UrlSignature,
     };
 }
 
