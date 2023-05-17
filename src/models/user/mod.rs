@@ -67,7 +67,7 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(UserFlags);
-impl_schema_for_bitflags!(UserFlags);
+common::impl_schema_for_bitflags!(UserFlags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
@@ -154,12 +154,12 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(UserProfileBits);
-impl_schema_for_bitflags!(UserProfileBits);
-impl_sql_for_bitflags!(UserProfileBits);
+common::impl_schema_for_bitflags!(UserProfileBits);
+common::impl_sql_for_bitflags!(UserProfileBits);
 
 serde_shims::impl_serde_for_bitflags!(ExtraUserProfileBits);
-impl_schema_for_bitflags!(ExtraUserProfileBits);
-impl_sql_for_bitflags!(ExtraUserProfileBits);
+common::impl_schema_for_bitflags!(ExtraUserProfileBits);
+common::impl_sql_for_bitflags!(ExtraUserProfileBits);
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -280,7 +280,7 @@ pub enum UserRelationship {
     BlockedDangerous = 101,
 }
 
-impl_sql_for_enum_primitive!(UserRelationship);
+common::impl_sql_for_enum_primitive!(UserRelationship);
 
 /*
 UserA               UserB

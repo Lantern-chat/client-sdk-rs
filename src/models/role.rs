@@ -9,8 +9,8 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(RoleFlags);
-impl_schema_for_bitflags!(RoleFlags);
-impl_sql_for_bitflags!(RoleFlags);
+common::impl_schema_for_bitflags!(RoleFlags);
+common::impl_sql_for_bitflags!(RoleFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

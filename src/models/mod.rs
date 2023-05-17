@@ -2,6 +2,8 @@
 
 #![allow(unused_imports, clippy::identity_op)]
 
+use common::fixed::FixedStr;
+
 pub use smol_str::SmolStr;
 pub use thin_vec::ThinVec;
 pub use timestamp::Timestamp;
@@ -35,8 +37,6 @@ type Hasher = std::collections::hash_map::RandomState;
 
 #[cfg(feature = "ahash")]
 type Hasher = ahash::RandomState;
-
-use crate::util::fixed::FixedStr;
 
 pub use self::{
     asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,

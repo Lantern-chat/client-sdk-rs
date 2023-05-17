@@ -32,8 +32,8 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(PartyFlags);
-impl_schema_for_bitflags!(PartyFlags);
-impl_sql_for_bitflags!(PartyFlags);
+common::impl_schema_for_bitflags!(PartyFlags);
+common::impl_sql_for_bitflags!(PartyFlags);
 
 //#[derive(Debug, Clone, Serialize, Deserialize)]
 //#[serde(untagged)]
@@ -99,8 +99,8 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(PartyMemberFlags);
-impl_schema_for_bitflags!(PartyMemberFlags);
-impl_sql_for_bitflags!(PartyMemberFlags);
+common::impl_schema_for_bitflags!(PartyMemberFlags);
+common::impl_sql_for_bitflags!(PartyMemberFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -140,8 +140,8 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(PinFolderFlags);
-impl_schema_for_bitflags!(PinFolderFlags);
-impl_sql_for_bitflags!(PinFolderFlags);
+common::impl_schema_for_bitflags!(PinFolderFlags);
+common::impl_sql_for_bitflags!(PinFolderFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

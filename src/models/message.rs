@@ -18,7 +18,7 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(MessageFlags);
-impl_schema_for_bitflags!(MessageFlags);
+common::impl_schema_for_bitflags!(MessageFlags);
 
 impl MessageFlags {
     #[inline]

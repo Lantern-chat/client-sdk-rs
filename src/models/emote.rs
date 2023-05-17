@@ -9,8 +9,8 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(EmoteFlags);
-impl_schema_for_bitflags!(EmoteFlags);
-impl_sql_for_bitflags!(EmoteFlags);
+common::impl_schema_for_bitflags!(EmoteFlags);
+common::impl_sql_for_bitflags!(EmoteFlags);
 
 // TODO: Add inline preview?
 #[derive(Debug, Clone, Serialize, Deserialize)]

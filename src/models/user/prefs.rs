@@ -96,7 +96,7 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(UserPrefsFlags);
-impl_sql_for_bitflags!(UserPrefsFlags);
+common::impl_sql_for_bitflags!(UserPrefsFlags);
 
 impl From<u64> for UserPrefsFlags {
     fn from(value: u64) -> Self {

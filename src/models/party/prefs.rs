@@ -15,7 +15,7 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(PartyPrefsFlags);
-impl_sql_for_bitflags!(PartyPrefsFlags);
+common::impl_sql_for_bitflags!(PartyPrefsFlags);
 
 impl From<u64> for PartyPrefsFlags {
     fn from(value: u64) -> Self {

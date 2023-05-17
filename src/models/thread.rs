@@ -8,8 +8,8 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(ThreadFlags);
-impl_schema_for_bitflags!(ThreadFlags);
-impl_sql_for_bitflags!(ThreadFlags);
+common::impl_schema_for_bitflags!(ThreadFlags);
+common::impl_sql_for_bitflags!(ThreadFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]

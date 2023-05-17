@@ -23,8 +23,8 @@ bitflags::bitflags! {
 }
 
 serde_shims::impl_serde_for_bitflags!(RoomFlags);
-impl_schema_for_bitflags!(RoomFlags);
-impl_sql_for_bitflags!(RoomFlags);
+common::impl_schema_for_bitflags!(RoomFlags);
+common::impl_sql_for_bitflags!(RoomFlags);
 
 impl RoomFlags {
     pub fn kind(self) -> RoomKind {
