@@ -13,10 +13,16 @@ pub mod nullable;
 
 pub use nullable::Nullable;
 
+pub mod embed {
+    pub use ::embed::{
+        BoxedEmbedMedia, Embed, EmbedAuthor, EmbedField, EmbedFlags, EmbedFooter, EmbedMedia, EmbedProvider, EmbedType, EmbedV1,
+        UrlSignature,
+    };
+}
+
 pub mod asset;
 pub mod auth;
 pub mod config;
-pub mod embed;
 pub mod emote;
 pub mod file;
 pub mod gateway;

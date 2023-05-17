@@ -1,5 +1,5 @@
 [package]
-name = "client-sdk-rs-common"
+name = "client-sdk-common"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"

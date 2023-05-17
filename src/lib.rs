@@ -5,13 +5,6 @@ pub use models::Snowflake;
 
 #[macro_use]
 pub mod util {
-    #[macro_use]
-    pub mod schema;
-    pub mod fixed;
-
-    #[macro_use]
-    pub mod sql;
-
     pub mod prefs;
 }
 
