@@ -67,6 +67,7 @@ pub enum ApiErrorCode {
     MissingContentTypeHeader = 40033,
     Blocked                  = 40034,
     Banned                   = 40035,
+    SearchError              = 40036,
 
     // Generic HTTP-like error codes
     BadRequest               = 40400,
