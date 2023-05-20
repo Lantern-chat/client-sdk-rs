@@ -35,6 +35,7 @@ pub mod role;
 pub mod room;
 pub mod session;
 pub mod sf;
+pub mod stats;
 pub mod thread;
 pub mod user;
 
@@ -46,7 +47,7 @@ type Hasher = ahash::RandomState;
 
 pub use self::{
     asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,
-    presence::*, role::*, room::*, session::*, sf::*, thread::*, user::*,
+    presence::*, role::*, room::*, session::*, sf::*, stats::*, thread::*, user::*,
 };
 
 /// Directional search query
