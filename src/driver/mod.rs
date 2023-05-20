@@ -76,8 +76,7 @@ impl Driver {
     fn add_auth_header(&self, req: &mut Request) -> Result<(), DriverError> {
         match self.auth {
             Some(ref auth) => {
-                req.headers_mut()
-                    .insert(HeaderName::from_static("authorization"), auth.1.clone());
+                req.headers_mut().insert(HeaderName::from_static("authorization"), auth.1.clone());
             }
             None => return Err(DriverError::MissingAuthorization),
         }
@@ -208,12 +207,7 @@ where
 use base64::engine::{general_purpose::STANDARD, Engine};
 
 impl Driver {
-    pub async fn patch_file(
-        &self,
-        file_id: Snowflake,
-        offset: u64,
-        chunk: bytes::Bytes,
-    ) -> Result<u64, DriverError> {
+    pub async fn patch_file(&self, file_id: Snowflake, offset: u64, chunk: bytes::Bytes) -> Result<u64, DriverError> {
         let auth = match self.auth {
             Some(ref auth) => auth.1.clone(),
             None => return Err(DriverError::MissingAuthorization),

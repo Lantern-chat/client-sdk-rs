@@ -17,5 +17,4 @@ pub enum StandardError {
 /// Required properties for custom error types,
 /// must be able to handle [`ClientError`], [`DriverError`], and [`GatewayError`] errors
 pub trait StandardErrorExt: 'static + Error + From<ClientError> + From<DriverError> + From<GatewayError> {}
-impl<T> StandardErrorExt for T where T: 'static + Error + From<ClientError> + From<DriverError> + From<GatewayError>
-{}
+impl<T> StandardErrorExt for T where T: 'static + Error + From<ClientError> + From<DriverError> + From<GatewayError> {}

@@ -80,10 +80,7 @@ impl GatewayConnection {
     }
 
     /// Acquire a pinned projection of the socket, or poll the connecting future.
-    fn poll_project_socket(
-        &mut self,
-        cx: &mut Context<'_>,
-    ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
+    fn poll_project_socket(&mut self, cx: &mut Context<'_>) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         // fast path, project socket
         if let Some(ref mut socket) = self.socket {
             return Poll::Ready(Ok(Pin::new(socket)));
@@ -94,10 +91,7 @@ impl GatewayConnection {
 
     /// Poll the connecting future to acquire a new socket over time
     #[inline(never)]
-    fn poll_project_socket_cold(
-        &mut self,
-        cx: &mut Context<'_>,
-    ) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
+    fn poll_project_socket_cold(&mut self, cx: &mut Context<'_>) -> Poll<Result<Pin<&mut GatewaySocket>, GatewayError>> {
         // if there is no connecting future, set one up
         if self.connecting.is_none() {
             if self.control.closed.load(Ordering::SeqCst) {

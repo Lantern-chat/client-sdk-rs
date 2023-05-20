@@ -44,9 +44,7 @@ impl From<AssetQuery> for AssetFlags {
 
                 match ext {
                     Some(ext) => flags.union(AssetFlags::from_ext(&ext)),
-                    None => flags
-                        .union(AssetFlags::FORMATS)
-                        .difference(AssetFlags::MAYBE_UNSUPPORTED_FORMATS),
+                    None => flags.union(AssetFlags::FORMATS).difference(AssetFlags::MAYBE_UNSUPPORTED_FORMATS),
                 }
             }
         }

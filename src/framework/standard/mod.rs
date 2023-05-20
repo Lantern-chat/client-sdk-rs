@@ -141,14 +141,7 @@ where
         let state = Arc::new(state);
 
         // start running client msg task
-        let client_task = tokio::spawn(run_client(
-            rx,
-            gw_tx,
-            state.clone(),
-            ctx.clone(),
-            on_error.clone(),
-            kill,
-        ));
+        let client_task = tokio::spawn(run_client(rx, gw_tx, state.clone(), ctx.clone(), on_error.clone(), kill));
 
         // begin listening for events on current task
         loop {

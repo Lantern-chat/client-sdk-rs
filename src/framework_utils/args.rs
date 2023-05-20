@@ -65,6 +65,12 @@ impl<'a> Argument<'a> {
     pub fn is_quoted(&self) -> bool {
         self.inner() != self.outer()
     }
+
+    pub fn is_quoted_with(&self, (start, end): (char, char)) -> bool {
+        let outer = self.outer_str();
+
+        self.is_quoted() && outer.starts_with(start) && outer.ends_with(end)
+    }
 }
 
 impl<'a> ArgumentSplitter<'a> {
