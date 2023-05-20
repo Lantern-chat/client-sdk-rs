@@ -33,7 +33,7 @@ impl Snowflake {
 
     /// Gets the number of milliseconds since the unix epoch
     #[inline]
-    pub fn epoch_ms(&self) -> u64 {
+    pub const fn epoch_ms(&self) -> u64 {
         self.raw_timestamp() + LANTERN_EPOCH
     }
 
@@ -48,7 +48,7 @@ impl Snowflake {
     }
 
     #[inline]
-    pub fn raw_timestamp(&self) -> u64 {
+    pub const fn raw_timestamp(&self) -> u64 {
         self.0.get() >> 22
     }
 
@@ -63,9 +63,22 @@ impl Snowflake {
     }
 }
 
+impl Snowflake {
+    /// Create a valid Snowflake from the given unix timestamp. This snowflake will not have
+    /// any information but the timestamp.
+    ///
+    /// NOTE: This cannot be before the [Lantern Epoch](LANTERN_EPOCH).
+    #[inline]
+    pub const fn from_unix_ms(ms: u64) -> Option<Snowflake> {
+        let Some(ms) = ms.checked_sub(LANTERN_EPOCH) else { return None; };
+        Some(Snowflake(unsafe { NonZeroU64::new_unchecked((ms << 22) | 1) }))
+    }
+}
+
 impl FromStr for Snowflake {
     type Err = <NonZeroU64 as FromStr>::Err;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         NonZeroU64::from_str(s).map(Snowflake)
     }
