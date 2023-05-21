@@ -61,7 +61,7 @@ command! {
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
-        #[derive(Default)] struct CreatePinFolderForm {
+        struct CreatePinFolderForm {
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub name: SmolStr,
 
@@ -70,4 +70,53 @@ command! {
             pub description: Option<SmolStr>,
         }
     }
+
+    +struct CreateRoom -> Room: POST("party" / party_id / "rooms") {
+        pub party_id: Snowflake,
+
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct CreateRoomForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub name: SmolStr,
+
+            #[cfg_attr(feature = "builder", builder(default))]
+            pub kind: CreateRoomKind,
+
+            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub overwrites: ThinVec<Overwrite>,
+
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub position: i16,
+        }
+    }
+
+    +struct SearchParty -> (): POST("party" / party_id / "search") {
+        pub party_id: Snowflake,
+
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct SearchQuery {
+            #[serde(flatten)]
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub query: String,
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[repr(u8)]
+pub enum CreateRoomKind {
+    #[default]
+    Text = RoomKind::Text as u8,
+    Voice = RoomKind::Voice as u8,
+    UserForum = RoomKind::UserForum as u8,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+pub struct PartySettings {
+    pub flags: PartyFlags,
+    pub prefs: PartyPreferences,
 }

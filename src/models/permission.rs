@@ -143,6 +143,16 @@ const _: () = {
                 {
                     Ok(Permissions::from_bits_truncate(v as _))
                 }
+
+                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                where
+                    E: de::Error,
+                {
+                    match v.parse() {
+                        Ok(bits) => Ok(Permissions::from_bits_truncate(bits)),
+                        Err(e) => Err(E::custom(e)),
+                    }
+                }
             }
         }
     }
@@ -183,12 +193,22 @@ impl Overwrite {
 impl Permissions {
     #[inline(always)]
     pub fn from_i64(low: i64, high: i64) -> Self {
-        unsafe { std::mem::transmute([low, high]) }
+        Permissions::from_bits_truncate(unsafe { std::mem::transmute([low, high]) })
+    }
+
+    #[inline(always)]
+    pub fn from_i64_opt(low: Option<i64>, high: Option<i64>) -> Self {
+        match (low, high) {
+            (None, None) => Permissions::empty(),
+            (None, Some(high)) => Permissions::from_i64(0, high),
+            (Some(low), None) => Permissions::from_i64(low, 0),
+            (Some(low), Some(high)) => Permissions::from_i64(low, high),
+        }
     }
 
     #[inline(always)]
     pub fn to_i64(self) -> [i64; 2] {
-        unsafe { std::mem::transmute(self) }
+        unsafe { std::mem::transmute(self.bits()) }
     }
 
     pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {

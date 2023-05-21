@@ -10,7 +10,7 @@ pub enum RoomKind {
     DirectMessage = 1,
     GroupMessage = 2,
     Voice = 3,
-    Feed = 4,
+    UserForum = 4,
     // max value cannot exceed 15
 }
 
@@ -31,6 +31,12 @@ impl RoomFlags {
         // all rooms derive from the text room, so basic queries
         // will still function if the SDK is not updated as it should
         RoomKind::from_i16(self.bits & 0xF).unwrap_or(RoomKind::Text)
+    }
+}
+
+impl From<RoomKind> for RoomFlags {
+    fn from(value: RoomKind) -> Self {
+        unsafe { RoomFlags::from_bits_unchecked(value as u8 as i16) }
     }
 }
 
@@ -68,4 +74,13 @@ pub struct Room {
     // /// Direct/Group Message Users
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]
     // pub recipients: Vec<User>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub struct FullRoom {
+    #[serde(flatten)]
+    pub room: Room,
+
+    pub perms: Permissions,
 }
