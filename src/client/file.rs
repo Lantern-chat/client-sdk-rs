@@ -71,7 +71,7 @@ impl Client {
                 }
             }
 
-            if buffer.len() == 0 {
+            if buffer.is_empty() {
                 break;
             }
 
@@ -79,7 +79,7 @@ impl Client {
 
             read += buffer.len() as u64;
 
-            let new_offset = self.driver().patch_file(file_id, offset, buffer.split().freeze().into()).await?;
+            let new_offset = self.driver().patch_file(file_id, offset, buffer.split().freeze()).await?;
 
             if new_offset != read {
                 return Err(

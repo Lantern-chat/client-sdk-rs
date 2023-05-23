@@ -366,7 +366,7 @@ pub mod message {
                 }
 
                 $(
-                    pub fn [<on_ $opcode:snake>]<'a, F, R>(&mut self, cb: F) -> &mut Self
+                    pub fn [<on_ $opcode:snake>]<F, R>(&mut self, cb: F) -> &mut Self
                     where
                         F: Fn(Arc<S>, C, $($ty,)*) -> R + Send + Sync + 'static,
                         R: Future<Output = U> + Send + 'static,

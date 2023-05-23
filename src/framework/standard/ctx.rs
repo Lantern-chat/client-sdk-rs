@@ -87,6 +87,7 @@ impl<H> InternalEventHandlers<H> {
         }
     }
 
+    #[allow(clippy::needless_return)] // ugh
     fn setup_new_heartbeat(&self, ctx: StandardContext) {
         let hb = self.heartbeat.clone();
         let interval = self.interval.load(SeqCst);

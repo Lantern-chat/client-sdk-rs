@@ -72,7 +72,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
-            pub thread: Option<Snowflake>,
+            pub parent: Option<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
