@@ -58,6 +58,15 @@ command! {
 
     +struct StartTyping -> (): POST("room" / room_id / "typing") where SEND_MESSAGES {
         pub room_id: Snowflake,
+
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[derive(Default)] struct StartTypingBody {
+            /// Will only show within the parent context if set
+            #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default))]
+            pub parent: Option<Snowflake>,
+        }
     }
 
     +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where READ_MESSAGE_HISTORY {

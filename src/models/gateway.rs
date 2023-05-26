@@ -158,6 +158,8 @@ pub mod events {
         pub user_id: Snowflake,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub member: Option<PartyMember>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub parent: Option<Snowflake>,
         // maybe timestamp?
         //ts: u32,
     }
