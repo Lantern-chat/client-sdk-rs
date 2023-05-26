@@ -27,6 +27,7 @@ command! {
         pub party_id: Snowflake,
 
         ;
+        #[derive(Default, PartialEq)]
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct PatchPartyForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -47,11 +48,11 @@ command! {
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            pub avatar_id: Nullable<Snowflake>,
+            pub avatar: Nullable<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            pub banner_id: Nullable<Snowflake>,
+            pub banner: Nullable<Snowflake>,
         }
     }
 
@@ -147,6 +148,7 @@ command! {
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub overwrites: ThinVec<Overwrite>,
 
+            #[serde(default)]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub position: i16,
         }
