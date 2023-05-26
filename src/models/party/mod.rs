@@ -19,6 +19,12 @@ bitflags::bitflags! {
         /// Must have MFA enabled
         const MFA_ENABLED   = 1 << 4;
 
+        /// Party is marked as "adult"
+        ///
+        /// This affects viewing on iOS apps and
+        /// the minimum age required to join.
+        const ADULT         = 1 << 5;
+
         /// Top 6 bits are a language code
         const LANGUAGE = 0b11_11_11 << (32 - 6);
 

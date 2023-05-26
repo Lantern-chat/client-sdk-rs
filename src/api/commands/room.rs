@@ -151,4 +151,42 @@ command! {
             limit: Option<i8>,
         }
     }
+
+    +struct PatchRoom -> FullRoom: PATCH("room" / room_id) {
+        pub room_id: Snowflake,
+
+        ;
+        /// `Nullable::Undefined` or `Option::None` fields indicate no change
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[derive(Default, PartialEq)]
+        struct PatchRoomForm {
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub name: Option<SmolStr>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub topic: Nullable<SmolStr>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub avatar: Nullable<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub position: Option<u8>,
+
+            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub remove_overwrites: ThinVec<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub overwrites: ThinVec<Overwrite>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub nsfw: Option<bool>,
+        }
+    }
 }

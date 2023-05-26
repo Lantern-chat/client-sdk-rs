@@ -5,6 +5,62 @@ command! {
         pub party_id: Snowflake,
     }
 
+    +struct CreateParty -> Party: POST("party") {
+        ;
+
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct CreatePartyForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub name: SmolStr,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub description: Option<SmolStr>,
+
+            #[serde(default)]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub flags: PartyFlags,
+        }
+    }
+
+    +struct PatchParty -> Party: PATCH("party" / party_id) {
+        pub party_id: Snowflake,
+
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct PatchPartyForm {
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub name: Option<SmolStr>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub description: Nullable<SmolStr>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub flags: Option<PartyFlags>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub default_room: Option<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub avatar_id: Nullable<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub banner_id: Nullable<Snowflake>,
+        }
+    }
+
+    // TODO: Use same command for accepting?
+    +struct TransferOwnership -> (): PUT("party" / party_id / "owner" / user_id) {
+        pub party_id: Snowflake,
+        pub user_id: Snowflake,
+    }
+
     +struct GetPartyMembers -> Vec<PartyMember>: GET("party" / party_id / "members") {
         pub party_id: Snowflake,
     }
@@ -79,6 +135,10 @@ command! {
         struct CreateRoomForm {
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub name: SmolStr,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub topic: Option<SmolStr>,
 
             #[cfg_attr(feature = "builder", builder(default))]
             pub kind: CreateRoomKind,

@@ -57,11 +57,11 @@ impl Preference for PartyPreference {
 
     const FLAGS_KEY: Self = PartyPreference::Flags;
 
-    fn validate(&self, value: &Value) -> Result<(), PartyPreferenceError> {
+    fn validate(&self, _value: &Value) -> Result<(), PartyPreferenceError> {
         Ok(())
     }
 
-    fn is_default(&self, value: &Value, flags: PartyPrefsFlags) -> bool {
+    fn is_default(&self, _value: &Value, _flags: PartyPrefsFlags) -> bool {
         false
     }
 }
