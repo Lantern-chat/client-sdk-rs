@@ -185,7 +185,6 @@ pub mod events {
     pub struct MessageDeleteEvent {
         pub id: Snowflake,
         pub room_id: Snowflake,
-        pub user_id: Snowflake,
 
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<Snowflake>,
@@ -731,7 +730,6 @@ pub mod message {
 
                 ServerMsg::MessageCreate(m) => m.author.id,
                 ServerMsg::MessageUpdate(m) => m.author.id,
-                ServerMsg::MessageDelete(m) => m.user_id,
 
                 ServerMsg::MessageReactionAdd(r) => r.user_id,
                 ServerMsg::MessageReactionRemove(r) => r.user_id,

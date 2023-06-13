@@ -75,11 +75,11 @@ command! {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         #[derive(Default)] struct GetMessagesQuery {
-            #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+            #[serde(flatten, default, alias = "q", skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
             pub query: Option<Cursor>,
 
-            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[serde(default, alias = "thread", skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
             pub parent: Option<Snowflake>,
 
@@ -87,7 +87,7 @@ command! {
             #[cfg_attr(feature = "builder", builder(default))]
             pub limit: Option<u8>,
 
-            #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+            #[serde(default, alias = "pins", skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub pinned: ThinVec<Snowflake>,
 
@@ -95,6 +95,15 @@ command! {
             #[serde(default, skip_serializing_if = "crate::models::is_false")]
             #[cfg_attr(feature = "builder", builder(default))]
             pub starred: bool,
+
+            /// If above zero, this will also fetch child messages of messages
+            ///
+            /// Max level is 5
+            ///
+            /// Child messages will not obey other filtering criteria.
+            #[serde(default, alias = "depth", skip_serializing_if = "crate::models::is_default")]
+            #[cfg_attr(feature = "builder", builder(default))]
+            pub recurse: u8,
         }
     }
 

@@ -30,48 +30,52 @@ bitflags::bitflags! {
             | Self::CONNECT.bits
             | Self::SPEAK.bits;
 
-        const ADMINISTRATOR         = 1 << 0;
-        const CREATE_INVITE         = 1 << 1;
-        const KICK_MEMBERS          = 1 << 2;
-        const BAN_MEMBERS           = 1 << 3;
-        const VIEW_AUDIT_LOG        = 1 << 4;
-        const VIEW_STATISTICS       = 1 << 5;
-        const MANAGE_PARTY          = 1 << 6;
-        const MANAGE_ROOMS          = 1 << 7;
-        const MANAGE_NICKNAMES      = 1 << 8;
-        const MANAGE_ROLES          = 1 << 9;
-        const MANAGE_WEBHOOKS       = 1 << 10;
+        const ADMINISTRATOR         = 1u128 << 0;
+        const CREATE_INVITE         = 1u128 << 1;
+        const KICK_MEMBERS          = 1u128 << 2;
+        const BAN_MEMBERS           = 1u128 << 3;
+        const VIEW_AUDIT_LOG        = 1u128 << 4;
+        const VIEW_STATISTICS       = 1u128 << 5;
+        const MANAGE_PARTY          = 1u128 << 6;
+        const MANAGE_ROOMS          = 1u128 << 7;
+        const MANAGE_NICKNAMES      = 1u128 << 8;
+        const MANAGE_ROLES          = 1u128 << 9;
+        const MANAGE_WEBHOOKS       = 1u128 << 10;
         /// Allows members to add or remove custom emoji, stickers or sounds.
-        const MANAGE_EXPRESSIONS    = 1 << 11;
-        const MOVE_MEMBERS          = 1 << 12;
-        const CHANGE_NICKNAME       = 1 << 13;
-        const MANAGE_PERMS          = 1 << 14;
+        const MANAGE_EXPRESSIONS    = 1u128 << 11;
+        const MOVE_MEMBERS          = 1u128 << 12;
+        const CHANGE_NICKNAME       = 1u128 << 13;
+        const MANAGE_PERMS          = 1u128 << 14;
 
-        const VIEW_ROOM             = 1 << 30;
-        const READ_MESSAGE_HISTORY  = 1 << 31 | Self::VIEW_ROOM.bits;
-        const SEND_MESSAGES         = 1 << 32 | Self::VIEW_ROOM.bits;
-        const MANAGE_MESSAGES       = 1 << 33;
-        const MUTE_MEMBERS          = 1 << 34;
-        const DEAFEN_MEMBERS        = 1 << 35;
-        const MENTION_EVERYONE      = 1 << 36;
-        const USE_EXTERNAL_EMOTES   = 1 << 37;
-        const ADD_REACTIONS         = 1 << 38;
-        const EMBED_LINKS           = 1 << 39;
-        const ATTACH_FILES          = 1 << 40;
-        const USE_SLASH_COMMANDS    = 1 << 41;
-        const SEND_TTS_MESSAGES     = 1 << 42;
+        const VIEW_ROOM             = 1u128 << 30;
+        const READ_MESSAGE_HISTORY  = 1u128 << 31 | Self::VIEW_ROOM.bits;
+        const SEND_MESSAGES         = 1u128 << 32 | Self::VIEW_ROOM.bits;
+        const MANAGE_MESSAGES       = 1u128 << 33;
+        const MUTE_MEMBERS          = 1u128 << 34;
+        const DEAFEN_MEMBERS        = 1u128 << 35;
+        const MENTION_EVERYONE      = 1u128 << 36;
+        const USE_EXTERNAL_EMOTES   = 1u128 << 37;
+        const ADD_REACTIONS         = 1u128 << 38;
+        const EMBED_LINKS           = 1u128 << 39;
+        const ATTACH_FILES          = 1u128 << 40;
+        const USE_SLASH_COMMANDS    = 1u128 << 41;
+        const SEND_TTS_MESSAGES     = 1u128 << 42;
         /// Allows a user to add new attachments to
         /// existing messages using the "edit" API
-        const EDIT_NEW_ATTACHMENT   = 1 << 43;
+        const EDIT_NEW_ATTACHMENT   = 1u128 << 43;
 
         /// Allows a user to broadcast a stream to this room
-        const STREAM                = 1 << 60;
+        const STREAM                = 1u128 << 60;
         /// Allows a user to connect and watch/listen to streams in a room
-        const CONNECT               = 1 << 61;
+        const CONNECT               = 1u128 << 61;
         /// Allows a user to speak in a room without broadcasting a stream
-        const SPEAK                 = 1 << 62;
+        const SPEAK                 = 1u128 << 62;
         /// Allows a user to acquire priority speaker
-        const PRIORITY_SPEAKER      = 1 << 63;
+        const PRIORITY_SPEAKER      = 1u128 << 63;
+
+        /// Just something to fit in the top half for now during tests
+        #[cfg(test)]
+        const TEST                  = 1u128 << 127;
     }
 }
 
@@ -192,23 +196,35 @@ impl Overwrite {
 
 impl Permissions {
     #[inline(always)]
-    pub fn from_i64(low: i64, high: i64) -> Self {
-        Permissions::from_bits_truncate(unsafe { std::mem::transmute([low, high]) })
+    pub const fn from_i64(low: i64, high: i64) -> Self {
+        Permissions::from_bits_truncate(low as u64 as u128 | ((high as u64 as u128) << 64))
     }
 
     #[inline(always)]
-    pub fn from_i64_opt(low: Option<i64>, high: Option<i64>) -> Self {
-        match (low, high) {
-            (None, None) => Permissions::empty(),
-            (None, Some(high)) => Permissions::from_i64(0, high),
-            (Some(low), None) => Permissions::from_i64(low, 0),
-            (Some(low), Some(high)) => Permissions::from_i64(low, high),
-        }
+    pub const fn from_i64_opt(low: Option<i64>, high: Option<i64>) -> Self {
+        // TODO: Replace with `.unwrap_or(0)` when that's const-stable
+        Permissions::from_i64(
+            match low {
+                Some(low) => low,
+                None => 0,
+            },
+            match high {
+                Some(high) => high,
+                None => 0,
+            },
+        )
     }
 
     #[inline(always)]
     pub fn to_i64(self) -> [i64; 2] {
-        unsafe { std::mem::transmute(self.bits()) }
+        let bits = self.bits();
+        let low = bits as u64 as i64;
+        let high = (bits >> 64) as u64 as i64;
+        [low, high]
+    }
+
+    pub const fn is_admin(self) -> bool {
+        self.contains(Permissions::ADMINISTRATOR)
     }
 
     pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {
@@ -252,5 +268,11 @@ mod tests {
     fn test_print_admin() {
         println!("{:?}", Permissions::default().to_i64());
         println!("{:?}", Permissions::ADMINISTRATOR.to_i64());
+    }
+
+    #[test]
+    fn test_perm_cast() {
+        let [low, high] = Permissions::all().to_i64();
+        assert_eq!(Permissions::from_i64(low, high), Permissions::all());
     }
 }

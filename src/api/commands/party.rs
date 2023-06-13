@@ -56,10 +56,64 @@ command! {
         }
     }
 
+    +struct DeleteParty -> (): DELETE("party" / party_id) {
+        pub party_id: Snowflake,
+    }
+
     // TODO: Use same command for accepting?
     +struct TransferOwnership -> (): PUT("party" / party_id / "owner" / user_id) {
         pub party_id: Snowflake,
         pub user_id: Snowflake,
+    }
+
+    +struct CreateRole -> Role: POST("party" / party_id / "roles") {
+        pub party_id: Snowflake,
+
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct CreateRoleForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub name: SmolStr,
+        }
+    }
+
+    +struct PatchRole -> Role: PATCH("party" / party_id / "roles" / role_id) {
+        pub party_id: Snowflake,
+        pub role_id: Snowflake,
+
+        ;
+        #[derive(Default, PartialEq)]
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct PatchRoleForm {
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub flags: Option<RoleFlags>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub name: Option<SmolStr>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub color: Option<u32>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub permissions: Option<Permissions>,
+
+            #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub avatar: Nullable<Snowflake>,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub position: Option<u8>,
+        }
+    }
+
+    +struct DeleteRole -> (): DELETE("party" / party_id / "roles" / role_id) {
+        pub party_id: Snowflake,
+        pub role_id: Snowflake,
     }
 
     +struct GetPartyMembers -> Vec<PartyMember>: GET("party" / party_id / "members") {

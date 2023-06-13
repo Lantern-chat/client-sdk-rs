@@ -1,19 +1,29 @@
 use super::*;
 
 bitflags::bitflags! {
-    pub struct MessageFlags: i16 {
+    pub struct MessageFlags: i32 {
+        /// This message has been deleted
         const DELETED           = 1 << 0;
-        const MENTIONS_EVERYONE = 1 << 1;
-        const MENTIONS_HERE     = 1 << 2;
-        const TTS               = 1 << 3;
-        const SUPRESS_EMBEDS    = 1 << 4;
-        const HAS_LINK          = 1 << 5;
+        /// This messages has been deleted by another user
+        const REMOVED           = 1 << 1;
+        /// Present only on visible deleted messages.
+        ///
+        /// The core message has been preserved to maintain
+        /// relationships such as threads.
+        const RETAINED          = 1 << 2;
+
+        const MENTIONS_EVERYONE = 1 << 3;
+        const MENTIONS_HERE     = 1 << 4;
+        const TTS               = 1 << 5;
+
+        const SUPRESS_EMBEDS    = 1 << 10;
+
         /// Set if the message has been starred by the user requesting it
-        const STARRED           = 1 << 6;
+        const STARRED           = 1 << 12;
 
         /// Top 6 bits are a language code,
         /// which is never actually exposed to users.
-        const LANGUAGE          = 0b11_11_11 << (16 - 6);
+        const LANGUAGE          = 0b11_11_11 << (32 - 6);
     }
 }
 
@@ -22,8 +32,8 @@ common::impl_schema_for_bitflags!(MessageFlags);
 
 impl MessageFlags {
     #[inline]
-    pub const fn from_bits_truncate_public(bits: i16) -> Self {
-        Self::from_bits_truncate(bits).difference(Self::LANGUAGE)
+    pub const fn from_bits_truncate_public(bits: i32) -> Self {
+        Self::from_bits_truncate(bits).difference(Self::LANGUAGE.union(Self::RETAINED))
     }
 }
 
