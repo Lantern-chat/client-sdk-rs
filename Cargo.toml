@@ -43,7 +43,7 @@ static_assertions = "1"
 byteorder = "1.4"
 triomphe = "0.1.8"
 
-typed-builder = { version = "0.14", optional = true }
+typed-builder = { version = "0.15", optional = true }
 schemars = { version = "0.8", optional = true, features = ["triomphe"] }
 okapi = { version = "0.7.0-rc.1", optional = true }
 ahash = { version = "0.8", optional = true }
