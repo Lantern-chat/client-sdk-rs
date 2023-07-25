@@ -2,7 +2,7 @@ use super::*;
 
 command! {
     /// Create message command
-    +struct CreateMessage -> Message: POST("room" / room_id / "messages") where SEND_MESSAGES {
+    +struct CreateMessage -> Message: POST[100 ms, 2]("room" / room_id / "messages") where SEND_MESSAGES {
         pub room_id: Snowflake,
 
         ;
@@ -34,7 +34,7 @@ command! {
         }
     }
 
-    +struct EditMessage -> Message: PATCH("room" / room_id / "messages" / msg_id) where SEND_MESSAGES {
+    +struct EditMessage -> Message: PATCH[500 ms, 2]("room" / room_id / "messages" / msg_id) where SEND_MESSAGES {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
 
@@ -56,7 +56,7 @@ command! {
         pub msg_id: Snowflake,
     }
 
-    +struct StartTyping -> (): POST("room" / room_id / "typing") where SEND_MESSAGES {
+    +struct StartTyping -> (): POST[100 ms]("room" / room_id / "typing") where SEND_MESSAGES {
         pub room_id: Snowflake,
 
         ;
@@ -170,7 +170,7 @@ command! {
         }
     }
 
-    +struct PatchRoom -> FullRoom: PATCH("room" / room_id) {
+    +struct PatchRoom -> FullRoom: PATCH[500 ms, 1]("room" / room_id) {
         pub room_id: Snowflake,
 
         ;

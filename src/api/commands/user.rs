@@ -1,7 +1,7 @@
 use super::*;
 
 command! {
-    -struct UserRegister -> Session: POST("user") {
+    -struct UserRegister -> Session: POST[1000 ms, 1]("user") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct UserRegisterForm {
@@ -20,7 +20,7 @@ command! {
         }
     }
 
-    -struct UserLogin -> Session: POST("user" / "@me") {
+    -struct UserLogin -> Session: POST[1000 ms, 1]("user" / "@me") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct UserLoginForm {
@@ -35,16 +35,16 @@ command! {
         }
     }
 
-    +struct GetSessions -> Vec<AnonymousSession>: GET("user" / "@me" / "sessions") {}
+    +struct GetSessions -> Vec<AnonymousSession>: GET[500 ms, 1]("user" / "@me" / "sessions") {}
 
     /// Clears all **other** sessions
-    +struct ClearSessions -> (): DELETE("user" / "@me" / "sessions") {
+    +struct ClearSessions -> (): DELETE[5000 ms, 1]("user" / "@me" / "sessions") {
         // TODO: Maybe make TOTP required?
     }
 
     +struct GetRelationships -> Vec<Relationship>: GET("user" / "@me" / "relationships") {}
 
-    +struct PatchRelationship -> Relationship: PATCH("user" / "@me" / "relationships" / user_id) {
+    +struct PatchRelationship -> Relationship: PATCH[1000 ms, 1]("user" / "@me" / "relationships" / user_id) {
         pub user_id: Snowflake,
 
         ;
@@ -62,7 +62,7 @@ command! {
         }
     }
 
-    +struct UpdateUserProfile -> UserProfile: PATCH("user" / "@me" / "profile") {
+    +struct UpdateUserProfile -> UserProfile: PATCH[500 ms, 1]("user" / "@me" / "profile") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         #[derive(Default)] struct UpdateUserProfileBody {
@@ -99,7 +99,7 @@ command! {
         pub user_id: Snowflake,
     }
 
-    +struct UpdateUserPrefs -> (): PATCH("user" / "@me" / "prefs") {
+    +struct UpdateUserPrefs -> (): PATCH[200 ms]("user" / "@me" / "prefs") {
         ; struct UpdateUserPrefsBody {
             #[serde(flatten)]
             pub inner: UserPreferences,

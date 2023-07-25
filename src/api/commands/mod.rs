@@ -1,4 +1,7 @@
-use crate::{api::command::CommandFlags, models::*};
+use crate::{
+    api::command::{CommandFlags, RateLimit},
+    models::*,
+};
 use smol_str::SmolStr;
 
 // NOTE: This macro is here to aggregate schema definitions, but otherwise does very little.

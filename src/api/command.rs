@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, time::Duration};
 
 use http::{HeaderMap, Method};
 
@@ -12,6 +12,18 @@ bitflags::bitflags! {
     pub struct CommandFlags: u8 {
         const AUTHORIZED    = 1 << 0;
         const HAS_BODY      = 1 << 1;
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RateLimit {
+    pub emission_interval: Duration,
+    pub burst_size: u64,
+}
+
+impl RateLimit {
+    pub(crate) const fn replace(self, replacement: Self) -> Self {
+        replacement
     }
 }
 
@@ -32,6 +44,13 @@ pub trait Command: sealed::Sealed {
     const METHOD: Method;
 
     const FLAGS: CommandFlags;
+
+    /// Baseline rate-limiting parameters.
+    ///
+    /// The server may choose to adapt this as needed, and
+    /// it may not be the only rate-limiting factor depending
+    /// on the request.
+    const RATE_LIMIT: RateLimit;
 
     /// Serialize/format the REST path (without query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
@@ -130,7 +149,7 @@ macro_rules! command {
         $(+$auth_struct:ident)? $(-$noauth_struct:ident)?
 
         // name, result and HTTP method
-        $name:ident -> $result:ty: $method:ident(
+        $name:ident -> $result:ty: $method:ident$([$emission_interval:literal ms $(, $burst_size:literal)?])?(
             $head:tt $(/ $tail:tt)*
         )
         // permissions
@@ -181,6 +200,12 @@ macro_rules! command {
                 $(.union((stringify!($body_name), CommandFlags::HAS_BODY).1))?
                 $(.union((stringify!($auth_struct), CommandFlags::AUTHORIZED).1))?
             ;
+
+            const RATE_LIMIT: RateLimit = RateLimit { emission_interval: std::time::Duration::from_millis(20), burst_size: 5 }
+                $(.replace(RateLimit {
+                    emission_interval: std::time::Duration::from_millis($emission_interval),
+                    burst_size: if false $(|| $burst_size > 0)? { 0 $(+$burst_size)? } else { 5 }
+                }))?;
 
             #[allow(unused_mut, unused_variables, deprecated)]
             fn perms(&self) -> Permissions {

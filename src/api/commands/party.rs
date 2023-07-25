@@ -5,7 +5,7 @@ command! {
         pub party_id: Snowflake,
     }
 
-    +struct CreateParty -> Party: POST("party") {
+    +struct CreateParty -> Party: POST[5000 ms, 1]("party") {
         ;
 
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -23,7 +23,7 @@ command! {
         }
     }
 
-    +struct PatchParty -> Party: PATCH("party" / party_id) {
+    +struct PatchParty -> Party: PATCH[500 ms, 1]("party" / party_id) {
         pub party_id: Snowflake,
 
         ;
@@ -66,7 +66,7 @@ command! {
         pub user_id: Snowflake,
     }
 
-    +struct CreateRole -> Role: POST("party" / party_id / "roles") {
+    +struct CreateRole -> Role: POST[1000 ms, 1]("party" / party_id / "roles") {
         pub party_id: Snowflake,
 
         ;
@@ -144,7 +144,7 @@ command! {
         }
     }
 
-    +struct CreatePartyInvite -> Invite: POST("party" / party_id / "invites") {
+    +struct CreatePartyInvite -> Invite: POST[2000 ms, 1]("party" / party_id / "invites") {
         pub party_id: Snowflake,
 
         ;
@@ -182,7 +182,7 @@ command! {
         }
     }
 
-    +struct CreateRoom -> Room: POST("party" / party_id / "rooms") {
+    +struct CreateRoom -> Room: POST[5000 ms, 1]("party" / party_id / "rooms") {
         pub party_id: Snowflake,
 
         ;
