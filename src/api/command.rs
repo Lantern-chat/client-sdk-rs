@@ -186,7 +186,7 @@ macro_rules! command {
                 }
             )?
         }
-    )*) => {$(
+    )*) => {paste::paste!{$(
         // verify presence of exactly one `struct` without prefix
         command!(@STRUCT $($auth_struct)? $($noauth_struct)?);
 
@@ -201,6 +201,11 @@ macro_rules! command {
                 $(.union((stringify!($auth_struct), CommandFlags::AUTHORIZED).1))?
             ;
 
+            $(
+                #[doc = "```\nRateLimit {\n    emission_interval: " $emission_interval "ms,\n"]
+                $(#[doc = "    burst_size: " $burst_size ","])?
+                #[doc = "}\n```\nIf not specified, the `burst_size` will be 5."]
+            )?
             const RATE_LIMIT: RateLimit = RateLimit { emission_interval: std::time::Duration::from_millis(20), burst_size: 5 }
                 $(.replace(RateLimit {
                     emission_interval: std::time::Duration::from_millis($emission_interval),
@@ -271,7 +276,7 @@ macro_rules! command {
 
                 let mut path_item = PathItem::default();
 
-                paste::paste!(path_item.[<$method:lower>]) = Some({
+                path_item.[<$method:lower>] = Some({
                     let mut op = Operation {
                         description: {
                             let description = concat!($(command!(@DOC #[$($meta)*])),*).trim();
@@ -402,7 +407,7 @@ macro_rules! command {
                 }
             }
         }
-    )*};
+    )*}};
 }
 
 macro_rules! command_module {
