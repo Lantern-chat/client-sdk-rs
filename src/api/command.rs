@@ -22,8 +22,26 @@ pub struct RateLimit {
 }
 
 impl RateLimit {
-    pub(crate) const fn replace(self, replacement: Self) -> Self {
-        replacement
+    /// Default rate-limit config for commands when not otherwise specified.
+    ///
+    /// ```ignore
+    /// RateLimit {
+    ///     emission_interval: 50ms,
+    ///     burst_size: 5,
+    /// }
+    /// ```
+    ///
+    /// Or approximately 20 requests per second, with up to 5 requests burst within the `emission_interval`,
+    /// but the client must wait for them to replenish before another burst.
+    pub const DEFAULT: RateLimit = RateLimit {
+        emission_interval: Duration::from_millis(50),
+        burst_size: 5,
+    };
+}
+
+impl Default for RateLimit {
+    fn default() -> Self {
+        RateLimit::DEFAULT
     }
 }
 
@@ -45,7 +63,7 @@ pub trait Command: sealed::Sealed {
 
     const FLAGS: CommandFlags;
 
-    /// Baseline rate-limiting parameters.
+    /// Baseline rate-limiting parameters, defaults to [`RateLimit::DEFAULT`].
     ///
     /// The server may choose to adapt this as needed, and
     /// it may not be the only rate-limiting factor depending
@@ -204,13 +222,13 @@ macro_rules! command {
             $(
                 #[doc = "```\nRateLimit {\n    emission_interval: " $emission_interval "ms,\n"]
                 $(#[doc = "    burst_size: " $burst_size ","])?
-                #[doc = "}\n```\nIf not specified, the `burst_size` will be 5."]
+                #[doc = "}\n```\nIf not specified, the `burst_size` will be from [`RateLimit::DEFAULT`]."]
             )?
-            const RATE_LIMIT: RateLimit = RateLimit { emission_interval: std::time::Duration::from_millis(20), burst_size: 5 }
-                $(.replace(RateLimit {
-                    emission_interval: std::time::Duration::from_millis($emission_interval),
-                    burst_size: if false $(|| $burst_size > 0)? { 0 $(+$burst_size)? } else { 5 }
-                }))?;
+            const RATE_LIMIT: RateLimit = RateLimit {
+                $(emission_interval: std::time::Duration::from_millis($emission_interval),
+                $(burst_size: { assert!($burst_size > 0, "Burst Size must be nonzero!"); $burst_size }, )?)?
+                ..RateLimit::DEFAULT
+            };
 
             #[allow(unused_mut, unused_variables, deprecated)]
             fn perms(&self) -> Permissions {
