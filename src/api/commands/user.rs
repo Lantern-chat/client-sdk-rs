@@ -35,6 +35,37 @@ command! {
         }
     }
 
+    +struct Enable2FA -> Added2FA: POST[2000 ms, 1]("user" / "@me" / "2fa") {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct Enable2FAForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub password: SmolStr,
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub token: String,
+        }
+    }
+
+    +struct Confirm2FA -> (): PATCH[2000 ms, 1]("user" / "@me" / "2fa") {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct Confirm2FAForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub totp: SmolStr,
+        }
+    }
+
+    +struct Remove2FA -> (): DELETE[2000 ms, 1]("user" / "@me" / "2fa") {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct Remove2FAForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub password: SmolStr,
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub totp: SmolStr,
+        }
+    }
+
     +struct GetSessions -> Vec<AnonymousSession>: GET[500 ms, 1]("user" / "@me" / "sessions") {}
 
     /// Clears all **other** sessions
@@ -111,4 +142,9 @@ impl From<UserPreferences> for UpdateUserPrefsBody {
     fn from(inner: UserPreferences) -> UpdateUserPrefsBody {
         UpdateUserPrefsBody { inner }
     }
+}
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct Added2FA {
+    pub url: String,
+    pub backup: Vec<String>,
 }
