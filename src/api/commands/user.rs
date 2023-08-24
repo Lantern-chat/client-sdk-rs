@@ -51,6 +51,8 @@ command! {
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct Confirm2FAForm {
             #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub password: SmolStr,
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub totp: SmolStr,
         }
     }
@@ -66,11 +68,33 @@ command! {
         }
     }
 
+    +struct ChangePassword -> (): PATCH[2000 ms, 1]("user" / "@me" / "password") {
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct ChangePasswordForm {
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub current: SmolStr,
+
+            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            pub new: SmolStr,
+
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub totp: Option<SmolStr>,
+        }
+    }
+
     +struct GetSessions -> Vec<AnonymousSession>: GET[500 ms, 1]("user" / "@me" / "sessions") {}
 
     /// Clears all **other** sessions
     +struct ClearSessions -> (): DELETE[5000 ms, 1]("user" / "@me" / "sessions") {
-        // TODO: Maybe make TOTP required?
+        ;
+        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        struct ClearSessionsForm {
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub totp: Option<SmolStr>,
+        }
     }
 
     +struct GetRelationships -> Vec<Relationship>: GET("user" / "@me" / "relationships") {}
