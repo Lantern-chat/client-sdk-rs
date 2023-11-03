@@ -23,7 +23,7 @@ use self::ctx::InternalEventHandlers;
 
 use super::{ClientMsg, DynamicServerMsgHandlers, ServerMsgHandlers};
 
-/// Dynamic [`ServerMsgHandlers`](super::ServerMsgHandlers) suitable for simpler bot applications
+/// Dynamic [`ServerMsgHandlers`] suitable for simpler bot applications
 pub type StandardDynamicHandler<S, E> = DynamicServerMsgHandlers<StandardContext, Result<(), E>, S>;
 
 /// Simple [`Standard`] with a [`StandardError`]

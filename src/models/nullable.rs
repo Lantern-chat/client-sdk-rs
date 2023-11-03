@@ -6,6 +6,11 @@
 /// Similarly, not all gateway events provide all information in objects. Again, user profiles
 /// are notable in that biographies are typically excluded in events to save on bandwidth.
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub enum Nullable<T> {
     #[default]
     Undefined,

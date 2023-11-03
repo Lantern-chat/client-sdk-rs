@@ -19,6 +19,7 @@ client-sdk = { path = "./" }
 
 [workspace]
 members = ["common", "./"]
+resolver = "2"
 
 [dependencies]
 common = { package = "client-sdk-common", git = "https://github.com/Lantern-chat/client-sdk-rs" }
@@ -26,9 +27,11 @@ embed = { package = "embed-sdk", git = "https://github.com/Lantern-chat/embed-se
 
 timestamp = { package = "iso8601-timestamp", version = "0.2" }
 
+rkyv = { version = "0.7", optional = true, features = ["validation"] }
+bytecheck = { version = "0.7.0", optional = true }
+
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
-serde_shims = { version = "0.2", features = ["bitflags"] }
 bitflags = "1.2"
 serde_repr = "0.1"
 enum-primitive-derive = "0.2"
@@ -43,7 +46,7 @@ static_assertions = "1"
 byteorder = "1.4"
 triomphe = "0.1.8"
 
-typed-builder = { version = "0.15", optional = true }
+typed-builder = { version = "0.18", optional = true }
 schemars = { version = "0.8", optional = true, features = ["triomphe"] }
 okapi = { version = "0.7.0-rc.1", optional = true }
 ahash = { version = "0.8", optional = true }
@@ -81,6 +84,9 @@ smallvec = { version = "1.10.0", optional = true }
 
 [features]
 _internal_common = ["thiserror"]
+
+rkyv = ["dep:rkyv", "bytecheck", "common/rkyv", "embed/rkyv"]
+strict_rkyv = ["rkyv/strict"]
 
 schema = ["schemars", "common/schemars", "okapi", "timestamp/schema", "smol_str/schema", "thin-vec/schemars"]
 

@@ -7,7 +7,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(ThreadFlags);
+common::impl_serde_for_bitflags!(ThreadFlags);
 common::impl_schema_for_bitflags!(ThreadFlags);
 common::impl_sql_for_bitflags!(ThreadFlags);
 

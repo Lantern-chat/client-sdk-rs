@@ -4,6 +4,11 @@ use std::num::NonZeroU32;
 use super::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, enum_primitive_derive::Primitive)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes, copy_safe)
+)]
 #[repr(u8)]
 pub enum RoomKind {
     Text = 0,
@@ -22,7 +27,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(RoomFlags);
+common::impl_serde_for_bitflags!(RoomFlags);
 common::impl_schema_for_bitflags!(RoomFlags);
 common::impl_sql_for_bitflags!(RoomFlags);
 

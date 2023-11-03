@@ -37,12 +37,10 @@ impl Snowflake {
         self.raw_timestamp() + LANTERN_EPOCH
     }
 
-    #[inline]
     pub fn system_timestamp(&self) -> SystemTime {
         SystemTime::UNIX_EPOCH + Duration::from_millis(self.epoch_ms())
     }
 
-    #[inline]
     pub fn timestamp(&self) -> Timestamp {
         Timestamp::UNIX_EPOCH + Duration::from_millis(self.epoch_ms())
     }
@@ -70,7 +68,9 @@ impl Snowflake {
     /// NOTE: This cannot be before the [Lantern Epoch](LANTERN_EPOCH).
     #[inline]
     pub const fn from_unix_ms(ms: u64) -> Option<Snowflake> {
-        let Some(ms) = ms.checked_sub(LANTERN_EPOCH) else { return None; };
+        let Some(ms) = ms.checked_sub(LANTERN_EPOCH) else {
+            return None;
+        };
         Some(Snowflake(unsafe { NonZeroU64::new_unchecked((ms << 22) | 1) }))
     }
 }
@@ -199,6 +199,44 @@ mod serde_impl {
         }
     }
 }
+
+#[cfg(feature = "rkyv")]
+const _: () = {
+    use rkyv::{bytecheck::CheckBytes, Archive, Deserialize, Fallible, Serialize};
+
+    impl Archive for Snowflake {
+        type Archived = Snowflake;
+        type Resolver = ();
+
+        #[inline]
+        unsafe fn resolve(&self, _pos: usize, _resolver: Self::Resolver, out: *mut Self::Archived) {
+            *out = *self;
+        }
+    }
+
+    impl<S: Fallible + ?Sized> Serialize<S> for Snowflake {
+        #[inline]
+        fn serialize(&self, _serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+            Ok(())
+        }
+    }
+
+    impl<D: Fallible + ?Sized> Deserialize<Snowflake, D> for Snowflake {
+        #[inline]
+        fn deserialize(&self, _deserializer: &mut D) -> Result<Snowflake, D::Error> {
+            Ok(*self)
+        }
+    }
+
+    impl<C: ?Sized> CheckBytes<C> for Snowflake {
+        type Error = <NonZeroU64 as CheckBytes<C>>::Error;
+
+        #[inline]
+        unsafe fn check_bytes<'a>(value: *const Self, context: &mut C) -> Result<&'a Self, Self::Error> {
+            CheckBytes::<C>::check_bytes(value as *const NonZeroU64, context).map(|_| &*value)
+        }
+    }
+};
 
 #[cfg(feature = "schema")]
 mod schema_impl {

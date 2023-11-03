@@ -7,6 +7,41 @@ pub struct FixedStr<const N: usize> {
     data: [u8; N],
 }
 
+#[cfg(feature = "rkyv")]
+const _: () = {
+    use rkyv::{Archive, Deserialize, Fallible, Serialize};
+
+    impl<const N: usize> Archive for FixedStr<N> {
+        type Archived = FixedStr<N>;
+        type Resolver = ();
+
+        #[inline]
+        unsafe fn resolve(&self, _pos: usize, _resolver: Self::Resolver, out: *mut Self::Archived) {
+            *out = *self;
+        }
+    }
+
+    impl<const N: usize, S> Serialize<S> for FixedStr<N>
+    where
+        S: Fallible + ?Sized,
+    {
+        #[inline]
+        fn serialize(&self, _serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+            Ok(())
+        }
+    }
+
+    impl<const N: usize, D> Deserialize<Self, D> for FixedStr<N>
+    where
+        D: Fallible + ?Sized,
+    {
+        #[inline]
+        fn deserialize(&self, _deserializer: &mut D) -> Result<Self, D::Error> {
+            Ok(*self)
+        }
+    }
+};
+
 impl<const N: usize> AsRef<str> for FixedStr<N> {
     #[inline(always)]
     fn as_ref(&self) -> &str {

@@ -24,7 +24,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(MessageFlags);
+common::impl_serde_for_bitflags!(MessageFlags);
 common::impl_schema_for_bitflags!(MessageFlags);
 
 impl MessageFlags {
@@ -39,6 +39,7 @@ impl MessageFlags {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[derive(enum_primitive_derive::Primitive)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(copy_safe, check_bytes))]
 #[repr(i16)]
 pub enum MessageKind {
     #[default]

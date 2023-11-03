@@ -66,7 +66,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(UserFlags);
+common::impl_serde_for_bitflags!(UserFlags);
 common::impl_schema_for_bitflags!(UserFlags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -113,6 +113,7 @@ impl UserFlags {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct DateOfBirth {
     pub year: i32,
     pub month: u8,
@@ -153,11 +154,11 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(UserProfileBits);
+common::impl_serde_for_bitflags!(UserProfileBits);
 common::impl_schema_for_bitflags!(UserProfileBits);
 common::impl_sql_for_bitflags!(UserProfileBits);
 
-serde_shims::impl_serde_for_bitflags!(ExtraUserProfileBits);
+common::impl_serde_for_bitflags!(ExtraUserProfileBits);
 common::impl_schema_for_bitflags!(ExtraUserProfileBits);
 common::impl_sql_for_bitflags!(ExtraUserProfileBits);
 

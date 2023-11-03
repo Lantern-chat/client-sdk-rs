@@ -24,6 +24,7 @@ const MAX_LENGTH: usize = {
 /// Raw base64-encoded auth tokens for users and bots.
 #[derive(Debug, Clone, Copy, Serialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[serde(untagged)]
 pub enum AuthToken {
     Bearer(BearerToken),

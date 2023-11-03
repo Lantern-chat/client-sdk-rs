@@ -15,6 +15,8 @@ bitflags::bitflags! {
     }
 }
 
+common::impl_rkyv_for_bitflags!(CommandFlags);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RateLimit {
     pub emission_interval: Duration,
@@ -224,6 +226,7 @@ macro_rules! command {
                 $(#[doc = "    burst_size: " $burst_size ","])?
                 #[doc = "}\n```\nIf not specified, the `burst_size` will be from [`RateLimit::DEFAULT`]."]
             )?
+            #[allow(clippy::needless_update)]
             const RATE_LIMIT: RateLimit = RateLimit {
                 $(emission_interval: std::time::Duration::from_millis($emission_interval),
                 $(burst_size: { assert!($burst_size > 0, "Burst Size must be nonzero!"); $burst_size }, )?)?

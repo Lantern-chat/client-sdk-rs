@@ -95,7 +95,7 @@ bitflags::bitflags! {
     }
 }
 
-serde_shims::impl_serde_for_bitflags!(UserPrefsFlags);
+common::impl_serde_for_bitflags!(UserPrefsFlags);
 common::impl_sql_for_bitflags!(UserPrefsFlags);
 
 impl From<u64> for UserPrefsFlags {
@@ -111,6 +111,7 @@ impl Default for UserPrefsFlags {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Hash, PartialEq, Eq)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive))]
 #[serde(rename_all = "snake_case")]
 pub enum UserPreference {
     Locale,

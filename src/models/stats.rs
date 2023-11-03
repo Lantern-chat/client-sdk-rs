@@ -10,6 +10,11 @@ pub struct Statistics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(copy_safe)
+)]
 pub struct RoomStatistics {
     pub messages: u64,
 
