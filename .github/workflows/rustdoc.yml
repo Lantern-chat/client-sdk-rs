@@ -28,7 +28,7 @@ jobs:
         with:
           command: doc
           toolchain: stable
-          args: --no-deps --features "api driver client gateway fs framework cbor pg rusqlite"
+          args: --no-deps --features "api driver client gateway fs framework cbor pg rusqlite rkyv"
 
       - run: echo "<meta http-equiv=refresh content=0;url=client_sdk/index.html>" > target/doc/index.html
 
