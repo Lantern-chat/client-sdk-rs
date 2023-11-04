@@ -88,6 +88,7 @@ pub mod commands {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct Identify {
         pub auth: AuthToken,
         pub intent: Intent,
@@ -106,6 +107,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct Hello {
         /// Number of milliseconds between heartbeats
         pub heartbeat_interval: u32,
@@ -166,6 +168,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct PartyPositionUpdate {
         pub id: Snowflake,
         pub position: i16,
@@ -182,16 +185,19 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct MessageDeleteEvent {
         pub id: Snowflake,
         pub room_id: Snowflake,
 
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
         pub party_id: Option<Snowflake>,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct RoleDeleteEvent {
         pub id: Snowflake,
         pub party_id: Snowflake,
@@ -199,10 +205,12 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct RoomDeleteEvent {
         pub id: Snowflake,
 
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
         pub party_id: Option<Snowflake>,
     }
 
@@ -217,6 +225,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[serde(untagged)]
     pub enum PartyUpdateEvent {
         Position(PartyPositionUpdate),

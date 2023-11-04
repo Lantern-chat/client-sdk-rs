@@ -31,6 +31,8 @@ pub enum AuthToken {
     Bot(BotToken),
 }
 
+// TODO: rkyv AuthToken without discriminator by using token length
+
 #[derive(Debug)]
 pub struct InvalidAuthToken;
 

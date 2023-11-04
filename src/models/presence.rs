@@ -23,6 +23,7 @@ impl UserPresenceFlags {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct UserPresence {
     pub flags: UserPresenceFlags,
 
@@ -57,14 +58,15 @@ impl UserPresence {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[serde(untagged)]
 pub enum AnyActivity {
     Typed(Activity),
-
-    /// WARNING: Never construct this manually
-    Any(serde_json::Value),
+    // /// WARNING: Never construct this manually
+    // Any(serde_json::Value),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Activity {}

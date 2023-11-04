@@ -201,8 +201,15 @@ mod serde_impl {
 }
 
 #[cfg(feature = "rkyv")]
+pub struct NicheSnowflake;
+
+#[cfg(feature = "rkyv")]
 const _: () = {
-    use rkyv::{bytecheck::CheckBytes, Archive, Deserialize, Fallible, Serialize};
+    use rkyv::{
+        bytecheck::CheckBytes,
+        with::{ArchiveWith, DeserializeWith, Niche, SerializeWith},
+        Archive, ArchiveUnsized, Archived, Deserialize, Fallible, Serialize,
+    };
 
     impl Archive for Snowflake {
         type Archived = Snowflake;
@@ -234,6 +241,32 @@ const _: () = {
         #[inline]
         unsafe fn check_bytes<'a>(value: *const Self, context: &mut C) -> Result<&'a Self, Self::Error> {
             CheckBytes::<C>::check_bytes(value as *const NonZeroU64, context).map(|_| &*value)
+        }
+    }
+
+    use rkyv::niche::option_nonzero::ArchivedOptionNonZeroU64;
+
+    impl ArchiveWith<Option<Snowflake>> for NicheSnowflake {
+        type Archived = ArchivedOptionNonZeroU64;
+        type Resolver = ();
+
+        #[inline]
+        unsafe fn resolve_with(field: &Option<Snowflake>, _pos: usize, _resolver: Self::Resolver, out: *mut Self::Archived) {
+            ArchivedOptionNonZeroU64::resolve_from_option(field.map(|sf| sf.0), out as _);
+        }
+    }
+
+    impl<S: Fallible + ?Sized> SerializeWith<Option<Snowflake>, S> for NicheSnowflake {
+        #[inline]
+        fn serialize_with(_field: &Option<Snowflake>, _serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+            Ok(())
+        }
+    }
+
+    impl<D: Fallible + ?Sized> DeserializeWith<ArchivedOptionNonZeroU64, Option<Snowflake>, D> for NicheSnowflake {
+        #[inline]
+        fn deserialize_with(field: &ArchivedOptionNonZeroU64, _deserializer: &mut D) -> Result<Option<Snowflake>, D::Error> {
+            Ok(field.as_ref().map(|x| Snowflake(*x)))
         }
     }
 };

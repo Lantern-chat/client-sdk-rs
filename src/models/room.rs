@@ -47,12 +47,14 @@ impl From<RoomKind> for RoomFlags {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Room {
     pub id: Snowflake,
 
     pub flags: RoomFlags,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
     pub party_id: Option<Snowflake>,
 
     pub avatar: Option<SmolStr>,
@@ -67,10 +69,12 @@ pub struct Room {
 
     /// Slow-mode rate limit, in seconds
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(Niche))]
     pub rate_limit_per_user: Option<NonZeroU32>,
 
     /// Parent room ID for categories
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
     pub parent_id: Option<Snowflake>,
 
     /// Permission overwrites for this room
@@ -83,6 +87,7 @@ pub struct Room {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct FullRoom {
     #[serde(flatten)]
     pub room: Room,

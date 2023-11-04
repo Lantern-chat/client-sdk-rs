@@ -4,6 +4,9 @@
 
 use common::fixed::FixedStr;
 
+#[cfg(feature = "rkyv")]
+use rkyv::with::Niche;
+
 pub use smol_str::SmolStr;
 pub use thin_vec::ThinVec;
 pub use timestamp::Timestamp;

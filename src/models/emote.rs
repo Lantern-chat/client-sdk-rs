@@ -15,6 +15,7 @@ common::impl_sql_for_bitflags!(EmoteFlags);
 // TODO: Add inline preview?
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct CustomEmote {
     pub id: Snowflake,
     pub party_id: Snowflake,
@@ -26,6 +27,7 @@ pub struct CustomEmote {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[serde(untagged)]
 pub enum Emote {
     Emoji { emoji: SmolStr },

@@ -50,6 +50,7 @@ common::impl_sql_for_bitflags!(PartyFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct PartialParty {
     pub id: Snowflake,
 
@@ -62,6 +63,7 @@ pub struct PartialParty {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Party {
     #[serde(flatten)]
     pub partial: PartialParty,
@@ -110,6 +112,7 @@ common::impl_sql_for_bitflags!(PartyMemberFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct PartialPartyMember {
     /// Will be `None` if no longer in party
     pub joined_at: Option<Timestamp>,
@@ -151,6 +154,7 @@ common::impl_sql_for_bitflags!(PinFolderFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct PinFolder {
     pub id: Snowflake,
     pub name: SmolStr,
