@@ -130,7 +130,7 @@ pub mod events {
         pub me: PartyMember,
     }
 
-    impl std::ops::Deref for ReadyParty {
+    impl core::ops::Deref for ReadyParty {
         type Target = Party;
 
         fn deref(&self) -> &Party {
@@ -138,9 +138,18 @@ pub mod events {
         }
     }
 
-    impl std::ops::DerefMut for ReadyParty {
+    impl core::ops::DerefMut for ReadyParty {
         fn deref_mut(&mut self) -> &mut Party {
             &mut self.party
+        }
+    }
+
+    #[cfg(feature = "rkyv")]
+    impl core::ops::Deref for ArchivedReadyParty {
+        type Target = rkyv::Archived<Party>;
+
+        fn deref(&self) -> &Self::Target {
+            &self.party
         }
     }
 
@@ -320,12 +329,22 @@ pub mod message {
                     }
 
                     $($(
-                        impl std::ops::$Deref for [<$opcode Payload>] {
+                        impl core::ops::$Deref for [<$opcode Payload>] {
                             type Target = $ty;
 
                             #[inline(always)]
                             fn deref(&self) -> &Self::Target {
                                 &self.$field
+                            }
+                        }
+
+                        #[cfg(feature = "rkyv")]
+                        impl core::ops::$Deref for [<Archived $opcode Payload>] {
+                            type Target = rkyv::Archived<$ty>;
+
+                            #[inline(always)]
+                            fn deref(&self) -> &Self::Target {
+                                &self.inner
                             }
                         }
                     )?)*
