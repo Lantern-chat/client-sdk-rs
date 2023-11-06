@@ -211,6 +211,7 @@ impl UserProfile {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct User {
     pub id: Snowflake,
     pub username: SmolStr,
@@ -282,6 +283,7 @@ pub enum UserRelationship {
     BlockedDangerous = 101,
 }
 
+common::impl_rkyv_for_pod!(UserRelationship);
 common::impl_sql_for_enum_primitive!(UserRelationship);
 
 /*
@@ -310,6 +312,7 @@ BlockedDangerous    None                UserA has blocked UserB and reported the
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Relationship {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<SmolStr>,

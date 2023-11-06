@@ -120,35 +120,6 @@ impl Default for UserPrefsFlags {
     }
 }
 
-macro_rules! decl_newtype_prefs {
-    ($( $(#[$meta:meta])* $name:ident: $ty:ty $(= $default:expr)?,)*) => {
-        $(
-            $(#[$meta])*
-            #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
-            #[repr(transparent)]
-            pub struct $name(pub $ty);
-
-            $(
-                impl Default for $name {
-                    fn default() -> Self {
-                        $name($default.into())
-                    }
-                }
-            )?
-
-            impl core::ops::Deref for $name {
-                type Target = $ty;
-
-                fn deref(&self) -> &$ty {
-                    &self.0
-                }
-            }
-
-            common::impl_rkyv_for_pod!($name);
-        )*
-    };
-}
-
 pub mod preferences {
     decl_newtype_prefs! {
         Temperature: f32 = 7500.0,

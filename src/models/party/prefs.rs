@@ -29,39 +29,15 @@ impl Default for PartyPrefsFlags {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Hash, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum PartyPreference {
-    Locale,
-
-    Flags,
-
-    #[serde(other)]
-    InvalidField,
+mod preferences {
+    decl_newtype_prefs! {}
 }
 
-impl fmt::Display for PartyPreference {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use serde::Serialize;
-        self.serialize(f)
-    }
-}
-
-use crate::util::prefs::*;
-
-pub type PartyPreferences = PreferenceMap<PartyPreference, Hasher>;
-pub type PartyPreferenceError = PreferenceError<PartyPreference>;
-
-impl Preference for PartyPreference {
-    type Flags = PartyPrefsFlags;
-
-    const FLAGS_KEY: Self = PartyPreference::Flags;
-
-    fn validate(&self, _value: &Value) -> Result<(), PartyPreferenceError> {
-        Ok(())
-    }
-
-    fn is_default(&self, _value: &Value, _flags: PartyPrefsFlags) -> bool {
-        false
-    }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+pub struct PartyPreferences {
+    #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
+    pub l: Locale,
+    #[serde(default, skip_serializing_if = "is_default", alias = "flags")]
+    pub f: PartyPrefsFlags,
 }

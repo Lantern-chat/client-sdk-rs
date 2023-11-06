@@ -96,6 +96,7 @@ pub mod commands {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct SetPresence {
         #[serde(flatten)]
         pub presence: UserPresence,
@@ -123,6 +124,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct ReadyParty {
         pub party: Party,
         pub me: PartyMember,
@@ -144,6 +146,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct Ready {
         pub user: User,
         pub dms: ThinVec<Room>,
@@ -153,6 +156,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct TypingStart {
         pub room_id: Snowflake,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -176,6 +180,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct UserPresenceEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<Snowflake>,
@@ -216,6 +221,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct PartyMemberEvent {
         pub party_id: Snowflake,
 
@@ -234,6 +240,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct UserReactionEvent {
         pub user_id: Snowflake,
         pub room_id: Snowflake,
@@ -247,6 +254,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct ProfileUpdateEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<Snowflake>,
@@ -305,6 +313,7 @@ pub mod message {
                     #[doc = "Payload struct for [" $name "::" $opcode "]"]
                     #[derive(Debug, Serialize, Deserialize)]
                     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+                    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
                     $(#[derive($Default, PartialEq, Eq)])?
                     pub struct [<$opcode Payload>] {
                         $($(#[$field_meta])* pub $field : $ty,)*
@@ -451,6 +460,7 @@ pub mod message {
             $(#[$meta])*
             #[derive(Debug)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
             pub enum $name {
                 $(
                     $(#[$variant_meta])*

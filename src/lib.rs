@@ -6,11 +6,6 @@ extern crate serde;
 pub use models::Snowflake;
 
 #[macro_use]
-pub mod util {
-    pub mod prefs;
-}
-
-#[macro_use]
 pub mod models;
 
 #[cfg(feature = "api")]

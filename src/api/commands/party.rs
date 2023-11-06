@@ -230,8 +230,11 @@ pub enum CreateRoomKind {
     UserForum = RoomKind::UserForum as u8,
 }
 
+common::impl_rkyv_for_pod!(CreateRoomKind);
+
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct PartySettings {
     pub flags: PartyFlags,
     pub prefs: PartyPreferences,

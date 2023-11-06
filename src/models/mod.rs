@@ -23,6 +23,35 @@ pub mod embed {
     };
 }
 
+macro_rules! decl_newtype_prefs {
+    ($( $(#[$meta:meta])* $name:ident: $ty:ty $(= $default:expr)?,)*) => {
+        $(
+            $(#[$meta])*
+            #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
+            #[repr(transparent)]
+            pub struct $name(pub $ty);
+
+            $(
+                impl Default for $name {
+                    fn default() -> Self {
+                        $name($default.into())
+                    }
+                }
+            )?
+
+            impl core::ops::Deref for $name {
+                type Target = $ty;
+
+                fn deref(&self) -> &$ty {
+                    &self.0
+                }
+            }
+
+            common::impl_rkyv_for_pod!($name);
+        )*
+    };
+}
+
 pub mod asset;
 pub mod auth;
 pub mod config;
@@ -56,6 +85,7 @@ pub use self::{
 /// Directional search query
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[serde(rename_all = "lowercase")]
 pub enum Cursor {
     Exact(Snowflake),
