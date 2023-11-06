@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! impl_rkyv_for_bitflags {
+macro_rules! impl_rkyv_for_pod {
     ($name:ident) => {
         #[cfg(feature = "rkyv")]
         const _: () = {
@@ -37,7 +37,7 @@ macro_rules! impl_serde_for_bitflags {
         $crate::serde_shims::impl_serde_for_bitflags!($name);
 
         #[cfg(feature = "rkyv")]
-        $crate::impl_rkyv_for_bitflags!($name);
+        $crate::impl_rkyv_for_pod!($name);
     };
 }
 

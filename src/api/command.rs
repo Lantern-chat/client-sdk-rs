@@ -15,7 +15,7 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_rkyv_for_bitflags!(CommandFlags);
+common::impl_rkyv_for_pod!(CommandFlags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RateLimit {
@@ -375,6 +375,7 @@ macro_rules! command {
         $(#[$($meta)*])*
         #[derive(Debug)]
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        //#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
         pub struct $name {
             $($(#[$($field_meta)*])* $field_vis $field_name: $field_ty, )*
 

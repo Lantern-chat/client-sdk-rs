@@ -79,7 +79,7 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_rkyv_for_bitflags!(Permissions);
+common::impl_rkyv_for_pod!(Permissions);
 common::impl_schema_for_bitflags!(Permissions);
 
 impl Default for Permissions {

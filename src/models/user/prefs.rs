@@ -5,20 +5,18 @@ use serde_json::Value;
 
 use super::*;
 
-#[derive(Default, Debug, Clone, Copy, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[allow(non_camel_case_types)]
 #[repr(u16)]
 pub enum Locale {
     #[default]
     enUS = 0,
-
-    __MAX_LOCALE,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
 #[repr(u16)]
-#[allow(non_camel_case_types)]
 pub enum Font {
+    #[default]
     SansSerif = 0,
     Serif = 1,
     Monospace = 2,
@@ -29,9 +27,21 @@ pub enum Font {
     OpenDyslexic = 30,
 
     AtkinsonHyperlegible = 31,
-
-    __MAX_FONT,
 }
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[repr(u8)]
+pub enum FriendAddability {
+    #[default]
+    None = 0,
+    FriendsOfFriends = 10,
+    ServerMembers = 20,
+    Anyone = 30,
+}
+
+common::impl_rkyv_for_pod!(Locale);
+common::impl_rkyv_for_pod!(Font);
+common::impl_rkyv_for_pod!(FriendAddability);
 
 bitflags::bitflags! {
     pub struct UserPrefsFlags: i32 {
@@ -110,176 +120,63 @@ impl Default for UserPrefsFlags {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Hash, PartialEq, Eq)]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive))]
-#[serde(rename_all = "snake_case")]
-pub enum UserPreference {
-    Locale,
+macro_rules! decl_newtype_prefs {
+    ($( $(#[$meta:meta])* $name:ident: $ty:ty $(= $default:expr)?,)*) => {
+        $(
+            $(#[$meta])*
+            #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
+            #[repr(transparent)]
+            pub struct $name(pub $ty);
 
-    Flags,
-
-    /*
-        PRIVACY
-    */
-    /// Who can add you as a friend,
-    /// number 0-3 where 0 = no one, 1 = friends of friends, 2 = server members, 3 = anyone
-    FriendAdd,
-
-    /*
-        ACCESSIBILITY
-    */
-
-    /*
-        APPEARANCE
-    */
-    /// Color temperature
-    Temp,
-    /// Chat font
-    ChatFont,
-    /// UI Font
-    UiFont,
-    /// Font size
-    ChatFontSize,
-    /// UI Font Size
-    UiFontSize,
-    /// Message Tab Size (in spaces)
-    TabSize,
-    /// Time format
-    TimeFormat,
-    /// Group padding
-    Pad,
-
-    /*
-        Advanced
-    */
-    #[serde(other)]
-    InvalidField,
-}
-
-impl fmt::Display for UserPreference {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use serde::Serialize;
-        self.serialize(f)
-    }
-}
-
-use crate::util::prefs::*;
-
-pub type UserPreferences = PreferenceMap<UserPreference, Hasher>;
-pub type UserPreferenceError = PreferenceError<UserPreference>;
-
-impl Preference for UserPreference {
-    type Flags = UserPrefsFlags;
-
-    const FLAGS_KEY: Self = UserPreference::Flags;
-
-    fn validate(&self, value: &Value) -> Result<(), UserPreferenceError> {
-        let mut kind = PreferenceErrorKind::InvalidType;
-
-        let valid_type = match *self {
-            // NULL values are not allowed
-            _ if value.is_null() => false,
-
-            Self::InvalidField => false,
-
-            // The locale just has to be in the list of enums, and since
-            // they are numbered it's easy to check
-            Self::Locale => match value.as_u64() {
-                Some(value) => {
-                    kind = PreferenceErrorKind::InvalidValue;
-                    value < Locale::__MAX_LOCALE as u64
+            $(
+                impl Default for $name {
+                    fn default() -> Self {
+                        $name($default.into())
+                    }
                 }
-                _ => false,
-            },
-            // Check docs for this, but values can only be from 0-3 inclusive
-            Self::FriendAdd => match value.as_u64() {
-                Some(value) => {
-                    kind = PreferenceErrorKind::InvalidValue;
-                    value <= 3
-                }
-                _ => false,
-            },
-            Self::Flags => match value.as_u64() {
-                Some(value) => {
-                    kind = PreferenceErrorKind::InvalidValue;
+            )?
 
-                    // contained within 2^32 AND a valid flag
-                    value <= (u32::MAX as u64) && UserPrefsFlags::from_bits(value as i32).is_some()
-                }
-                _ => false,
-            },
-            // Color temperature in kelvin degrees
-            Self::Temp => match value.as_f64() {
-                Some(temp) => {
-                    kind = PreferenceErrorKind::InvalidValue;
-                    (965.0..=12000.0).contains(&temp)
-                }
-                _ => false,
-            },
-            Self::TimeFormat => match value {
-                // TODO: Properly validate format string
-                Value::String(_format) => true,
-                Value::Bool(_) => true,
-                _ => false,
-            },
-            // Fonts must be in the list, which is easily checked by parsing the enum
-            Self::ChatFont | Self::UiFont => match value.as_u64() {
-                Some(value) => {
-                    kind = PreferenceErrorKind::InvalidValue;
-                    value < Font::__MAX_FONT as u64
-                }
-                _ => false,
-            },
-            Self::TabSize => match value.as_u64() {
-                Some(value) => {
-                    kind = PreferenceErrorKind::InvalidValue;
-                    value > 0 && value < 64
-                }
-                _ => false,
-            },
-            // Font sizes can be floats for smooth scaling, but must be positive
-            Self::ChatFontSize | Self::UiFontSize => match value.as_u64() {
-                Some(value) => {
-                    kind = PreferenceErrorKind::InvalidValue;
-                    (8..=32).contains(&value)
-                }
-                _ => false,
-            },
-            Self::Pad => match value.as_u64() {
-                Some(value) => {
-                    kind = PreferenceErrorKind::InvalidValue;
-                    value <= 32
-                }
-                _ => false,
-            },
-        };
+            impl core::ops::Deref for $name {
+                type Target = $ty;
 
-        if !valid_type {
-            Err(PreferenceError { field: *self, kind })
-        } else {
-            Ok(())
-        }
-    }
-
-    fn is_default(&self, value: &Value, flags: UserPrefsFlags) -> bool {
-        match *self {
-            Self::Flags => value.as_u64() == Some(UserPrefsFlags::DEFAULT_FLAGS.bits() as u64),
-            Self::ChatFontSize | Self::UiFontSize => value.as_u64() == Some(16),
-            Self::Temp => value.as_f64() == Some(7500.0),
-            Self::FriendAdd => value.as_u64() == Some(3),
-            Self::Locale => value.as_u64() == Some(Locale::enUS as u64),
-            Self::ChatFont | Self::UiFont => value.as_u64() == Some(0),
-            Self::TabSize => value.as_u64() == Some(4),
-            Self::Pad => {
-                let value = value.as_u64();
-
-                if flags.contains(UserPrefsFlags::COMPACT_VIEW) {
-                    value == Some(0)
-                } else {
-                    value == Some(16)
+                fn deref(&self) -> &$ty {
+                    &self.0
                 }
             }
-            _ => false,
-        }
+
+            common::impl_rkyv_for_pod!($name);
+        )*
+    };
+}
+
+pub mod preferences {
+    decl_newtype_prefs! {
+        Temperature: f32 = 7500.0,
+        TabSize: u8 = 4,
+        Padding: u8 = 16,
+        FontSize: f32 = 16.0,
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+pub struct UserPreferences {
+    #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
+    pub l: Locale,
+    #[serde(default, skip_serializing_if = "is_default", alias = "flags")]
+    pub f: UserPrefsFlags,
+    #[serde(default, skip_serializing_if = "is_default", alias = "friend_add")]
+    pub friend: FriendAddability,
+    #[serde(default, skip_serializing_if = "is_default", alias = "temperature")]
+    pub temp: preferences::Temperature,
+    #[serde(default, skip_serializing_if = "is_default", alias = "chat_font")]
+    pub cf: Font,
+    #[serde(default, skip_serializing_if = "is_default", alias = "ui_font")]
+    pub uf: Font,
+    #[serde(default, skip_serializing_if = "is_default", alias = "chat_font_size")]
+    pub cfs: preferences::FontSize,
+    #[serde(default, skip_serializing_if = "is_default", alias = "ui_font_size")]
+    pub ufs: preferences::FontSize,
+    #[serde(default, skip_serializing_if = "is_default", alias = "padding")]
+    pub pad: preferences::Padding,
 }
