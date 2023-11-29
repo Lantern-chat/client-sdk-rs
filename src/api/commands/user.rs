@@ -168,6 +168,7 @@ impl From<UserPreferences> for UpdateUserPrefsBody {
     }
 }
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Added2FA {
     pub url: String,
     pub backup: Vec<String>,
