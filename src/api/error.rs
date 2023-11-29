@@ -2,8 +2,11 @@ use std::borrow::Cow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct ApiError {
     pub code: ApiErrorCode,
+
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::AsOwned))]
     pub message: Cow<'static, str>,
 }
 

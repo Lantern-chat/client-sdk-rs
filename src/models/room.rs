@@ -79,6 +79,7 @@ pub struct Room {
 
     /// Permission overwrites for this room
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub overwrites: ThinVec<Overwrite>,
     // /// Direct/Group Message Users
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]

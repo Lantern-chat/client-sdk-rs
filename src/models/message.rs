@@ -80,13 +80,17 @@ pub struct Message {
     pub flags: MessageFlags,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub pins: ThinVec<Snowflake>,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub user_mentions: ThinVec<Snowflake>,
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub role_mentions: ThinVec<Snowflake>,
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub room_mentions: ThinVec<Snowflake>,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
@@ -173,6 +177,8 @@ pub struct ReactionShorthand {
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct ReactionFull {
     pub emote: EmoteOrEmoji,
+
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub users: ThinVec<Snowflake>,
 }
 

@@ -18,6 +18,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
             pub attachments: ThinVec<Snowflake> where ATTACH_FILES if !attachments.is_empty(),
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
@@ -47,6 +48,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
             pub attachments: ThinVec<Snowflake>,
         }
     }
@@ -89,6 +91,7 @@ command! {
 
             #[serde(default, alias = "pins", skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
             pub pinned: ThinVec<Snowflake>,
 
             /// If true, return only messages in the channel which have been starred by us
@@ -196,10 +199,12 @@ command! {
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
             pub remove_overwrites: ThinVec<Snowflake>,
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
             pub overwrites: ThinVec<Overwrite>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]

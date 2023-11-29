@@ -30,13 +30,12 @@ embed = { package = "embed-sdk", git = "https://github.com/Lantern-chat/embed-se
 timestamp = { package = "iso8601-timestamp", version = "0.2" }
 
 rkyv = { version = "0.7", optional = true, features = ["validation", "smol_str", "thin-vec", "triomphe"] }
-bytecheck = { version = "0.7.0", optional = true }
 
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = "1"
 bitflags = "1.2"
 serde_repr = "0.1"
-enum-primitive-derive = "0.2"
+enum-primitive-derive = "0.3"
 num-traits = "0.2"
 itoa = "1"
 time = { version = "0.3", features = ["macros"] }
@@ -87,7 +86,7 @@ smallvec = { version = "1.10.0", optional = true }
 [features]
 _internal_common = ["thiserror"]
 
-rkyv = ["dep:rkyv", "bytecheck", "common/rkyv", "embed/rkyv", "timestamp/rkyv"]
+rkyv = ["dep:rkyv", "common/rkyv", "embed/rkyv", "timestamp/rkyv"]
 strict_rkyv = ["rkyv/strict"]
 
 schema = ["schemars", "common/schemars", "okapi", "timestamp/schema", "smol_str/schema", "thin-vec/schemars"]

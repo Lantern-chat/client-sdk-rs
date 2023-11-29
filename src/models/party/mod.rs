@@ -121,8 +121,9 @@ pub struct PartialPartyMember {
     pub flags: Option<PartyMemberFlags>,
 
     /// List of Role id snowflakes
-    #[serde(default, skip_serializing_if = "is_none_or_empty")]
-    pub roles: Option<ThinVec<Snowflake>>,
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
+    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
+    pub roles: ThinVec<Snowflake>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

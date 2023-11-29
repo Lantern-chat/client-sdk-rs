@@ -42,10 +42,39 @@ impl RateLimit {
 }
 
 impl Default for RateLimit {
+    #[inline]
     fn default() -> Self {
         RateLimit::DEFAULT
     }
 }
+
+/// Combined trait for serde and rkyv functionality
+#[cfg(feature = "rkyv")]
+pub trait CommandResult: serde::de::DeserializeOwned + rkyv::Archive {}
+
+/// Combined trait for serde and rkyv functionality
+#[cfg(feature = "rkyv")]
+pub trait CommandBody: serde::ser::Serialize + rkyv::Archive {}
+
+#[cfg(feature = "rkyv")]
+impl<T> CommandResult for T where T: serde::de::DeserializeOwned + rkyv::Archive {}
+
+#[cfg(feature = "rkyv")]
+impl<T> CommandBody for T where T: serde::ser::Serialize + rkyv::Archive {}
+
+/// Combined trait for serde and rkyv functionality
+#[cfg(not(feature = "rkyv"))]
+pub trait CommandResult: serde::de::DeserializeOwned {}
+
+/// Combined trait for serde and rkyv functionality
+#[cfg(not(feature = "rkyv"))]
+pub trait CommandBody: serde::ser::Serialize {}
+
+#[cfg(not(feature = "rkyv"))]
+impl<T> CommandResult for T where T: serde::de::DeserializeOwned {}
+
+#[cfg(not(feature = "rkyv"))]
+impl<T> CommandBody for T where T: serde::ser::Serialize {}
 
 /// Client Command, tells the client to perform specific requests
 ///
@@ -57,8 +86,9 @@ impl Default for RateLimit {
 /// For the case of `GET`/`OPTIONS` commands, the body becomes query parameters.
 pub trait Command: sealed::Sealed {
     /// Object returned from the server as the result of a command
-    type Result: serde::de::DeserializeOwned;
-    type Body: serde::Serialize;
+    type Result: CommandResult;
+
+    type Body: CommandBody;
 
     /// HTTP Method used to execute the command
     const METHOD: Method;
@@ -436,6 +466,11 @@ macro_rules! command {
 macro_rules! command_module {
     ($($vis:vis mod $mod:ident;)*) => {
         $($vis mod $mod;)*
+
+        pub mod all {
+            $($vis use super::$mod::*;)*
+        }
+
         // TODO: Collect schemas from each object
     }
 }

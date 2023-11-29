@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate serde;
 
+pub extern crate common;
+
 pub use models::Snowflake;
 
 #[macro_use]

@@ -200,6 +200,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
             pub overwrites: ThinVec<Overwrite>,
 
             #[serde(default)]

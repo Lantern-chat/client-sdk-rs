@@ -1,7 +1,7 @@
+#[cfg(feature = "rkyv")]
 #[macro_export]
 macro_rules! impl_rkyv_for_pod {
     ($name:ident) => {
-        #[cfg(feature = "rkyv")]
         const _: () = {
             use $crate::rkyv::{Archive, Archived, Deserialize, Fallible, Serialize};
 
@@ -11,7 +11,7 @@ macro_rules! impl_rkyv_for_pod {
 
                 #[inline]
                 unsafe fn resolve(&self, _pos: usize, _resolver: Self::Resolver, out: *mut Self::Archived) {
-                    *out = *self;
+                    *out = *self; // asserts copy
                 }
             }
 
@@ -31,18 +31,41 @@ macro_rules! impl_rkyv_for_pod {
     };
 }
 
+#[cfg(not(feature = "rkyv"))]
+#[macro_export]
+macro_rules! impl_rkyv_for_pod {
+    ($name:ident) => {};
+}
+
+#[cfg(feature = "rkyv")]
 #[macro_export]
 macro_rules! impl_serde_for_bitflags {
     ($name:ident) => {
         $crate::serde_shims::impl_serde_for_bitflags!($name);
 
-        #[cfg(feature = "rkyv")]
         $crate::impl_rkyv_for_pod!($name);
     };
 }
 
+#[cfg(not(feature = "rkyv"))]
 #[macro_export]
-macro_rules! enum_codes {
+macro_rules! impl_serde_for_bitflags {
+    ($name:ident) => {
+        $crate::serde_shims::impl_serde_for_bitflags!($name);
+    };
+}
+
+#[doc(hidden)]
+#[cfg(not(feature = "rkyv"))]
+#[macro_export]
+macro_rules! impl_rkyv_for_enum_codes {
+    ($($tt:tt)*) => {};
+}
+
+#[doc(hidden)]
+#[cfg(feature = "rkyv")]
+#[macro_export]
+macro_rules! impl_rkyv_for_enum_codes {
     (
         $(#[$meta:meta])*
         $vis:vis enum $name:ident: $repr:ty $(= $unknown:ident)? {$(
@@ -50,14 +73,6 @@ macro_rules! enum_codes {
             $variant:ident = $code:expr,
         )*}
     ) => {
-        $(#[$meta])*
-        #[repr($repr)]
-        $vis enum $name {$(
-            $(#[$variant_meta])*
-            $variant = $code,
-        )*}
-
-        #[cfg(feature = "rkyv")]
         const _: () = {
             use $crate::rkyv::{Archive, Deserialize, Fallible, Serialize, Archived};
 
@@ -89,5 +104,30 @@ macro_rules! enum_codes {
                 }
             }
         };
+    }
+}
+
+#[macro_export]
+macro_rules! enum_codes {
+    (
+        @ENTRY
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident: $repr:ty $(= $unknown:ident)? {$(
+            $(#[$variant_meta:meta])*
+            $variant:ident = $code:expr,
+        )*}
+    ) => {
+        $(#[$meta])*
+        #[repr($repr)]
+        $vis enum $name {$(
+            $(#[$variant_meta])*
+            $variant = $code,
+        )*}
+    };
+
+    ($($tt:tt)*) => {
+        $crate::enum_codes!(@ENTRY $($tt)*);
+
+        $crate::impl_rkyv_for_enum_codes!($($tt)*);
     };
 }
