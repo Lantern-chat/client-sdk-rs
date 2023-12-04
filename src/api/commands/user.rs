@@ -139,6 +139,10 @@ command! {
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub banner: Nullable<Snowflake>,
 
+            #[serde(default, skip_serializing_if = "is_default")]
+            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            pub banner_align: BannerAlign,
+
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub status: Nullable<SmolStr>,
@@ -167,6 +171,18 @@ impl From<UserPreferences> for UpdateUserPrefsBody {
         UpdateUserPrefsBody { inner }
     }
 }
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, serde_repr::Deserialize_repr, serde_repr::Serialize_repr)]
+#[repr(u8)]
+pub enum BannerAlign {
+    #[default]
+    Top = 0,
+    Middle = 1,
+    Bottom = 2,
+}
+
+common::impl_rkyv_for_pod!(BannerAlign);
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Added2FA {
