@@ -257,6 +257,7 @@ pub mod events {
         pub party_id: Option<Snowflake>,
         pub msg_id: Snowflake,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
         pub member: Option<Box<PartyMember>>,
         pub emote: EmoteOrEmoji,
     }
