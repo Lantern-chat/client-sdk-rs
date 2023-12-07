@@ -23,8 +23,10 @@ pub struct Role {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub avatar: Option<SmolStr>,
     pub name: SmolStr,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub desc: Option<SmolStr>,
     pub permissions: Permissions,
-    pub color: Option<u32>,
+    pub color: Option<u32>, // can be intentionally null
     pub position: i16,
     pub flags: RoleFlags,
 }
