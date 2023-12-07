@@ -27,6 +27,7 @@ resolver = "2"
 common = { package = "client-sdk-common", git = "https://github.com/Lantern-chat/client-sdk-rs" }
 embed = { package = "embed-sdk", git = "https://github.com/Lantern-chat/embed-service" }
 
+snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
 timestamp = { package = "iso8601-timestamp", version = "0.2" }
 
 rkyv = { version = "0.7", optional = true, features = ["validation", "smol_str", "thin-vec", "triomphe"] }
@@ -86,14 +87,14 @@ smallvec = { version = "1.10.0", optional = true }
 [features]
 _internal_common = ["thiserror"]
 
-rkyv = ["dep:rkyv", "common/rkyv", "embed/rkyv", "timestamp/rkyv"]
+rkyv = ["dep:rkyv", "common/rkyv", "embed/rkyv", "timestamp/rkyv", "snowflake/rkyv"]
 strict_rkyv = ["rkyv/strict"]
 
 schema = ["schemars", "common/schemars", "okapi", "timestamp/schema", "smol_str/schema", "thin-vec/schemars"]
 
-pg = ["postgres-types", "bytes", "common/pg", "embed/pg", "timestamp/pg", "thin-vec/postgres"]
-rusqlite = ["dep:rusqlite", "common/rusqlite", "timestamp/rusqlite"]
-api = ["http", "_internal_common", "percent-encoding"]                                         # http required for Method
+pg = ["postgres-types", "bytes", "common/pg", "embed/pg", "timestamp/pg", "thin-vec/postgres", "snowflake/pg"]
+rusqlite = ["dep:rusqlite", "common/rusqlite", "timestamp/rusqlite", "snowflake/rusqlite"]
+api = ["http", "_internal_common", "percent-encoding"]                                                         # http required for Method
 
 # Low-level command execution
 driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]
