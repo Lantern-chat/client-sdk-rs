@@ -223,6 +223,7 @@ command! {
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
 #[repr(u8)]
 pub enum CreateRoomKind {
     #[default]
@@ -236,6 +237,7 @@ common::impl_rkyv_for_pod!(CreateRoomKind);
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct PartySettings {
     pub flags: PartyFlags,
     pub prefs: PartyPreferences,

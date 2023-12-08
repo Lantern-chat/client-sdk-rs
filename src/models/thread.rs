@@ -13,6 +13,8 @@ common::impl_sql_for_bitflags!(ThreadFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Thread {
     pub id: Snowflake,
     pub parent: Message,

@@ -53,6 +53,7 @@ common::impl_rkyv_for_pod!(MessageKind);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Message {
     pub id: Snowflake,
     pub room_id: Snowflake,
@@ -113,6 +114,7 @@ pub struct Message {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 #[serde(untagged)]
 pub enum EmoteOrEmoji {
     Emote { emote: Snowflake },

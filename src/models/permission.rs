@@ -79,7 +79,7 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_rkyv_for_pod!(Permissions);
+common::impl_rkyv_for_pod!(Permissions + CheckBytes);
 common::impl_schema_for_bitflags!(Permissions);
 
 impl Default for Permissions {
@@ -166,6 +166,7 @@ const _: () = {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Overwrite {
     /// Role or user ID
     ///

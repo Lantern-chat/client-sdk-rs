@@ -173,6 +173,7 @@ impl From<UserPreferences> for UpdateUserPrefsBody {
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, serde_repr::Deserialize_repr, serde_repr::Serialize_repr)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
 #[repr(u8)]
 pub enum BannerAlign {
     #[default]
@@ -185,6 +186,7 @@ common::impl_rkyv_for_pod!(BannerAlign);
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Added2FA {
     pub url: String,
     pub backup: Vec<String>,

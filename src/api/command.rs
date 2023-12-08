@@ -406,6 +406,7 @@ macro_rules! command {
         #[derive(Debug)]
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+        #[cfg_attr(feature = "rkyv", archive(check_bytes))]
         pub struct $name {
             $($(#[$($field_meta)*])* $field_vis $field_name: $field_ty, )*
 
@@ -422,6 +423,7 @@ macro_rules! command {
             #[derive(Debug, Serialize, Deserialize)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
             #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+            #[cfg_attr(feature = "rkyv", archive(check_bytes))]
             pub struct $body_name {
                 $( $(#[$($body_field_meta)*])* $body_field_vis $body_field_name: $body_field_ty ),*
             }

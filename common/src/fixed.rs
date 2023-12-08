@@ -8,8 +8,34 @@ pub struct FixedStr<const N: usize> {
 }
 
 #[cfg(feature = "rkyv")]
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct FixedStrCheckError(pub core::str::Utf8Error);
+
+#[cfg(feature = "rkyv")]
 const _: () = {
-    use rkyv::{Archive, Deserialize, Fallible, Serialize};
+    impl From<core::str::Utf8Error> for FixedStrCheckError {
+        fn from(e: core::str::Utf8Error) -> Self {
+            Self(e)
+        }
+    }
+
+    impl fmt::Display for FixedStrCheckError {
+        #[inline]
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "utf8 error: {}", self.0)
+        }
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for FixedStrCheckError {
+        #[inline]
+        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+            Some(&self.0)
+        }
+    }
+
+    use rkyv::{bytecheck::CheckBytes, Archive, Deserialize, Fallible, Serialize};
 
     impl<const N: usize> Archive for FixedStr<N> {
         type Archived = FixedStr<N>;
@@ -38,6 +64,15 @@ const _: () = {
         #[inline]
         fn deserialize(&self, _deserializer: &mut D) -> Result<Self, D::Error> {
             Ok(*self)
+        }
+    }
+
+    impl<const N: usize, C: ?Sized> CheckBytes<C> for FixedStr<N> {
+        type Error = FixedStrCheckError;
+
+        unsafe fn check_bytes<'a>(value: *const Self, _context: &mut C) -> Result<&'a Self, Self::Error> {
+            core::str::from_utf8(core::slice::from_raw_parts(value.cast::<u8>(), N))?;
+            Ok(&*value)
         }
     }
 };

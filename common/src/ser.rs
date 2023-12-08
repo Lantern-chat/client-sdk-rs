@@ -29,12 +29,29 @@ macro_rules! impl_rkyv_for_pod {
             }
         };
     };
+
+    ($name:ident +CheckBytes) => {
+        $crate::impl_rkyv_for_pod!($name);
+
+        const _: () = {
+            use rkyv::bytecheck::CheckBytes;
+
+            impl<C: ?Sized> CheckBytes<C> for $name {
+                type Error = ::core::convert::Infallible;
+
+                #[inline(always)]
+                unsafe fn check_bytes<'a>(value: *const Self, context: &mut C) -> Result<&'a Self, Self::Error> {
+                    Ok(&*value)
+                }
+            }
+        };
+    };
 }
 
 #[cfg(not(feature = "rkyv"))]
 #[macro_export]
 macro_rules! impl_rkyv_for_pod {
-    ($name:ident) => {};
+    ($($tt:tt)*) => {};
 }
 
 #[cfg(feature = "rkyv")]
@@ -43,7 +60,7 @@ macro_rules! impl_serde_for_bitflags {
     ($name:ident) => {
         $crate::serde_shims::impl_serde_for_bitflags!($name);
 
-        $crate::impl_rkyv_for_pod!($name);
+        $crate::impl_rkyv_for_pod!($name + CheckBytes);
     };
 }
 
@@ -74,7 +91,7 @@ macro_rules! impl_rkyv_for_enum_codes {
         )*}
     ) => {
         const _: () = {
-            use $crate::rkyv::{Archive, Deserialize, Fallible, Serialize, Archived};
+            use $crate::rkyv::{Archive, Deserialize, Fallible, Serialize, Archived, bytecheck::{EnumCheckError, CheckBytes}};
 
             impl Archive for $name {
                 type Archived = $repr;
@@ -101,6 +118,21 @@ macro_rules! impl_rkyv_for_enum_codes {
 
                         _ => panic!("Unknown code: {self}"),
                     })
+                }
+            }
+
+            impl<C: ?Sized> CheckBytes<C> for $name {
+                type Error = EnumCheckError<$repr>;
+
+                unsafe fn check_bytes<'a>(
+                    value: *const Self,
+                    context: &mut C
+                ) -> Result<&'a Self, Self::Error> {
+                    let tag = *value.cast::<$repr>();
+                    match tag {
+                        $(| $code)* => Ok(&*value),
+                        _ => Err(EnumCheckError::InvalidTag(tag))
+                    }
                 }
             }
         };

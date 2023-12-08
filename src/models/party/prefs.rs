@@ -35,6 +35,7 @@ mod preferences {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct PartyPreferences {
     #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
     pub l: Locale,
