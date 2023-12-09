@@ -91,7 +91,7 @@ pub trait Command: sealed::Sealed {
     type Body: CommandBody;
 
     /// HTTP Method used to execute the command
-    const METHOD: Method;
+    const HTTP_METHOD: Method;
 
     const FLAGS: CommandFlags;
 
@@ -244,7 +244,7 @@ macro_rules! command {
         impl $crate::api::command::Command for $name {
             type Result = $result;
 
-            const METHOD: http::Method = http::Method::$method;
+            const HTTP_METHOD: http::Method = http::Method::$method;
 
             const FLAGS: CommandFlags = CommandFlags::empty()
                 $(.union((stringify!($body_name), CommandFlags::HAS_BODY).1))?
