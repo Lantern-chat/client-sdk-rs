@@ -5,43 +5,42 @@ use serde_json::Value;
 
 use super::*;
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
-#[allow(non_camel_case_types)]
-#[repr(u16)]
-pub enum Locale {
-    #[default]
-    enUS = 0,
+common::enum_codes! {
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[allow(non_camel_case_types)]
+    pub enum Locale: u16 = enUS {
+        #[default]
+        enUS = 0,
+    }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
-#[repr(u16)]
-pub enum Font {
-    #[default]
-    SansSerif = 0,
-    Serif = 1,
-    Monospace = 2,
-    Cursive = 3,
-    ComicSans = 4,
+common::enum_codes! {
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    pub enum Font: u16 = SansSerif {
+        #[default]
+        SansSerif = 0,
+        Serif = 1,
+        Monospace = 2,
+        Cursive = 3,
+        ComicSans = 4,
 
-    // third-party fonts
-    OpenDyslexic = 30,
+        // third-party fonts
+        OpenDyslexic = 30,
 
-    AtkinsonHyperlegible = 31,
+        AtkinsonHyperlegible = 31,
+    }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
-#[repr(u8)]
-pub enum FriendAddability {
-    #[default]
-    None = 0,
-    FriendsOfFriends = 10,
-    ServerMembers = 20,
-    Anyone = 30,
+common::enum_codes! {
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    pub enum FriendAddability: u8 = None {
+        #[default]
+        None = 0,
+        FriendsOfFriends = 10,
+        ServerMembers = 20,
+        Anyone = 30,
+    }
 }
-
-common::impl_rkyv_for_pod!(Locale);
-common::impl_rkyv_for_pod!(Font);
-common::impl_rkyv_for_pod!(FriendAddability);
 
 bitflags::bitflags! {
     pub struct UserPrefsFlags: i32 {
@@ -131,6 +130,7 @@ pub mod preferences {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct UserPreferences {
     #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
     pub l: Locale,

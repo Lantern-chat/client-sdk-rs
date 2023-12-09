@@ -28,6 +28,7 @@ macro_rules! decl_newtype_prefs {
         $(
             $(#[$meta])*
             #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
             #[repr(transparent)]
             pub struct $name(pub $ty);
 

@@ -262,32 +262,28 @@ mod tests {
     }
 }
 
-/// Half of a user relationship
-#[rustfmt::skip]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
-#[derive(enum_primitive_derive::Primitive)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[repr(i8)] // two of these fit together to form a full i16 relationship in the database
-pub enum UserRelationship {
-    #[default]
-    None = 0,
+common::enum_codes! {
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[derive(enum_primitive_derive::Primitive)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    pub enum UserRelationship: i8 = None {
+        #[default]
+        None = 0,
 
-    Friend = 1,
+        Friend = 1,
 
-    //
-    // reserve some space for future relationships
-    //
+        //
+        // reserve some space for future relationships
+        //
 
-    /// Normal user blocking
-    Blocked = 100,
+        /// Normal user blocking
+        Blocked = 100,
 
-    /// Blocking + hide messages from the blocked user
-    BlockedDangerous = 101,
+        /// Blocking + hide messages from the blocked user
+        BlockedDangerous = 101,
+    }
 }
-
-common::impl_rkyv_for_pod!(UserRelationship);
-common::impl_sql_for_enum_primitive!(UserRelationship);
 
 /*
 UserA               UserB
@@ -316,6 +312,7 @@ BlockedDangerous    None                UserA has blocked UserB and reported the
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Relationship {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<SmolStr>,
