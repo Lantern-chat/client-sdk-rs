@@ -131,6 +131,8 @@ macro_rules! impl_rkyv_for_enum_codes {
                     let tag = *value.cast::<$repr>();
                     match tag {
                         $(| $code)* => Ok(&*value),
+                        $(_ => Ok(&$name::$unknown),)?
+
                         _ => Err(EnumCheckError::InvalidTag(tag))
                     }
                 }
