@@ -102,7 +102,7 @@ impl Driver {
         // likely inlined, simple
         cmd.format_path(&mut path)?;
 
-        let mut req = Request::new(CMD::METHOD, Url::parse(&path)?);
+        let mut req = Request::new(CMD::HTTP_METHOD, Url::parse(&path)?);
 
         // likely inlined, often no-ops
         cmd.add_headers(req.headers_mut());
@@ -111,7 +111,7 @@ impl Driver {
 
         // if there is a body to serialize
         if CMD::FLAGS.contains(CommandFlags::HAS_BODY) && body_size_hint > 0 {
-            match CMD::METHOD {
+            match CMD::HTTP_METHOD {
                 // for methods without bodies, the "body" is treated as query parameters
                 Method::GET | Method::OPTIONS | Method::HEAD | Method::CONNECT | Method::TRACE => {
                     let url = req.url_mut();
