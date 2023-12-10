@@ -126,3 +126,6 @@ default = ["api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
+
+[profile.dev]
+debug = 1
