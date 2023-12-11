@@ -285,6 +285,8 @@ common::enum_codes! {
     }
 }
 
+common::impl_sql_for_enum_primitive!(UserRelationship);
+
 /*
 UserA               UserB
 
