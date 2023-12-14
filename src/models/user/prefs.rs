@@ -121,10 +121,10 @@ impl Default for UserPrefsFlags {
 
 pub mod preferences {
     decl_newtype_prefs! {
-        Temperature: f32 = 7500.0,
-        TabSize: u8 = 4,
-        Padding: u8 = 16,
-        FontSize: f32 = 16.0,
+        Temperature: u16 = 7500u16,
+        FontSize: f32 = 16.0f32,
+        TabSize: u8 = 4u8,
+        Padding: u8 = 16u8,
     }
 }
 
@@ -150,4 +150,35 @@ pub struct UserPreferences {
     pub ufs: preferences::FontSize,
     #[serde(default, skip_serializing_if = "is_default", alias = "padding")]
     pub pad: preferences::Padding,
+    #[serde(default, skip_serializing_if = "is_default", alias = "tab_size")]
+    pub tab: preferences::TabSize,
+}
+
+impl UserPreferences {
+    pub fn clean(&mut self) {
+        use std::ops::Range;
+
+        #[inline]
+        fn clamp_range<T: PartialOrd>(value: &mut T, range: Range<T>) {
+            if *value < range.start {
+                *value = range.start;
+            } else if *value > range.end {
+                *value = range.end;
+            }
+        }
+
+        #[inline]
+        fn round_2(value: &mut f32) {
+            *value = (*value * 100.0).round() / 100.0;
+        }
+
+        round_2(&mut self.cfs);
+        round_2(&mut self.ufs);
+
+        clamp_range::<u16>(&mut self.temp, 965..12000);
+        clamp_range::<f32>(&mut self.cfs, 8.0..32.0);
+        clamp_range::<f32>(&mut self.ufs, 8.0..32.0);
+        clamp_range::<u8>(&mut self.pad, 0..32);
+        clamp_range::<u8>(&mut self.tab, 1..64);
+    }
 }

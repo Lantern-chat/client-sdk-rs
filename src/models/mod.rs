@@ -34,6 +34,7 @@ macro_rules! decl_newtype_prefs {
 
             $(
                 impl Default for $name {
+                    #[inline(always)]
                     fn default() -> Self {
                         $name($default.into())
                     }
@@ -43,8 +44,16 @@ macro_rules! decl_newtype_prefs {
             impl core::ops::Deref for $name {
                 type Target = $ty;
 
+                #[inline(always)]
                 fn deref(&self) -> &$ty {
                     &self.0
+                }
+            }
+
+            impl core::ops::DerefMut for $name {
+                #[inline(always)]
+                fn deref_mut(&mut self) -> &mut $ty {
+                    &mut self.0
                 }
             }
 
