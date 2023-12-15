@@ -19,4 +19,4 @@ rkyv = { version = "0.7", optional = true, default-features = false, features = 
 [features]
 default = ["std"]
 pg = ["postgres-types", "bytes"]
-std = ["rkyv/std"]
+std = ["rkyv?/std"]
