@@ -12,8 +12,7 @@ command! {
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub password: SmolStr,
 
-            #[serde(flatten)]
-            pub dob: DateOfBirth,
+            pub dob: Timestamp,
 
             /// hCaptcha token
             pub token: String, // TODO: Don't allocate?
