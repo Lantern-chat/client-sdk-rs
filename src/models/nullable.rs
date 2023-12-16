@@ -5,17 +5,31 @@
 ///
 /// Similarly, not all gateway events provide all information in objects. Again, user profiles
 /// are notable in that biographies are typically excluded in events to save on bandwidth.
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[derive(Default, Debug, Clone, Copy, Hash)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
+#[repr(u8)]
 pub enum Nullable<T> {
+    /// Neither present nor absent, and indeterminant value.
     #[default]
-    Undefined,
-    Null,
-    Some(T),
+    Undefined = 0,
+    /// Certainly absent of value.
+    Null = 1,
+    /// Certainly present of value.
+    Some(T) = 2,
+}
+
+impl<T, U> PartialEq<Nullable<U>> for Nullable<T>
+where
+    T: PartialEq<U>,
+{
+    fn eq(&self, other: &Nullable<U>) -> bool {
+        match (self, other) {
+            (Nullable::Some(lhs), Nullable::Some(rhs)) => lhs.eq(rhs),
+            (Nullable::Undefined, Nullable::Undefined) => true,
+            (Nullable::Null, Nullable::Null) => true,
+            _ => false,
+        }
+    }
 }
 
 impl<T> From<T> for Nullable<T> {
@@ -196,6 +210,76 @@ mod schema_impl {
 
         fn _schemars_private_is_option() -> bool {
             Option::<T>::_schemars_private_is_option()
+        }
+    }
+}
+
+#[cfg(feature = "rkyv")]
+mod rkyv_impl {
+    use std::mem::MaybeUninit;
+
+    use super::*;
+
+    use rkyv::{Archive, Deserialize, Fallible, Serialize};
+
+    #[repr(u8)]
+    pub enum ArchivedNullableTag {
+        Undefined = 0,
+        Null = 1,
+        Some = 2,
+    }
+
+    #[repr(C)]
+    struct ArchivedNullableRepr<T>(ArchivedNullableTag, MaybeUninit<T>);
+
+    impl<T: Archive> Archive for Nullable<T> {
+        type Archived = Nullable<T::Archived>;
+        type Resolver = Nullable<T::Resolver>;
+
+        #[inline]
+        unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
+            let out = out.cast::<ArchivedNullableRepr<T::Archived>>();
+
+            match resolver {
+                Nullable::Undefined => core::ptr::addr_of_mut!((*out).0).write(ArchivedNullableTag::Undefined),
+                Nullable::Null => core::ptr::addr_of_mut!((*out).0).write(ArchivedNullableTag::Null),
+                Nullable::Some(resolver) => {
+                    core::ptr::addr_of_mut!((*out).0).write(ArchivedNullableTag::Some);
+
+                    let Nullable::Some(ref value) = *self else {
+                        core::hint::unreachable_unchecked()
+                    };
+
+                    // SAFETY: MaybeUninit<T> has the same repr as T, so it's safe to write to after casting
+                    let (fp, fo) = rkyv::out_field!(out.1);
+                    value.resolve(pos + fp, resolver, fo.cast());
+                }
+            }
+        }
+    }
+
+    impl<T: Serialize<S>, S: Fallible + ?Sized> Serialize<S> for Nullable<T> {
+        #[inline]
+        fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+            match self {
+                Nullable::Undefined => Ok(Nullable::Undefined),
+                Nullable::Null => Ok(Nullable::Null),
+                Nullable::Some(value) => Ok(Nullable::Some(value.serialize(serializer)?)),
+            }
+        }
+    }
+
+    impl<T: Archive, D: Fallible + ?Sized> Deserialize<Nullable<T>, D> for Nullable<T::Archived>
+    where
+        T::Archived: Deserialize<T, D>,
+    {
+        #[inline]
+        fn deserialize(&self, deserializer: &mut D) -> Result<Nullable<T>, D::Error> {
+            match self {
+                Nullable::Undefined => Ok(Nullable::Undefined),
+                Nullable::Null => Ok(Nullable::Null),
+                Nullable::Some(value) => Ok(Nullable::Some(value.deserialize(deserializer)?)),
+            }
         }
     }
 }
