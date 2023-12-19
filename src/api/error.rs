@@ -33,6 +33,7 @@ common::enum_codes! {
         Unimplemented            = 50013,
         BincodeError             = 50014,
         CborError                = 50015,
+        RkyvEncodingError        = 50016,
 
         // Client errors
         AlreadyExists            = 40001,

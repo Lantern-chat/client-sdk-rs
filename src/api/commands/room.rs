@@ -53,6 +53,11 @@ command! {
         }
     }
 
+    +struct DeleteMessage -> (): DELETE("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+    }
+
     +struct GetMessage -> Message: GET("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
@@ -173,12 +178,17 @@ command! {
         }
     }
 
+    +struct GetRoom -> FullRoom: GET("room" / room_id) {
+        pub room_id: Snowflake,
+    }
+
     +struct PatchRoom -> FullRoom: PATCH[500 ms, 1]("room" / room_id) {
         pub room_id: Snowflake,
 
         ;
         /// `Nullable::Undefined` or `Option::None` fields indicate no change
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "rkyv", archive(compare(PartialEq)))]
         #[derive(Default, PartialEq)]
         struct PatchRoomForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -211,5 +221,9 @@ command! {
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub nsfw: Option<bool>,
         }
+    }
+
+    +struct DeleteRoom -> (): DELETE[500 ms, 1]("room" / room_id) {
+        pub room_id: Snowflake,
     }
 }

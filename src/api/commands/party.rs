@@ -121,6 +121,11 @@ command! {
         pub party_id: Snowflake,
     }
 
+    +struct GetPartyMember -> PartyMember: GET("party" / party_id / "member" / member_id) {
+        pub party_id: Snowflake,
+        pub member_id: Snowflake,
+    }
+
     +struct GetPartyRooms -> Vec<Room>: GET("party" / party_id / "rooms") {
         pub party_id: Snowflake,
     }
@@ -141,7 +146,7 @@ command! {
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct UpdateMemberProfileBody {
             #[serde(flatten)]
-            profile: user::UpdateUserProfileBody,
+            pub profile: user::UpdateUserProfileBody,
         }
     }
 
