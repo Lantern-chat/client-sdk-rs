@@ -15,7 +15,11 @@ macro_rules! perms {
 }
 
 bitflags::bitflags! {
-    /// Permissions that make sense with party-wide roles
+    /// Party/Room Permissions
+    ///
+    /// This type is 16-byte aligned to ensure consistent alignment
+    /// of the inner `u128`` across all platforms.
+    #[repr(C, align(16))]
     pub struct Permissions: u128 {
         const DEFAULT = 0
             | Self::CHANGE_NICKNAME.bits
