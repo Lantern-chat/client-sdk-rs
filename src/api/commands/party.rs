@@ -85,6 +85,7 @@ command! {
         ;
         #[derive(Default, PartialEq)]
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "rkyv", archive(compare(PartialEq)))]
         struct PatchRoleForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
