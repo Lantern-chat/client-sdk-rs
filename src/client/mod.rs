@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use arc_swap::{ArcSwap, ArcSwapOption};
-use headers::HeaderValue;
 
 use crate::{
     driver::{generic_client, Driver, DriverError, Encoding},
@@ -15,7 +14,7 @@ mod file;
 
 struct ClientInner {
     inner: reqwest::Client,
-    auth: ArcSwapOption<(AuthToken, HeaderValue)>,
+    auth: ArcSwapOption<(AuthToken, reqwest::header::HeaderValue)>,
     uri: Arc<str>,
     preferred_encoding: ArcSwap<Encoding>,
 }
@@ -55,7 +54,7 @@ impl Client {
             Some(token) => Some(Arc::new((
                 token,
                 match token.headervalue() {
-                    Ok(header) => header,
+                    Ok(header) => crate::driver::compat::new_headervalue_to_old(&header),
                     Err(e) => return Err(ClientError::DriverError(DriverError::from(e))),
                 },
             ))),

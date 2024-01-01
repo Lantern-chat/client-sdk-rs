@@ -1,8 +1,51 @@
+pub(crate) mod compat {
+    use std::str::FromStr;
+
+    use headers::{HeaderMap as NewHeaderMap, HeaderName as NewHeaderName, HeaderValue as NewHeaderValue};
+    use http::{Method as NewMethod, StatusCode as NewStatus};
+    use reqwest::{
+        header::{HeaderMap as OldHeaderMap, HeaderName as OldHeaderName, HeaderValue as OldHeaderValue},
+        Method as OldMethod, StatusCode as OldStatus,
+    };
+
+    pub fn old_to_new_status(status: OldStatus) -> NewStatus {
+        unsafe { NewStatus::from_u16(status.as_u16()).unwrap_unchecked() }
+    }
+
+    pub fn add_new_headers_to_old(new: NewHeaderMap, old: &mut OldHeaderMap) {
+        for (k, v) in new.into_iter() {
+            if let Some(k) = k {
+                old.insert(OldHeaderName::from_str(k.as_str()).unwrap(), new_headervalue_to_old(&v));
+            }
+        }
+    }
+
+    pub fn new_headervalue_to_old(new: &NewHeaderValue) -> OldHeaderValue {
+        unsafe { OldHeaderValue::from_bytes(new.as_bytes()).unwrap_unchecked() }
+    }
+
+    pub fn new_to_old_method(new: NewMethod) -> OldMethod {
+        match new {
+            NewMethod::GET => OldMethod::GET,
+            NewMethod::POST => OldMethod::POST,
+            NewMethod::PUT => OldMethod::PUT,
+            NewMethod::DELETE => OldMethod::DELETE,
+            NewMethod::HEAD => OldMethod::HEAD,
+            NewMethod::OPTIONS => OldMethod::OPTIONS,
+            NewMethod::CONNECT => OldMethod::CONNECT,
+            NewMethod::PATCH => OldMethod::PATCH,
+            NewMethod::TRACE => OldMethod::TRACE,
+            _ => unreachable!(),
+        }
+    }
+}
+
 use std::sync::Arc;
 
-use headers::{ContentType, HeaderMapExt, HeaderName, HeaderValue};
-use http::Method;
-use reqwest::{Request, Url};
+use reqwest::{
+    header::{HeaderName, HeaderValue},
+    Method, Request, Url,
+};
 
 mod error;
 pub use error::DriverError;
@@ -66,7 +109,7 @@ impl Driver {
 
     pub fn set_token(&mut self, token: Option<AuthToken>) -> Result<(), DriverError> {
         self.auth = match token {
-            Some(token) => Some(Arc::new((token, token.headervalue()?))),
+            Some(token) => Some(Arc::new((token, compat::new_headervalue_to_old(&token.headervalue()?)))),
             None => None,
         };
 
@@ -102,16 +145,22 @@ impl Driver {
         // likely inlined, simple
         cmd.format_path(&mut path)?;
 
-        let mut req = Request::new(CMD::HTTP_METHOD, Url::parse(&path)?);
+        let method = compat::new_to_old_method(CMD::HTTP_METHOD);
+
+        let mut req = Request::new(method.clone(), Url::parse(&path)?);
 
         // likely inlined, often no-ops
-        cmd.add_headers(req.headers_mut());
+        {
+            let mut new_headers = headers::HeaderMap::new();
+            cmd.add_headers(&mut new_headers);
+            compat::add_new_headers_to_old(new_headers, req.headers_mut());
+        }
 
         let body_size_hint = cmd.body_size_hint();
 
         // if there is a body to serialize
         if CMD::FLAGS.contains(CommandFlags::HAS_BODY) && body_size_hint > 0 {
-            match CMD::HTTP_METHOD {
+            match method {
                 // for methods without bodies, the "body" is treated as query parameters
                 Method::GET | Method::OPTIONS | Method::HEAD | Method::CONNECT | Method::TRACE => {
                     let url = req.url_mut();
@@ -130,18 +179,25 @@ impl Driver {
                 _ => {
                     let mut body = Vec::with_capacity(body_size_hint.max(128));
 
+                    // TODO: Fix when reqwest updates
                     match self.encoding {
                         Encoding::JSON => {
                             serde_json::to_writer(&mut body, cmd.body())?;
 
-                            req.headers_mut().typed_insert(ContentType::json());
+                            req.headers_mut().insert(
+                                HeaderName::from_static("content-type"),
+                                HeaderValue::from_static("application/json"),
+                            );
                         }
 
                         #[cfg(feature = "cbor")]
                         Encoding::CBOR => {
                             ciborium::ser::into_writer(cmd.body(), &mut body)?;
 
-                            req.headers_mut().typed_insert(APPLICATION_CBOR.clone());
+                            req.headers_mut().insert(
+                                HeaderName::from_static("content-type"),
+                                HeaderValue::from_static("application/cbor"),
+                            );
                         }
                     }
 
@@ -157,13 +213,13 @@ impl Driver {
         let response = self.inner.execute(req).await?;
 
         let status = response.status();
-        let ct = response.headers().typed_get::<ContentType>();
+        let ct = response.headers().get(HeaderName::from_static("content-type")).cloned();
         let body = response.bytes().await?;
 
         if !status.is_success() {
             return Err(match deserialize_ct(&body, ct) {
                 Ok(api_error) => DriverError::ApiError(api_error),
-                Err(_) => DriverError::GenericDriverError(status),
+                Err(_) => DriverError::GenericDriverError(compat::old_to_new_status(status)),
             });
         }
 
@@ -177,21 +233,21 @@ impl Driver {
     }
 }
 
-lazy_static::lazy_static! {
-    pub(crate) static ref APPLICATION_CBOR: ContentType = ContentType::from("application/cbor".parse::<mime::Mime>().unwrap());
-}
+// lazy_static::lazy_static! {
+//     pub(crate) static ref APPLICATION_CBOR: ContentType = ContentType::from("application/cbor".parse::<mime::Mime>().unwrap());
+// }
 
 #[allow(unused_variables)]
-fn deserialize_ct<T>(body: &[u8], ct: Option<ContentType>) -> Result<T, DriverError>
+fn deserialize_ct<T>(body: &[u8], ct: Option<HeaderValue>) -> Result<T, DriverError>
 where
     T: serde::de::DeserializeOwned,
 {
     #[allow(unused_mut)]
     let mut kind = Encoding::JSON;
 
+    #[cfg(feature = "cbor")]
     if let Some(ct) = ct {
-        #[cfg(feature = "cbor")]
-        if ct == *APPLICATION_CBOR {
+        if ct.as_bytes() == b"application/cbor" {
             kind = Encoding::CBOR;
         }
     }
@@ -238,16 +294,16 @@ impl Driver {
 
         if status.is_success() {
             if let Some(offset) = response.headers().get(HeaderName::from_static("upload-offset")) {
-                return Ok(offset.to_str()?.parse()?);
+                return Ok(offset.to_str().expect("Fix this").parse()?);
             }
         }
 
-        let ct = response.headers().typed_get::<ContentType>();
+        let ct = response.headers().get(HeaderName::from_static("content-type")).cloned();
         let body = response.bytes().await?;
 
         Err(match deserialize_ct(&body, ct) {
             Ok(api_error) => DriverError::ApiError(api_error),
-            Err(_) => DriverError::GenericDriverError(status),
+            Err(_) => DriverError::GenericDriverError(compat::old_to_new_status(status)),
         })
     }
 }
