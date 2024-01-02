@@ -13,6 +13,7 @@ thin-vec = { git = "https://github.com/Lantern-chat/thin-vec" }
 iso8601-timestamp = { git = "https://github.com/Lantern-chat/iso8601-timestamp" }
 schemars = { git = "https://github.com/Lantern-chat/schemars" }
 rkyv = { git = "https://github.com/Lantern-chat/rkyv", branch = "0.7" }
+rend = { git = "https://github.com/Lantern-chat/rend", branch = "0.4" }
 
 
 [patch."https://github.com/Lantern-chat/client-sdk-rs"]
