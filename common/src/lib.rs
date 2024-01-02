@@ -6,6 +6,9 @@ extern crate alloc;
 #[cfg(feature = "rkyv")]
 pub extern crate rkyv;
 
+#[cfg(feature = "rkyv")]
+pub extern crate rend;
+
 pub extern crate serde_shims;
 
 pub mod db;

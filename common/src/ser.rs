@@ -94,12 +94,12 @@ macro_rules! impl_rkyv_for_enum_codes {
             use $crate::rkyv::{Archive, Deserialize, Fallible, Serialize, Archived, bytecheck::{EnumCheckError, CheckBytes}};
 
             impl Archive for $name {
-                type Archived = $repr;
+                type Archived = $crate::rend::LittleEndian<$repr>;
                 type Resolver = ();
 
                 #[inline]
                 unsafe fn resolve(&self, _pos: usize, _resolver: Self::Resolver, out: *mut Self::Archived) {
-                    *out = *self as $repr;
+                    *out = $crate::rend::LittleEndian::<$repr>::new(*self as $repr);
                 }
             }
 
@@ -112,11 +112,11 @@ macro_rules! impl_rkyv_for_enum_codes {
 
             impl<D: Fallible + ?Sized> Deserialize<$name, D> for Archived<$name> {
                 fn deserialize(&self, _deserializer: &mut D) -> Result<$name, D::Error> {
-                    Ok(match *self {
+                    Ok(match self.value() {
                         $($code => $name::$variant,)*
                         $(_     => $name::$unknown,)?
 
-                        _ => panic!("Unknown code: {self}"),
+                        u @ _ => panic!("Unknown code: {u}"),
                     })
                 }
             }
@@ -128,12 +128,12 @@ macro_rules! impl_rkyv_for_enum_codes {
                     value: *const Self,
                     context: &mut C
                 ) -> Result<&'a Self, Self::Error> {
-                    let tag = *value.cast::<$repr>();
-                    match tag {
+                    let tag = *value.cast::<$crate::rend::LittleEndian<$repr>>();
+                    match tag.value() {
                         $(| $code)* => Ok(&*value),
                         $(_ => Ok(&$name::$unknown),)?
 
-                        _ => Err(EnumCheckError::InvalidTag(tag))
+                        tag @ _ => Err(EnumCheckError::InvalidTag(tag))
                     }
                 }
             }
