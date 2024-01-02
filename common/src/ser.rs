@@ -120,23 +120,6 @@ macro_rules! impl_rkyv_for_enum_codes {
                     })
                 }
             }
-
-            impl<C: ?Sized> CheckBytes<C> for $name {
-                type Error = EnumCheckError<$repr>;
-
-                unsafe fn check_bytes<'a>(
-                    value: *const Self,
-                    context: &mut C
-                ) -> Result<&'a Self, Self::Error> {
-                    let tag = *value.cast::<$crate::rend::LittleEndian<$repr>>();
-                    match tag.value() {
-                        $(| $code)* => Ok(&*value),
-                        $(_ => Ok(&$name::$unknown),)?
-
-                        tag @ _ => Err(EnumCheckError::InvalidTag(tag))
-                    }
-                }
-            }
         };
     }
 }
