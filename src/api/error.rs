@@ -11,6 +11,14 @@ pub struct ApiError {
     pub message: Cow<'static, str>,
 }
 
+#[cfg(feature = "rkyv")]
+impl ArchivedApiError {
+    pub fn code(&self) -> ApiErrorCode {
+        rkyv::Deserialize::deserialize(&self.code, &mut rkyv::Infallible)
+            .unwrap_or_else(|_| unsafe { core::hint::unreachable_unchecked() })
+    }
+}
+
 common::enum_codes! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]

@@ -91,7 +91,7 @@ macro_rules! impl_rkyv_for_enum_codes {
         )*}
     ) => {
         const _: () = {
-            use $crate::rkyv::{Archive, Deserialize, Fallible, Serialize, Archived, bytecheck::{EnumCheckError, CheckBytes}};
+            use $crate::rkyv::{Archive, Deserialize, Fallible, Serialize, Archived};
 
             impl Archive for $name {
                 type Archived = $crate::rend::LittleEndian<$repr>;
