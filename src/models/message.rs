@@ -57,17 +57,12 @@ common::impl_rkyv_for_pod!(MessageKind);
 pub struct Message {
     pub id: Snowflake,
     pub room_id: Snowflake,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub party_id: Option<Snowflake>,
+    pub party_id: Snowflake,
 
     #[serde(default, skip_serializing_if = "is_default")]
     pub kind: MessageKind,
 
-    pub author: User,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub member: Option<PartialPartyMember>,
+    pub author: PartyMember,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub parent: Option<Snowflake>,

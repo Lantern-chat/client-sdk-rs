@@ -51,6 +51,8 @@ bitflags::bitflags! {
         const CHANGE_NICKNAME       = 1u128 << 13;
         const MANAGE_PERMS          = 1u128 << 14;
 
+        const DEFAULT_ONLY          = 1u128 << 20;
+
         const VIEW_ROOM             = 1u128 << 30;
         const READ_MESSAGE_HISTORY  = 1u128 << 31 | Self::VIEW_ROOM.bits;
         const SEND_MESSAGES         = 1u128 << 32 | Self::VIEW_ROOM.bits;
@@ -234,10 +236,20 @@ impl Permissions {
         self.contains(Permissions::ADMINISTRATOR)
     }
 
-    pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {
+    pub const fn normalize(self) -> Self {
+        if self.contains(Permissions::DEFAULT_ONLY) {
+            return Permissions::DEFAULT;
+        }
+
         if self.contains(Permissions::ADMINISTRATOR) {
             return Permissions::all();
         }
+
+        self
+    }
+
+    pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {
+        self = self.normalize();
 
         let mut allow = Permissions::empty();
         let mut deny = Permissions::empty();

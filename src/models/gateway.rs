@@ -174,11 +174,9 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct TypingStart {
         pub room_id: Snowflake,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub party_id: Option<Snowflake>,
+        pub party_id: Snowflake,
         pub user_id: Snowflake,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub member: Option<PartyMember>,
+        pub member: PartyMember,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub parent: Option<Snowflake>,
         // maybe timestamp?
@@ -212,10 +210,7 @@ pub mod events {
     pub struct MessageDeleteEvent {
         pub id: Snowflake,
         pub room_id: Snowflake,
-
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
-        pub party_id: Option<Snowflake>,
+        pub party_id: Snowflake,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -267,8 +262,7 @@ pub mod events {
     pub struct UserReactionEvent {
         pub user_id: Snowflake,
         pub room_id: Snowflake,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub party_id: Option<Snowflake>,
+        pub party_id: Snowflake,
         pub msg_id: Snowflake,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]

@@ -25,6 +25,9 @@ bitflags::bitflags! {
         /// the minimum age required to join.
         const ADULT         = 1 << 5;
 
+        /// Another way to refer to a direct-message is a "closed" party.
+        const CLOSED        = 1 << 6;
+
         /// Top 6 bits are a language code
         const LANGUAGE = 0b11_11_11 << (32 - 6);
 
@@ -108,6 +111,12 @@ bitflags::bitflags! {
     }
 }
 
+impl Default for PartyMemberFlags {
+    fn default() -> Self {
+        PartyMemberFlags::empty()
+    }
+}
+
 common::impl_serde_for_bitflags!(PartyMemberFlags);
 common::impl_schema_for_bitflags!(PartyMemberFlags);
 common::impl_sql_for_bitflags!(PartyMemberFlags);
@@ -116,35 +125,26 @@ common::impl_sql_for_bitflags!(PartyMemberFlags);
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
-pub struct PartialPartyMember {
+pub struct PartyMember {
+    pub user: User,
+
     /// Will be `None` if no longer in party
     pub joined_at: Option<Timestamp>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub flags: Option<PartyMemberFlags>,
+    #[serde(default, skip_serializing_if = "PartyMemberFlags::is_empty")]
+    pub flags: PartyMemberFlags,
 
-    /// List of Role id snowflakes
+    /// List of Role id snowflakes, may be excluded from some queries
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub roles: ThinVec<Snowflake>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
-pub struct PartyMember {
-    pub user: User,
-
-    #[serde(flatten)]
-    pub partial: PartialPartyMember,
-}
-
 impl Deref for PartyMember {
-    type Target = PartialPartyMember;
+    type Target = User;
 
     fn deref(&self) -> &Self::Target {
-        &self.partial
+        &self.user
     }
 }
 
