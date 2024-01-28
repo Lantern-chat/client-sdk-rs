@@ -50,31 +50,42 @@ impl Default for RateLimit {
 
 /// Combined trait for serde and rkyv functionality
 #[cfg(feature = "rkyv")]
-pub trait CommandResult: serde::de::DeserializeOwned + rkyv::Archive {}
+pub trait CommandResult: Send + serde::de::DeserializeOwned + serde::ser::Serialize + rkyv::Archive {}
 
 /// Combined trait for serde and rkyv functionality
 #[cfg(feature = "rkyv")]
-pub trait CommandBody: serde::ser::Serialize + rkyv::Archive {}
+pub trait CommandBody: Send + serde::ser::Serialize + rkyv::Archive {}
 
 #[cfg(feature = "rkyv")]
-impl<T> CommandResult for T where T: serde::de::DeserializeOwned + rkyv::Archive {}
+impl<T> CommandResult for T where T: Send + serde::de::DeserializeOwned + serde::ser::Serialize + rkyv::Archive {}
 
 #[cfg(feature = "rkyv")]
-impl<T> CommandBody for T where T: serde::ser::Serialize + rkyv::Archive {}
+impl<T> CommandBody for T where T: Send + serde::ser::Serialize + rkyv::Archive {}
 
 /// Combined trait for serde and rkyv functionality
 #[cfg(not(feature = "rkyv"))]
-pub trait CommandResult: serde::de::DeserializeOwned {}
+pub trait CommandResult: Send + serde::de::DeserializeOwned + serde::ser::Serialize {}
 
 /// Combined trait for serde and rkyv functionality
 #[cfg(not(feature = "rkyv"))]
-pub trait CommandBody: serde::ser::Serialize {}
+pub trait CommandBody: Send + serde::ser::Serialize {}
 
 #[cfg(not(feature = "rkyv"))]
-impl<T> CommandResult for T where T: serde::de::DeserializeOwned {}
+impl<T> CommandResult for T where T: Send + serde::de::DeserializeOwned + serde::ser::Serialize {}
 
 #[cfg(not(feature = "rkyv"))]
-impl<T> CommandBody for T where T: serde::ser::Serialize {}
+impl<T> CommandBody for T where T: Send + serde::ser::Serialize {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MissingItemError;
+
+impl fmt::Display for MissingItemError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Missing Item Error")
+    }
+}
+
+impl std::error::Error for MissingItemError {}
 
 /// Client Command, tells the client to perform specific requests
 ///
@@ -85,7 +96,12 @@ impl<T> CommandBody for T where T: serde::ser::Serialize {}
 ///
 /// For the case of `GET`/`OPTIONS` commands, the body becomes query parameters.
 pub trait Command: sealed::Sealed {
-    /// Object returned from the server as the result of a command
+    const STREAM: bool;
+
+    /// The underlying type of each returned item, be it one or many.
+    type Item: CommandResult;
+
+    /// Item(s) returned from the server by a given command
     type Result: CommandResult;
 
     type Body: CommandBody;
@@ -106,6 +122,12 @@ pub trait Command: sealed::Sealed {
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
 
     fn body(&self) -> &Self::Body;
+
+    /// Used to collect the [`Result`](Self::Result) from an arbitrary [`Stream`] of items.
+    fn collect<S, E>(stream: S) -> impl std::future::Future<Output = Result<Self::Result, E>> + Send
+    where
+        S: futures::Stream<Item = Result<Self::Item, E>> + Send,
+        E: From<MissingItemError>;
 
     /// Hint given to preallocate body size, only used for query strings
     #[inline(always)]
@@ -190,6 +212,49 @@ macro_rules! command {
     (@GET TRACE $c:block) => {$c};
     (@GET $other:ident $c:block) => {};
 
+    (@IS_STREAM One) => { false };
+    (@IS_STREAM Many) => { true };
+    (@IS_STREAM $other:ident) => { compile_error!("Must use One or Many for Command result") };
+
+    (@AGGREGATE One $ty:ty) => { $ty };
+    (@AGGREGATE Many $ty:ty) => { Vec<$ty> };
+
+    (@COLLECT One) => {
+        async fn collect<S, E>(stream: S) -> Result<Self::Result, E>
+        where
+            S: futures::Stream<Item = Result<Self::Item, E>> + Send,
+            E: From<MissingItemError>,
+        {
+            let mut stream = std::pin::pin!(stream);
+
+            use futures::StreamExt;
+
+            match stream.next().await {
+                Some(item) => item,
+                None => Err(E::from(MissingItemError)),
+            }
+        }
+    };
+
+    (@COLLECT Many) => {
+        async fn collect<S, E>(stream: S) -> Result<Self::Result, E>
+        where
+            S: futures::Stream<Item = Result<Self::Item, E>> + Send,
+            E: From<MissingItemError>,
+        {
+            let mut stream = std::pin::pin!(stream);
+
+            use futures::StreamExt;
+
+            let mut items = Vec::new();
+            while let Some(item) = stream.next().await {
+                items.push(item?);
+            }
+
+            Ok(items)
+        }
+    };
+
     // entry point
     ($(
         // meta
@@ -199,7 +264,7 @@ macro_rules! command {
         $(+$auth_struct:ident)? $(-$noauth_struct:ident)?
 
         // name, result and HTTP method
-        $name:ident -> $result:ty: $method:ident$([$emission_interval:literal ms $(, $burst_size:literal)?])?(
+        $name:ident -> $count:ident $result:ty: $method:ident$([$emission_interval:literal ms $(, $burst_size:literal)?])?(
             $head:tt $(/ $tail:tt)*
         )
         // permissions
@@ -242,7 +307,13 @@ macro_rules! command {
 
         impl $crate::api::command::sealed::Sealed for $name {}
         impl $crate::api::command::Command for $name {
-            type Result = $result;
+            const STREAM: bool = command!(@IS_STREAM $count);
+
+            command!(@COLLECT $count);
+
+            type Item = $result;
+
+            type Result = command!(@AGGREGATE $count $result);
 
             const HTTP_METHOD: http::Method = http::Method::$method;
 

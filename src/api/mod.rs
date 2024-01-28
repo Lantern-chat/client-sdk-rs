@@ -6,7 +6,7 @@ pub mod error;
 #[macro_use]
 mod command;
 
-pub use command::{Command, CommandBody, CommandFlags, CommandResult, RateLimit};
+pub use command::{Command, CommandBody, CommandFlags, CommandResult, MissingItemError, RateLimit};
 
 pub mod commands;
 

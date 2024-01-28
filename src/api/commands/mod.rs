@@ -1,5 +1,5 @@
 use crate::{
-    api::command::{CommandFlags, RateLimit},
+    api::command::{CommandFlags, MissingItemError, RateLimit},
     models::*,
 };
 use smol_str::SmolStr;

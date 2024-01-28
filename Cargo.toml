@@ -96,7 +96,7 @@ schema = ["schemars", "common/schemars", "okapi", "timestamp/schema", "smol_str/
 
 pg = ["postgres-types", "bytes", "common/pg", "embed/pg", "timestamp/pg", "thin-vec/postgres", "snowflake/pg"]
 rusqlite = ["dep:rusqlite", "common/rusqlite", "timestamp/rusqlite", "snowflake/rusqlite"]
-api = ["http", "_internal_common", "percent-encoding"]                                                         # http required for Method
+api = ["http", "_internal_common", "percent-encoding", "futures"]                                              # http required for Method
 
 # Low-level command execution
 driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]

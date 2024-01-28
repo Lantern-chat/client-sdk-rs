@@ -1,15 +1,15 @@
 use super::*;
 
 command! {
-    +struct GetInvite -> Invite: GET("invite" / code) {
+    +struct GetInvite -> One Invite: GET("invite" / code) {
         pub code: SmolStr,
     }
 
-    +struct RevokeInvite -> (): DELETE("invite" / code) {
+    +struct RevokeInvite -> One (): DELETE("invite" / code) {
         pub code: SmolStr,
     }
 
-    +struct RedeemInvite -> (): POST("invite" / code / "redeem") {
+    +struct RedeemInvite -> One (): POST("invite" / code / "redeem") {
         pub code: SmolStr,
 
         ;

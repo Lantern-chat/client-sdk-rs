@@ -1,7 +1,7 @@
 use super::*;
 
 command! {
-    +struct CreateFile -> Snowflake: POST("file") {
+    +struct CreateFile -> One Snowflake: POST("file") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct CreateFileBody {
@@ -27,9 +27,9 @@ command! {
         }
     }
 
-    +struct GetFilesystemStatus -> FilesystemStatus: OPTIONS("file") {}
+    +struct GetFilesystemStatus -> One FilesystemStatus: OPTIONS("file") {}
 
-    +struct GetFileStatus -> FileStatus: HEAD("file" / file_id) {
+    +struct GetFileStatus -> One FileStatus: HEAD("file" / file_id) {
         pub file_id: Snowflake,
     }
 }

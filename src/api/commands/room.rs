@@ -2,7 +2,7 @@ use super::*;
 
 command! {
     /// Create message command
-    +struct CreateMessage -> Message: POST[100 ms, 2]("room" / room_id / "messages") where SEND_MESSAGES {
+    +struct CreateMessage -> One Message: POST[100 ms, 2]("room" / room_id / "messages") where SEND_MESSAGES {
         pub room_id: Snowflake,
 
         ;
@@ -35,7 +35,7 @@ command! {
         }
     }
 
-    +struct EditMessage -> Message: PATCH[500 ms, 2]("room" / room_id / "messages" / msg_id) where SEND_MESSAGES {
+    +struct EditMessage -> One Message: PATCH[500 ms, 2]("room" / room_id / "messages" / msg_id) where SEND_MESSAGES {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
 
@@ -53,17 +53,17 @@ command! {
         }
     }
 
-    +struct DeleteMessage -> (): DELETE("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
+    +struct DeleteMessage -> One (): DELETE("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
     }
 
-    +struct GetMessage -> Message: GET("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
+    +struct GetMessage -> One Message: GET("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
     }
 
-    +struct StartTyping -> (): POST[100 ms]("room" / room_id / "typing") where SEND_MESSAGES {
+    +struct StartTyping -> One (): POST[100 ms]("room" / room_id / "typing") where SEND_MESSAGES {
         pub room_id: Snowflake,
 
         ;
@@ -76,7 +76,7 @@ command! {
         }
     }
 
-    +struct GetMessages -> Vec<Message>: GET("room" / room_id / "messages") where READ_MESSAGE_HISTORY {
+    +struct GetMessages -> Many Message: GET("room" / room_id / "messages") where READ_MESSAGE_HISTORY {
         pub room_id: Snowflake,
 
         ;
@@ -115,53 +115,54 @@ command! {
         }
     }
 
-    +struct PinMessage -> (): PUT("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
+    +struct PinMessage -> One (): PUT("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
         pub pin_tag: Snowflake,
     }
 
-    +struct UnpinMessage -> (): DELETE("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
+    +struct UnpinMessage -> One (): DELETE("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
         pub pin_tag: Snowflake,
     }
 
-    +struct StarMessage -> (): PUT("room" / room_id / "messages" / msg_id / "star") {
+    +struct StarMessage -> One (): PUT("room" / room_id / "messages" / msg_id / "star") {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
     }
 
-    +struct UnstarMessage -> (): DELETE("room" / room_id / "messages" / msg_id / "star") {
+    +struct UnstarMessage -> One (): DELETE("room" / room_id / "messages" / msg_id / "star") {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
     }
 
-    +struct PutReaction -> (): PUT("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
-        pub emote_id: EmoteOrEmoji,
-    }
-
-    +struct DeleteOwnReaction -> (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
+    +struct PutReaction -> One (): PUT("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
         pub emote_id: EmoteOrEmoji,
     }
 
-    +struct DeleteUserReaction -> (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / user_id) {
+    +struct DeleteOwnReaction -> One (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
+        pub room_id: Snowflake,
+        pub msg_id: Snowflake,
+        pub emote_id: EmoteOrEmoji,
+    }
+
+    +struct DeleteUserReaction -> One (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / user_id) {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
         pub emote_id: EmoteOrEmoji,
         pub user_id: Snowflake,
     }
 
-    +struct DeleteAllReactions -> (): DELETE("room" / room_id / "messages" / msg_id / "reactions") {
+    +struct DeleteAllReactions -> One (): DELETE("room" / room_id / "messages" / msg_id / "reactions") {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
     }
 
-    +struct GetReactions -> Vec<()>: GET("room" / room_id / "messages" / msg_id / "reactions" / emote_id) {
+    // TODO
+    +struct GetReactions -> Many (): GET("room" / room_id / "messages" / msg_id / "reactions" / emote_id) {
         pub room_id: Snowflake,
         pub msg_id: Snowflake,
         pub emote_id: EmoteOrEmoji,
@@ -178,11 +179,11 @@ command! {
         }
     }
 
-    +struct GetRoom -> FullRoom: GET("room" / room_id) {
+    +struct GetRoom -> One FullRoom: GET("room" / room_id) {
         pub room_id: Snowflake,
     }
 
-    +struct PatchRoom -> FullRoom: PATCH[500 ms, 1]("room" / room_id) {
+    +struct PatchRoom -> One FullRoom: PATCH[500 ms, 1]("room" / room_id) {
         pub room_id: Snowflake,
 
         ;
@@ -223,7 +224,7 @@ command! {
         }
     }
 
-    +struct DeleteRoom -> (): DELETE[500 ms, 1]("room" / room_id) {
+    +struct DeleteRoom -> One (): DELETE[500 ms, 1]("room" / room_id) {
         pub room_id: Snowflake,
     }
 }

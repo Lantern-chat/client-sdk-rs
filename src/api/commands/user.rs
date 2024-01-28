@@ -1,7 +1,7 @@
 use super::*;
 
 command! {
-    -struct UserRegister -> Session: POST[1000 ms, 1]("user") {
+    -struct UserRegister -> One Session: POST[1000 ms, 1]("user") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct UserRegisterForm {
@@ -19,7 +19,7 @@ command! {
         }
     }
 
-    -struct UserLogin -> Session: POST[1000 ms, 1]("user" / "@me") {
+    -struct UserLogin -> One Session: POST[1000 ms, 1]("user" / "@me") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct UserLoginForm {
@@ -34,7 +34,9 @@ command! {
         }
     }
 
-    +struct Enable2FA -> Added2FA: POST[2000 ms, 1]("user" / "@me" / "2fa") {
+    +struct UserLogout -> One (): DELETE[1000 ms, 1]("user" / "@me") {}
+
+    +struct Enable2FA -> One Added2FA: POST[2000 ms, 1]("user" / "@me" / "2fa") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct Enable2FAForm {
@@ -45,7 +47,7 @@ command! {
         }
     }
 
-    +struct Confirm2FA -> (): PATCH[2000 ms, 1]("user" / "@me" / "2fa") {
+    +struct Confirm2FA -> One (): PATCH[2000 ms, 1]("user" / "@me" / "2fa") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct Confirm2FAForm {
@@ -56,7 +58,7 @@ command! {
         }
     }
 
-    +struct Remove2FA -> (): DELETE[2000 ms, 1]("user" / "@me" / "2fa") {
+    +struct Remove2FA -> One (): DELETE[2000 ms, 1]("user" / "@me" / "2fa") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct Remove2FAForm {
@@ -67,7 +69,7 @@ command! {
         }
     }
 
-    +struct ChangePassword -> (): PATCH[2000 ms, 1]("user" / "@me" / "password") {
+    +struct ChangePassword -> One (): PATCH[2000 ms, 1]("user" / "@me" / "password") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct ChangePasswordForm {
@@ -83,10 +85,10 @@ command! {
         }
     }
 
-    +struct GetSessions -> Vec<AnonymousSession>: GET[500 ms, 1]("user" / "@me" / "sessions") {}
+    +struct GetSessions -> Many AnonymousSession: GET[500 ms, 1]("user" / "@me" / "sessions") {}
 
     /// Clears all **other** sessions
-    +struct ClearSessions -> (): DELETE[5000 ms, 1]("user" / "@me" / "sessions") {
+    +struct ClearSessions -> One (): DELETE[5000 ms, 1]("user" / "@me" / "sessions") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct ClearSessionsForm {
@@ -96,9 +98,9 @@ command! {
         }
     }
 
-    +struct GetRelationships -> Vec<Relationship>: GET("user" / "@me" / "relationships") {}
+    +struct GetRelationships -> Many Relationship: GET("user" / "@me" / "relationships") {}
 
-    +struct PatchRelationship -> Relationship: PATCH[1000 ms, 1]("user" / "@me" / "relationships" / user_id) {
+    +struct PatchRelationship -> One Relationship: PATCH[1000 ms, 1]("user" / "@me" / "relationships" / user_id) {
         pub user_id: Snowflake,
 
         ;
@@ -116,7 +118,7 @@ command! {
         }
     }
 
-    +struct UpdateUserProfile -> UserProfile: PATCH[500 ms, 1]("user" / "@me" / "profile") {
+    +struct UpdateUserProfile -> One UserProfile: PATCH[500 ms, 1]("user" / "@me" / "profile") {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         #[derive(Default)] struct UpdateUserProfileBody {
@@ -153,11 +155,11 @@ command! {
     }
 
     /// Fetches full user information, including profile data
-    +struct GetUser -> User: GET("user" / user_id) {
+    +struct GetUser -> One User: GET("user" / user_id) {
         pub user_id: Snowflake,
     }
 
-    +struct UpdateUserPrefs -> (): PATCH[200 ms]("user" / "@me" / "prefs") {
+    +struct UpdateUserPrefs -> One (): PATCH[200 ms]("user" / "@me" / "prefs") {
         ; struct UpdateUserPrefsBody {
             #[serde(flatten)]
             pub inner: UserPreferences,

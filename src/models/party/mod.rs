@@ -94,7 +94,7 @@ pub struct Party {
 
     pub emotes: ThinVec<Emote>,
 
-    pub pin_folders: ThinVec<PinFolder>,
+    pub folders: ThinVec<PinFolder>,
 }
 
 impl Deref for Party {

@@ -1,11 +1,11 @@
 use super::*;
 
 command! {
-    +struct GetParty -> Party: GET("party" / party_id) {
+    +struct GetParty -> One Party: GET("party" / party_id) {
         pub party_id: Snowflake,
     }
 
-    +struct CreateParty -> Party: POST[5000 ms, 1]("party") {
+    +struct CreateParty -> One Party: POST[5000 ms, 1]("party") {
         ;
 
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -23,7 +23,7 @@ command! {
         }
     }
 
-    +struct PatchParty -> Party: PATCH[500 ms, 1]("party" / party_id) {
+    +struct PatchParty -> One Party: PATCH[500 ms, 1]("party" / party_id) {
         pub party_id: Snowflake,
 
         ;
@@ -57,17 +57,17 @@ command! {
         }
     }
 
-    +struct DeleteParty -> (): DELETE("party" / party_id) {
+    +struct DeleteParty -> One (): DELETE("party" / party_id) {
         pub party_id: Snowflake,
     }
 
     // TODO: Use same command for accepting?
-    +struct TransferOwnership -> (): PUT("party" / party_id / "owner" / user_id) {
+    +struct TransferOwnership -> One (): PUT("party" / party_id / "owner" / user_id) {
         pub party_id: Snowflake,
         pub user_id: Snowflake,
     }
 
-    +struct CreateRole -> Role: POST[1000 ms, 1]("party" / party_id / "roles") {
+    +struct CreateRole -> One Role: POST[1000 ms, 1]("party" / party_id / "roles") {
         pub party_id: Snowflake,
 
         ;
@@ -78,7 +78,7 @@ command! {
         }
     }
 
-    +struct PatchRole -> Role: PATCH("party" / party_id / "roles" / role_id) {
+    +struct PatchRole -> One Role: PATCH("party" / party_id / "roles" / role_id) {
         pub party_id: Snowflake,
         pub role_id: Snowflake,
 
@@ -113,34 +113,34 @@ command! {
         }
     }
 
-    +struct DeleteRole -> (): DELETE("party" / party_id / "roles" / role_id) {
+    +struct DeleteRole -> One (): DELETE("party" / party_id / "roles" / role_id) {
         pub party_id: Snowflake,
         pub role_id: Snowflake,
     }
 
-    +struct GetPartyMembers -> Vec<PartyMember>: GET("party" / party_id / "members") {
+    +struct GetPartyMembers -> Many PartyMember: GET("party" / party_id / "members") {
         pub party_id: Snowflake,
     }
 
-    +struct GetPartyMember -> PartyMember: GET("party" / party_id / "member" / member_id) {
+    +struct GetPartyMember -> One PartyMember: GET("party" / party_id / "member" / member_id) {
         pub party_id: Snowflake,
         pub member_id: Snowflake,
     }
 
-    +struct GetPartyRooms -> Vec<Room>: GET("party" / party_id / "rooms") {
+    +struct GetPartyRooms -> Many Room: GET("party" / party_id / "rooms") {
         pub party_id: Snowflake,
     }
 
-    +struct GetPartyInvites -> Vec<Invite>: GET("party" / party_id / "invites") {
+    +struct GetPartyInvites -> Many Invite: GET("party" / party_id / "invites") {
         pub party_id: Snowflake,
     }
 
-    +struct GetMemberProfile -> UserProfile: GET("party" / party_id / "members" / user_id / "profile") {
+    +struct GetMemberProfile -> One UserProfile: GET("party" / party_id / "members" / user_id / "profile") {
         pub party_id: Snowflake,
         pub user_id: Snowflake,
     }
 
-    +struct UpdateMemberProfile -> UserProfile: PATCH("party" / party_id / "members" / "profile") {
+    +struct UpdateMemberProfile -> One UserProfile: PATCH("party" / party_id / "members" / "profile") {
         pub party_id: Snowflake,
 
         ;
@@ -151,7 +151,7 @@ command! {
         }
     }
 
-    +struct CreatePartyInvite -> Invite: POST[2000 ms, 1]("party" / party_id / "invites") {
+    +struct CreatePartyInvite -> One Invite: POST[2000 ms, 1]("party" / party_id / "invites") {
         pub party_id: Snowflake,
 
         ;
@@ -174,7 +174,7 @@ command! {
         }
     }
 
-    +struct CreatePinFolder -> PinFolder: POST("party" / party_id / "pins") {
+    +struct CreatePinFolder -> One PinFolder: POST("party" / party_id / "pins") {
         pub party_id: Snowflake,
 
         ;
@@ -189,7 +189,7 @@ command! {
         }
     }
 
-    +struct CreateRoom -> Room: POST[5000 ms, 1]("party" / party_id / "rooms") {
+    +struct CreateRoom -> One Room: POST[5000 ms, 1]("party" / party_id / "rooms") {
         pub party_id: Snowflake,
 
         ;
@@ -216,7 +216,7 @@ command! {
         }
     }
 
-    +struct SearchParty -> (): POST("party" / party_id / "search") {
+    +struct SearchParty -> One (): POST("party" / party_id / "search") {
         pub party_id: Snowflake,
 
         ;
