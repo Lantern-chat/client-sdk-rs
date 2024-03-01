@@ -9,11 +9,11 @@ license = "MIT"
 [dependencies]
 schemars = { version = "0.8.12", optional = true }
 serde = { version = "1.0.163", features = ["derive"] }
-serde_shims = { version = "0.2", features = ["bitflags"] }
+bitflags_serde_shim = { version = "0.2.5", default_features = false }
 
 postgres-types = { version = "0.2.1", optional = true }
 bytes = { version = "1", optional = true }
-rusqlite = { version = "0.30.0", optional = true }
+rusqlite = { version = "0.31.0", optional = true }
 rkyv = { version = "0.7", optional = true, default-features = false, features = ["validation"] }
 rend = { version = "0.4", optional = true, default-features = false }
 

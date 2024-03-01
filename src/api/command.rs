@@ -9,6 +9,7 @@ pub(crate) mod sealed {
 use crate::models::Permissions;
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct CommandFlags: u8 {
         const AUTHORIZED    = 1 << 0;
         const HAS_BODY      = 1 << 1;

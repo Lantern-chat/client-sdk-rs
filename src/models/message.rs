@@ -1,6 +1,7 @@
 use super::*;
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct MessageFlags: i32 {
         /// This message has been deleted
         const DELETED           = 1 << 0;

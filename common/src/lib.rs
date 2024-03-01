@@ -9,7 +9,7 @@ pub extern crate rkyv;
 #[cfg(feature = "rkyv")]
 pub extern crate rend;
 
-pub extern crate serde_shims;
+pub extern crate bitflags_serde_shim;
 
 pub mod db;
 pub mod fixed;

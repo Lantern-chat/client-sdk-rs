@@ -2,6 +2,7 @@ bitflags::bitflags! {
     /// NOTE: Formats are as individual bitflags (rather than some integer value) so we can do
     /// simpler queries when matching valid formats. A user can select formats A, B and C, and testing for a match
     /// can be done with a single bitwise-AND operation, rather than many comparisons or an `IN ARRAY` operation.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct AssetFlags: i16 {
         /// 7-bit unsigned integer for quality from `[0-128)`
         ///
@@ -20,23 +21,23 @@ bitflags::bitflags! {
         const FORMAT_WEBM = 1 << 14;
 
         const FORMATS = 0
-            | Self::FORMAT_PNG.bits
-            | Self::FORMAT_JPEG.bits
-            | Self::FORMAT_GIF.bits
-            | Self::FORMAT_AVIF.bits
-            | Self::FORMAT_WEBM.bits;
+            | Self::FORMAT_PNG.bits()
+            | Self::FORMAT_JPEG.bits()
+            | Self::FORMAT_GIF.bits()
+            | Self::FORMAT_AVIF.bits()
+            | Self::FORMAT_WEBM.bits();
 
         /// These formats don't have widespread support yet, so don't include them by default
         const MAYBE_UNSUPPORTED_FORMATS = 0
-            | Self::FORMAT_AVIF.bits;
+            | Self::FORMAT_AVIF.bits();
 
         const FLAGS = 0
-            | Self::HAS_ALPHA.bits
-            | Self::ANIMATED.bits;
+            | Self::HAS_ALPHA.bits()
+            | Self::ANIMATED.bits();
 
         const FORMATS_AND_FLAGS = 0
-            | Self::FORMATS.bits
-            | Self::FLAGS.bits;
+            | Self::FORMATS.bits()
+            | Self::FLAGS.bits();
     }
 }
 
@@ -62,7 +63,7 @@ impl AssetFlags {
     }
 
     pub const fn quality(&self) -> u8 {
-        self.intersection(Self::QUALITY).bits as u8
+        self.intersection(Self::QUALITY).bits() as u8
     }
 
     pub fn from_ext(ext: &str) -> Self {

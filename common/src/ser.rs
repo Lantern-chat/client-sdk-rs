@@ -58,7 +58,7 @@ macro_rules! impl_rkyv_for_pod {
 #[macro_export]
 macro_rules! impl_serde_for_bitflags {
     ($name:ident) => {
-        $crate::serde_shims::impl_serde_for_bitflags!($name);
+        $crate::bitflags_serde_shim::impl_serde_for_bitflags!($name);
 
         $crate::impl_rkyv_for_pod!($name + CheckBytes);
     };
@@ -68,7 +68,7 @@ macro_rules! impl_serde_for_bitflags {
 #[macro_export]
 macro_rules! impl_serde_for_bitflags {
     ($name:ident) => {
-        $crate::serde_shims::impl_serde_for_bitflags!($name);
+        $crate::bitflags_serde_shim::impl_serde_for_bitflags!($name);
     };
 }
 

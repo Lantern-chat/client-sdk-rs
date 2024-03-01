@@ -43,6 +43,7 @@ common::enum_codes! {
 }
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserPrefsFlags: i32 {
         /// Reduce movement and animations in the UI
         const REDUCE_ANIMATIONS                 = 1 << 0;
@@ -94,13 +95,13 @@ bitflags::bitflags! {
         const HIDE_NSFW_EMBEDS                  = 1 << 22;
 
         const DEFAULT_FLAGS = 0
-            | Self::ALLOW_DMS.bits
-            | Self::GROUP_LINES.bits
-            | Self::ENABLE_SPELLCHECK.bits
-            | Self::SHOW_MEDIA_METADATA.bits
-            | Self::SHOW_DATE_CHANGE.bits
-            | Self::SHOW_GREY_IMAGE_BG.bits
-            | Self::SHOW_ATTACHMENT_GRID.bits;
+            | Self::ALLOW_DMS.bits()
+            | Self::GROUP_LINES.bits()
+            | Self::ENABLE_SPELLCHECK.bits()
+            | Self::SHOW_MEDIA_METADATA.bits()
+            | Self::SHOW_DATE_CHANGE.bits()
+            | Self::SHOW_GREY_IMAGE_BG.bits()
+            | Self::SHOW_ATTACHMENT_GRID.bits();
     }
 }
 

@@ -2,6 +2,7 @@ use super::*;
 
 bitflags::bitflags! {
     /// NOTE: These flags are ordered such that larger values take precedence
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserPresenceFlags: i16 {
         const OFFLINE   = 0;
         const AWAY      = 1 << 0;

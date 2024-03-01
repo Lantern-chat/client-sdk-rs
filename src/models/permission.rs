@@ -20,19 +20,20 @@ bitflags::bitflags! {
     /// This type is 16-byte aligned to ensure consistent alignment
     /// of the inner `u128`` across all platforms.
     #[repr(C, align(16))]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Permissions: u128 {
         const DEFAULT = 0
-            | Self::CHANGE_NICKNAME.bits
-            | Self::VIEW_ROOM.bits
-            | Self::READ_MESSAGE_HISTORY.bits
-            | Self::SEND_MESSAGES.bits
-            | Self::USE_EXTERNAL_EMOTES.bits
-            | Self::ADD_REACTIONS.bits
-            | Self::EMBED_LINKS.bits
-            | Self::ATTACH_FILES.bits
-            | Self::SEND_TTS_MESSAGES.bits
-            | Self::CONNECT.bits
-            | Self::SPEAK.bits;
+            | Self::CHANGE_NICKNAME.bits()
+            | Self::VIEW_ROOM.bits()
+            | Self::READ_MESSAGE_HISTORY.bits()
+            | Self::SEND_MESSAGES.bits()
+            | Self::USE_EXTERNAL_EMOTES.bits()
+            | Self::ADD_REACTIONS.bits()
+            | Self::EMBED_LINKS.bits()
+            | Self::ATTACH_FILES.bits()
+            | Self::SEND_TTS_MESSAGES.bits()
+            | Self::CONNECT.bits()
+            | Self::SPEAK.bits();
 
         const ADMINISTRATOR         = 1u128 << 0;
         const CREATE_INVITE         = 1u128 << 1;
@@ -54,8 +55,8 @@ bitflags::bitflags! {
         const DEFAULT_ONLY          = 1u128 << 20;
 
         const VIEW_ROOM             = 1u128 << 30;
-        const READ_MESSAGE_HISTORY  = 1u128 << 31 | Self::VIEW_ROOM.bits;
-        const SEND_MESSAGES         = 1u128 << 32 | Self::VIEW_ROOM.bits;
+        const READ_MESSAGE_HISTORY  = 1u128 << 31 | Self::VIEW_ROOM.bits();
+        const SEND_MESSAGES         = 1u128 << 32 | Self::VIEW_ROOM.bits();
         const MANAGE_MESSAGES       = 1u128 << 33;
         const MUTE_MEMBERS          = 1u128 << 34;
         const DEAFEN_MEMBERS        = 1u128 << 35;

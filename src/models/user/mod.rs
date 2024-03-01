@@ -5,6 +5,7 @@ pub use prefs::*;
 
 bitflags::bitflags! {
     /// NOTE: Remember to clear flag caches when they change
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserFlags: i32 {
         const BANNED                = 1 << 0;
         const VERIFIED              = 1 << 1;
@@ -33,36 +34,36 @@ bitflags::bitflags! {
         const RESERVED_4            = 1 << 15;
 
         const RESERVED = 0
-            | Self::RESERVED_1.bits
-            | Self::RESERVED_2.bits
-            | Self::RESERVED_3.bits
-            | Self::RESERVED_4.bits;
+            | Self::RESERVED_1.bits()
+            | Self::RESERVED_2.bits()
+            | Self::RESERVED_3.bits()
+            | Self::RESERVED_4.bits();
 
         /// Always strip these from public responses
         const PRIVATE_FLAGS = 0
-            | Self::BANNED.bits
-            | Self::VERIFIED.bits
-            | Self::MFA_ENABLED.bits
-            | Self::NEEDS_PASSWORD_RESET.bits
-            | Self::EXTRA_STORAGE.bits
-            | Self::RESERVED.bits;
+            | Self::BANNED.bits()
+            | Self::VERIFIED.bits()
+            | Self::MFA_ENABLED.bits()
+            | Self::NEEDS_PASSWORD_RESET.bits()
+            | Self::EXTRA_STORAGE.bits()
+            | Self::RESERVED.bits();
 
         /// elevation level integer
         const ELEVATION     = 0
-            | Self::ELEVATION_1.bits
-            | Self::ELEVATION_2.bits
-            | Self::ELEVATION_3.bits;
+            | Self::ELEVATION_1.bits()
+            | Self::ELEVATION_2.bits()
+            | Self::ELEVATION_3.bits();
 
         /// premium level integer
         const PREMIUM       = 0
-            | Self::PREMIUM_1.bits
-            | Self::PREMIUM_2.bits
-            | Self::PREMIUM_3.bits;
+            | Self::PREMIUM_1.bits()
+            | Self::PREMIUM_2.bits()
+            | Self::PREMIUM_3.bits();
 
         /// extra storage level integer
         const EXTRA_STORAGE = 0
-            | Self::EXTRA_STORAGE_1.bits
-            | Self::EXTRA_STORAGE_2.bits;
+            | Self::EXTRA_STORAGE_1.bits()
+            | Self::EXTRA_STORAGE_2.bits();
     }
 }
 
@@ -112,14 +113,14 @@ impl UserFlags {
 }
 
 bitflags::bitflags! {
-    #[derive(Default)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserProfileBits: i32 {
         const AVATAR_ROUNDNESS = 0x7F; // 127, lower 7 bits
         const OVERRIDE_COLOR = 0x80; // 8th bit
         const PRIMARY_COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits
     }
 
-    #[derive(Default)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct ExtraUserProfileBits: i32 {
         const OVERRIDE_COLOR = 0x80; // 8th bit
         const SECONDARY_COLOR = 0xFF_FF_FF_00u32 as i32; // top 24 bits

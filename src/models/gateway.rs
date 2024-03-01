@@ -1,6 +1,7 @@
 use super::*;
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Intent: u32 {
         /// - PARTY_CREATE
         /// - PARTY_UPDATE

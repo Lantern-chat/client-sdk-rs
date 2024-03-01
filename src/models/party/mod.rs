@@ -6,7 +6,7 @@ mod prefs;
 pub use prefs::*;
 
 bitflags::bitflags! {
-    #[derive(Default)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PartyFlags: i32 {
         /// Must have a verified email address
         const EMAIL         = 1 << 0;
@@ -32,11 +32,11 @@ bitflags::bitflags! {
         const LANGUAGE = 0b11_11_11 << (32 - 6);
 
         const SECURITY = 0
-            | Self::EMAIL.bits
-            | Self::PHONE.bits
-            | Self::NEW_USER.bits
-            | Self::NEW_MEMBER.bits
-            | Self::MFA_ENABLED.bits;
+            | Self::EMAIL.bits()
+            | Self::PHONE.bits()
+            | Self::NEW_USER.bits()
+            | Self::NEW_MEMBER.bits()
+            | Self::MFA_ENABLED.bits();
     }
 }
 
@@ -106,6 +106,7 @@ impl Deref for Party {
 }
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PartyMemberFlags: i16 {
         const BANNED = 1 << 0;
     }
@@ -149,6 +150,7 @@ impl Deref for PartyMember {
 }
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PinFolderFlags: i32 {
         const COLOR = 0x00_FF_FF_FFu32 as i32; // top 24 bits
     }

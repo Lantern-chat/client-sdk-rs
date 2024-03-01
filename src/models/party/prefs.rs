@@ -8,6 +8,7 @@ use super::*;
 use crate::models::Locale;
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PartyPrefsFlags: i32 {
 
         const DEFAULT_FLAGS = 0;

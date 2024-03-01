@@ -20,6 +20,7 @@ pub enum RoomKind {
 }
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct RoomFlags: i16 {
         const KIND    = 0xF; // first four bits are the kind
         const NSFW    = 1 << 4;
@@ -35,13 +36,13 @@ impl RoomFlags {
     pub fn kind(self) -> RoomKind {
         // all rooms derive from the text room, so basic queries
         // will still function if the SDK is not updated as it should
-        RoomKind::from_i16(self.bits & 0xF).unwrap_or(RoomKind::Text)
+        RoomKind::from_i16(self.bits() & 0xF).unwrap_or(RoomKind::Text)
     }
 }
 
 impl From<RoomKind> for RoomFlags {
     fn from(value: RoomKind) -> Self {
-        unsafe { RoomFlags::from_bits_unchecked(value as u8 as i16) }
+        RoomFlags::from_bits_retain(value as u8 as i16)
     }
 }
 

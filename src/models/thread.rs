@@ -1,6 +1,7 @@
 use super::*;
 
 bitflags::bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct ThreadFlags: i16 {
         /// Forum-style thread
         const FORUM   = 1 << 0;
