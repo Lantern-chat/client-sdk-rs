@@ -54,7 +54,7 @@ impl Client {
             Some(token) => Some(Arc::new((
                 token,
                 match token.headervalue() {
-                    Ok(header) => crate::driver::compat::new_headervalue_to_old(&header),
+                    Ok(header) => header,
                     Err(e) => return Err(ClientError::DriverError(DriverError::from(e))),
                 },
             ))),

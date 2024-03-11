@@ -1,45 +1,3 @@
-pub(crate) mod compat {
-    use std::str::FromStr;
-
-    use headers::{HeaderMap as NewHeaderMap, HeaderName as NewHeaderName, HeaderValue as NewHeaderValue};
-    use http::{Method as NewMethod, StatusCode as NewStatus};
-    use reqwest::{
-        header::{HeaderMap as OldHeaderMap, HeaderName as OldHeaderName, HeaderValue as OldHeaderValue},
-        Method as OldMethod, StatusCode as OldStatus,
-    };
-
-    pub fn old_to_new_status(status: OldStatus) -> NewStatus {
-        unsafe { NewStatus::from_u16(status.as_u16()).unwrap_unchecked() }
-    }
-
-    pub fn add_new_headers_to_old(new: NewHeaderMap, old: &mut OldHeaderMap) {
-        for (k, v) in new.into_iter() {
-            if let Some(k) = k {
-                old.insert(OldHeaderName::from_str(k.as_str()).unwrap(), new_headervalue_to_old(&v));
-            }
-        }
-    }
-
-    pub fn new_headervalue_to_old(new: &NewHeaderValue) -> OldHeaderValue {
-        unsafe { OldHeaderValue::from_bytes(new.as_bytes()).unwrap_unchecked() }
-    }
-
-    pub fn new_to_old_method(new: NewMethod) -> OldMethod {
-        match new {
-            NewMethod::GET => OldMethod::GET,
-            NewMethod::POST => OldMethod::POST,
-            NewMethod::PUT => OldMethod::PUT,
-            NewMethod::DELETE => OldMethod::DELETE,
-            NewMethod::HEAD => OldMethod::HEAD,
-            NewMethod::OPTIONS => OldMethod::OPTIONS,
-            NewMethod::CONNECT => OldMethod::CONNECT,
-            NewMethod::PATCH => OldMethod::PATCH,
-            NewMethod::TRACE => OldMethod::TRACE,
-            _ => unreachable!(),
-        }
-    }
-}
-
 use std::sync::Arc;
 
 use reqwest::{
@@ -109,7 +67,7 @@ impl Driver {
 
     pub fn set_token(&mut self, token: Option<AuthToken>) -> Result<(), DriverError> {
         self.auth = match token {
-            Some(token) => Some(Arc::new((token, compat::new_headervalue_to_old(&token.headervalue()?)))),
+            Some(token) => Some(Arc::new((token, token.headervalue()?))),
             None => None,
         };
 
@@ -145,22 +103,16 @@ impl Driver {
         // likely inlined, simple
         cmd.format_path(&mut path)?;
 
-        let method = compat::new_to_old_method(CMD::HTTP_METHOD);
-
-        let mut req = Request::new(method.clone(), Url::parse(&path)?);
+        let mut req = Request::new(CMD::HTTP_METHOD, Url::parse(&path)?);
 
         // likely inlined, often no-ops
-        {
-            let mut new_headers = headers::HeaderMap::new();
-            cmd.add_headers(&mut new_headers);
-            compat::add_new_headers_to_old(new_headers, req.headers_mut());
-        }
+        cmd.add_headers(req.headers_mut());
 
         let body_size_hint = cmd.body_size_hint();
 
         // if there is a body to serialize
         if CMD::FLAGS.contains(CommandFlags::HAS_BODY) && body_size_hint > 0 {
-            match method {
+            match CMD::HTTP_METHOD {
                 // for methods without bodies, the "body" is treated as query parameters
                 Method::GET | Method::OPTIONS | Method::HEAD | Method::CONNECT | Method::TRACE => {
                     let url = req.url_mut();
@@ -219,7 +171,7 @@ impl Driver {
         if !status.is_success() {
             return Err(match deserialize_ct(&body, ct) {
                 Ok(api_error) => DriverError::ApiError(api_error),
-                Err(_) => DriverError::GenericDriverError(compat::old_to_new_status(status)),
+                Err(_) => DriverError::GenericDriverError(status),
             });
         }
 
@@ -303,7 +255,7 @@ impl Driver {
 
         Err(match deserialize_ct(&body, ct) {
             Ok(api_error) => DriverError::ApiError(api_error),
-            Err(_) => DriverError::GenericDriverError(compat::old_to_new_status(status)),
+            Err(_) => DriverError::GenericDriverError(status),
         })
     }
 }
