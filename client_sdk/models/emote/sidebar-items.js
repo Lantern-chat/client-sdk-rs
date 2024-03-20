@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ArchivedEmote","Emote","EmoteResolver"],"struct":["ArchivedCustomEmote","CustomEmote","CustomEmoteResolver","EmoteFlags"]};

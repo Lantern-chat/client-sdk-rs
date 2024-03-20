@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["FontSize","Padding","TabSize","Temperature"]};
