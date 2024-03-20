@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
 
-use serde_json::Value;
-
 use super::*;
 
 common::enum_codes! {

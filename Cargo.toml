@@ -35,7 +35,6 @@ rkyv = { version = "0.7", optional = true, features = ["validation", "smol_str",
 bytecheck = { version = "0.6", optional = true }
 
 serde = { version = "1", features = ["derive", "rc"] }
-serde_json = "1"
 bitflags = "2"
 serde_repr = "0.1"
 enum-primitive-derive = "0.3"
@@ -58,6 +57,8 @@ ahash = { version = "0.8", optional = true }
 # Maybe?
 # typescript-definitions = { git = "https://github.com/storyscript/typescript-definitions" }
 
+serde_json = { version = "1", optional = true }
+
 postgres-types = { version = "0.2.1", optional = true }
 bytes = { version = "1", optional = true }
 rusqlite = { version = "0.31.0", optional = true }
@@ -77,6 +78,7 @@ percent-encoding = { version = "2.1.0", optional = true }
 arc-swap = { version = "1.5", optional = true }
 base64 = { version = "0.22.0", optional = true }
 tokio = { version = "1", optional = true, default_features = false, features = ["io-util"] }
+reqwest = { version = "0.12", optional = true, default_features = false, features = ["gzip", "deflate", "http2"] }
 
 tokio-tungstenite = { version = "0.21", optional = true, default_features = false, features = ["connect"] }
 miniz_oxide = { version = "0.7", optional = true }
@@ -84,13 +86,6 @@ futures = { version = "0.3", optional = true }
 pin-project-lite = { version = "0.2.8", optional = true }
 async-trait = { version = "0.1", optional = true }
 smallvec = { version = "1.10.0", optional = true }
-
-[dependencies.reqwest]
-git = "https://github.com/seanmonstar/reqwest"
-branch = "0.12-dev"
-optional = true
-default_features = false
-features = ["gzip", "deflate", "http2"]
 
 [features]
 _internal_common = ["thiserror"]
@@ -105,7 +100,7 @@ rusqlite = ["dep:rusqlite", "common/rusqlite", "timestamp/rusqlite", "snowflake/
 api = ["http", "_internal_common", "percent-encoding", "futures"]                                              # http required for Method
 
 # Low-level command execution
-driver = ["reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]
+driver = ["serde_json", "reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]
 
 # High-level client library
 client = ["driver", "arc-swap", "tokio"]
@@ -114,7 +109,7 @@ fs = ["tokio/fs"]
 brotli = ["reqwest?/brotli"]
 
 # Realtime gateway support
-gateway = ["tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
+gateway = ["serde_json", "tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
 
 framework_utils = ["smallvec"]
 framework = ["client", "gateway", "async-trait", "tokio/macros", "framework_utils"]
