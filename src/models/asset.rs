@@ -25,6 +25,8 @@ bitflags::bitflags! {
         const FORMAT_AVIF = 1 << 13;
         /// WebM format
         const FORMAT_WEBM = 1 << 14;
+        /// Jpeg XL format
+        const FORMAT_JXL  = 1 << 15;
 
         /// All supported formats
         const FORMATS = 0
@@ -32,11 +34,13 @@ bitflags::bitflags! {
             | Self::FORMAT_JPEG.bits()
             | Self::FORMAT_GIF.bits()
             | Self::FORMAT_AVIF.bits()
-            | Self::FORMAT_WEBM.bits();
+            | Self::FORMAT_WEBM.bits()
+            | Self::FORMAT_JXL.bits();
 
         /// These formats don't have widespread support yet, so don't include them by default
         const MAYBE_UNSUPPORTED_FORMATS = 0
-            | Self::FORMAT_AVIF.bits();
+            | Self::FORMAT_AVIF.bits()
+            | Self::FORMAT_JXL.bits();
 
         /// All qualifier flags
         const FLAGS = 0
