@@ -9,18 +9,25 @@ pub(crate) mod sealed {
 use crate::models::Permissions;
 
 bitflags::bitflags! {
+    /// Flags for command functionality.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct CommandFlags: u8 {
+        /// Command requires authorization to execute.
         const AUTHORIZED    = 1 << 0;
+        /// Command has a body.
         const HAS_BODY      = 1 << 1;
     }
 }
 
 common::impl_rkyv_for_pod!(CommandFlags);
 
+/// Rate-limiting configuration for a command
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RateLimit {
+    /// Ideal time between each request
     pub emission_interval: Duration,
+
+    /// Maximum number of requests that can be made in a burst, before rate-limiting kicks in.
     pub burst_size: u64,
 }
 
@@ -77,6 +84,7 @@ impl<T> CommandResult for T where T: Send + serde::de::DeserializeOwned + serde:
 #[cfg(not(feature = "rkyv"))]
 impl<T> CommandBody for T where T: Send + serde::ser::Serialize {}
 
+/// Error returned when an item is missing from a stream or the stream is empty.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MissingItemError;
 
@@ -97,6 +105,7 @@ impl std::error::Error for MissingItemError {}
 ///
 /// For the case of `GET`/`OPTIONS` commands, the body becomes query parameters.
 pub trait Command: sealed::Sealed {
+    /// Whether the command returns one or many items
     const STREAM: bool;
 
     /// The underlying type of each returned item, be it one or many.
@@ -105,11 +114,13 @@ pub trait Command: sealed::Sealed {
     /// Item(s) returned from the server by a given command
     type Result: CommandResult;
 
+    /// Body type for the command
     type Body: CommandBody;
 
     /// HTTP Method used to execute the command
     const HTTP_METHOD: Method;
 
+    /// Flags for the command, defaults to empty.
     const FLAGS: CommandFlags;
 
     /// Baseline rate-limiting parameters, defaults to [`RateLimit::DEFAULT`].
@@ -122,6 +133,7 @@ pub trait Command: sealed::Sealed {
     /// Serialize/format the REST path (without query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
 
+    /// Body to be serialized as request body or query parameters (if GET)
     fn body(&self) -> &Self::Body;
 
     /// Used to collect the [`Result`](Self::Result) from an arbitrary [`Stream`] of items.
@@ -144,6 +156,7 @@ pub trait Command: sealed::Sealed {
     fn add_headers(&self, _map: &mut HeaderMap) {}
 
     #[cfg(feature = "schema")]
+    /// Generate a schema for this command
     fn schema(gen: &mut schemars::gen::SchemaGenerator) -> (String, okapi::openapi3::PathItem);
 }
 
@@ -324,7 +337,7 @@ macro_rules! command {
             ;
 
             $(
-                #[doc = "```\nRateLimit {\n    emission_interval: " $emission_interval "ms,\n"]
+                #[doc = "```ignore\nRateLimit {\n    emission_interval: " $emission_interval "ms,\n"]
                 $(#[doc = "    burst_size: " $burst_size ","])?
                 #[doc = "}\n```\nIf not specified, the `burst_size` will be from [`RateLimit::DEFAULT`]."]
             )?

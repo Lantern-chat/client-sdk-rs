@@ -48,21 +48,26 @@ impl<T> From<Option<T>> for Nullable<T> {
 }
 
 impl<T> Nullable<T> {
+    /// Returns `true` if the value is `Undefined`.
     #[inline]
     pub const fn is_undefined(&self) -> bool {
         matches!(self, Nullable::Undefined)
     }
 
+    /// Returns `true` if the value is `Null`.
     #[inline]
     pub const fn is_null(&self) -> bool {
         matches!(self, Nullable::Null)
     }
 
+    /// Returns `true` if the value is `Some`.
     #[inline]
     pub const fn is_some(&self) -> bool {
         matches!(self, Nullable::Some(_))
     }
 
+    /// Maps an inner `Some` value to a different value,
+    /// carrying over `Null` and `Undefined` unchanged.
     pub fn map<F, U>(self, f: F) -> Nullable<U>
     where
         F: FnOnce(T) -> U,

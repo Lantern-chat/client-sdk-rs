@@ -1,23 +1,35 @@
-use std::borrow::Cow;
+//! Standard API error types and codes.
+
+use std::{borrow::Cow, fmt};
 
 use http::StatusCode;
 
+/// Standard API error response, containing an error code and message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct ApiError {
+    /// Error code
     pub code: ApiErrorCode,
 
+    /// Human-readable error message
     #[cfg_attr(feature = "rkyv", with(rkyv::with::AsOwned))]
     pub message: Cow<'static, str>,
 }
 
 #[cfg(feature = "rkyv")]
 impl ArchivedApiError {
+    /// Get the error code for this error.
     pub fn code(&self) -> ApiErrorCode {
         rkyv::Deserialize::deserialize(&self.code, &mut rkyv::Infallible)
             .unwrap_or_else(|_| unsafe { core::hint::unreachable_unchecked() })
+    }
+}
+
+impl fmt::Debug for ArchivedApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ArchivedApiError").field("code", &self.code()).field("message", &self.message).finish()
     }
 }
 
@@ -38,6 +50,7 @@ macro_rules! error_codes {
         }
 
         impl $name {
+            /// Get the HTTP status code for this error code.
             pub fn http_status(self) -> StatusCode {
                 match self {
                     $(Self::$variant => $status,)*
@@ -48,6 +61,7 @@ macro_rules! error_codes {
 }
 
 error_codes! {
+    /// Standard API error codes.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema_repr))]

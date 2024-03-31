@@ -1,5 +1,15 @@
 use super::*;
 
+/// Constructions a `Permissions` set from a list of permissions by name.
+///
+/// Can be used in `const` contexts.
+///
+/// # Example
+/// ```
+/// # fn main() { use client_sdk::perms;
+/// let perms = perms!(MANAGE_ROOMS | MANAGE_ROLES);
+/// # }
+/// ```
 #[macro_export]
 macro_rules! perms {
     () => { $crate::models::Permissions::empty() };
@@ -80,8 +90,9 @@ bitflags::bitflags! {
         /// Allows a user to acquire priority speaker
         const PRIORITY_SPEAKER      = 1u128 << 63;
 
-        /// Just something to fit in the top half for now during tests
+
         #[cfg(test)]
+        /// Just something to fit in the top half for now during tests
         const TEST                  = 1u128 << 127;
     }
 }
@@ -170,6 +181,7 @@ const _: () = {
     }
 };
 
+/// Permissions Overwrite for a role or user in a room.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
@@ -177,11 +189,14 @@ const _: () = {
 pub struct Overwrite {
     /// Role or user ID
     ///
-    /// If it doesn't exist in the role list, then it's a user, simple as that
+    /// If it doesn't exist in the role list, then it's a user, simple as that.
     pub id: Snowflake,
 
+    /// Permissions to allow.
     #[serde(default, skip_serializing_if = "Permissions::is_empty")]
     pub allow: Permissions,
+
+    /// Permissions to deny.
     #[serde(default, skip_serializing_if = "Permissions::is_empty")]
     pub deny: Permissions,
 }
@@ -189,6 +204,7 @@ pub struct Overwrite {
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
 impl Overwrite {
+    /// Takes the Union of two overwrites, assuming the same ID.
     #[inline]
     pub fn combine(&self, other: Self) -> Overwrite {
         Overwrite {
@@ -198,6 +214,7 @@ impl Overwrite {
         }
     }
 
+    /// Applies the overwrite to a base set of permissions.
     #[inline]
     pub fn apply(&self, base: Permissions) -> Permissions {
         (base & !self.deny) | self.allow
@@ -205,11 +222,13 @@ impl Overwrite {
 }
 
 impl Permissions {
+    /// Constructs a new `Permissions` from two `i64` values.
     #[inline(always)]
     pub const fn from_i64(low: i64, high: i64) -> Self {
         Permissions::from_bits_truncate(low as u64 as u128 | ((high as u64 as u128) << 64))
     }
 
+    /// Constructs a new `Permissions` from two `Option<i64>` values, defaulting to `0` if `None` on either.
     #[inline(always)]
     pub const fn from_i64_opt(low: Option<i64>, high: Option<i64>) -> Self {
         // TODO: Replace with `.unwrap_or(0)` when that's const-stable
@@ -225,6 +244,7 @@ impl Permissions {
         )
     }
 
+    /// Converts the `Permissions` into two `i64` values.
     #[inline(always)]
     pub fn to_i64(self) -> [i64; 2] {
         let bits = self.bits();
@@ -233,10 +253,12 @@ impl Permissions {
         [low, high]
     }
 
+    /// Returns `true` if the permissions contain the `ADMINISTRATOR` permission.
     pub const fn is_admin(self) -> bool {
         self.contains(Permissions::ADMINISTRATOR)
     }
 
+    /// Takes cerrtain flags into account and normalizes the permissions to obey them.
     pub const fn normalize(self) -> Self {
         if self.contains(Permissions::DEFAULT_ONLY) {
             return Permissions::DEFAULT;
@@ -249,6 +271,7 @@ impl Permissions {
         self
     }
 
+    /// Computes the final permissions for a user in a room given the overwrites and roles.
     pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {
         self = self.normalize();
 

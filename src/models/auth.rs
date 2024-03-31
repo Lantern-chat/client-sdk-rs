@@ -4,7 +4,10 @@ use std::str::FromStr;
 use super::*;
 
 // NOTE: Keep these in sync with the lengths in client-sdk-ts
+
+/// Fixed-length string with a maximum length of 28 bytes for bearer tokens.
 pub type BearerToken = FixedStr<28>;
+/// Fixed-length string with a maximum length of 48 bytes for bot tokens.
 pub type BotToken = FixedStr<48>;
 
 const BEARER_PREFIX: &str = "Bearer ";
@@ -28,7 +31,9 @@ const MAX_LENGTH: usize = {
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 #[serde(untagged)]
 pub enum AuthToken {
+    /// Bearer token for users
     Bearer(BearerToken),
+    /// Bot token for bots
     Bot(BotToken),
 }
 

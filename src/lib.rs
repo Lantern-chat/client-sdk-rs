@@ -1,3 +1,5 @@
+//! Lantern Chat Client SDK
+
 #![allow(clippy::bad_bit_mask)]
 
 #[macro_use]

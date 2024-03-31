@@ -5,13 +5,19 @@ command! {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct UserRegisterForm {
+            /// Email address
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub email: SmolStr,
+
+            /// Username
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub username: SmolStr,
+
+            /// Password (Plaintext, will be hashed on the server)
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub password: SmolStr,
 
+            /// Date of birth
             pub dob: Timestamp,
 
             /// hCaptcha token
@@ -23,11 +29,14 @@ command! {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct UserLoginForm {
+            /// Email address
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub email: SmolStr,
+            /// Password (Plaintext, will be hashed on the server)
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub password: SmolStr,
 
+            /// 2FA token, if enabled
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             pub totp: Option<SmolStr>,
@@ -40,8 +49,10 @@ command! {
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
         struct Enable2FAForm {
+            /// Password
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub password: SmolStr,
+
             #[cfg_attr(feature = "builder", builder(setter(into)))]
             pub token: String,
         }
