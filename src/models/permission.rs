@@ -273,7 +273,13 @@ impl Permissions {
 
     /// Computes the final permissions for a user in a room given the overwrites and roles.
     pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {
-        self = self.normalize();
+        if self.contains(Permissions::ADMINISTRATOR) {
+            return Permissions::all();
+        }
+
+        if self.contains(Permissions::DEFAULT_ONLY) {
+            self = Permissions::DEFAULT;
+        }
 
         let mut allow = Permissions::empty();
         let mut deny = Permissions::empty();
