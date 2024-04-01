@@ -33,6 +33,14 @@ impl fmt::Debug for ArchivedApiError {
     }
 }
 
+impl fmt::Display for ApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.code as u16, self.message)
+    }
+}
+
+impl std::error::Error for ApiError {}
+
 macro_rules! error_codes {
     (
         $(#[$meta:meta])*
@@ -135,5 +143,38 @@ error_codes! {
 
         #[serde(other)]
         Unknown = 1 = StatusCode::IM_A_TEAPOT,
+    }
+}
+
+impl From<std::io::Error> for ApiError {
+    fn from(err: std::io::Error) -> Self {
+        use std::io::ErrorKind as E;
+
+        Self {
+            code: ApiErrorCode::IOError,
+            message: Cow::Borrowed(match err.kind() {
+                E::AddrInUse => "Address In Use",
+                E::AddrNotAvailable => "Address Not Available",
+                E::AlreadyExists => "Entity Already Exists",
+                E::BrokenPipe => "Broken Pipe",
+                E::ConnectionAborted => "Connection Aborted",
+                E::ConnectionRefused => "Connection Refused",
+                E::ConnectionReset => "Connection Reset",
+                E::Interrupted => "Operation Interrupted",
+                E::InvalidData => "Invalid Data",
+                E::InvalidInput => "Invalid Input Parameter",
+                E::NotConnected => "Not Connected",
+                E::NotFound => "Entity Not Found",
+                E::Other => "Other Error",
+                E::OutOfMemory => "Out Of Memory",
+                E::PermissionDenied => "Permission Denied",
+                E::TimedOut => "Timed Out",
+                E::UnexpectedEof => "Unexpected End Of File",
+                E::Unsupported => "Unsupported",
+                E::WouldBlock => "Operation Would Block",
+                E::WriteZero => "Write Zero",
+                _ => "Unknown I/O error",
+            }),
+        }
     }
 }

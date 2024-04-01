@@ -49,7 +49,7 @@ pub enum MessageKind {
     Unavailable = 3,
 }
 
-common::impl_rkyv_for_pod!(MessageKind);
+common::impl_rkyv_for_pod!(MessageKind + CheckBytes);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -162,6 +162,7 @@ const _: () = {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct ReactionShorthand {
     #[serde(flatten)]
     pub emote: EmoteOrEmoji,
@@ -173,6 +174,7 @@ pub struct ReactionShorthand {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct ReactionFull {
     pub emote: EmoteOrEmoji,
 
@@ -183,6 +185,7 @@ pub struct ReactionFull {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 #[serde(untagged)]
 pub enum Reaction {
     Shorthand(ReactionShorthand),
@@ -192,6 +195,7 @@ pub enum Reaction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Attachment {
     #[serde(flatten)]
     pub file: File,

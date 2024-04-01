@@ -9,7 +9,7 @@
 #[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
 #[repr(u8)]
 pub enum Nullable<T> {
-    /// Neither present nor absent, and indeterminant value.
+    /// Neither present nor absent, an indeterminant value.
     #[default]
     Undefined = 0,
     /// Certainly absent of value.
