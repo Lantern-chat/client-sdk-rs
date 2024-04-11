@@ -136,7 +136,7 @@ pub trait Command: sealed::Sealed {
     /// Body to be serialized as request body or query parameters (if GET)
     fn body(&self) -> &Self::Body;
 
-    /// Used to collect the [`Result`](Self::Result) from an arbitrary [`Stream`] of items.
+    /// Used to collect the [`Result`](Self::Result) from an arbitrary [`Stream`](futures::Stream) of items.
     fn collect<S, E>(stream: S) -> impl std::future::Future<Output = Result<Self::Result, E>> + Send
     where
         S: futures::Stream<Item = Result<Self::Item, E>> + Send,
