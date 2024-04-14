@@ -132,6 +132,8 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct ReadyParty {
         pub party: Party,
+
+        /// The user's own member object
         pub me: PartyMember,
     }
 
@@ -164,8 +166,14 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct Ready {
         pub user: User,
-        pub dms: ThinVec<Room>,
+
+        /// The parties the user is in, including DMs.
         pub parties: ThinVec<ReadyParty>,
+
+        /// Contains all rooms the user is in, including DMs.
+        pub rooms: ThinVec<Room>,
+
+        /// Gateway session ID, used for resuming sessions
         pub session: Snowflake,
     }
 
@@ -521,13 +529,19 @@ pub mod message {
                 #[doc = "An archived [`" $name "`]" ]
                 #[repr(u8, align(1))]
                 pub enum [<Archived $name>] {
-                    $($opcode(Archived<[<$name:snake _payloads>]::[<$opcode Payload>]>) = ArchivedTag::$opcode as u8,)*
+                    $(
+                        #[doc = "Archived counterpart of [`" $name "::" $opcode "`]" ]
+                        $opcode(Archived<[<$name:snake _payloads>]::[<$opcode Payload>]>) = ArchivedTag::$opcode as u8,
+                    )*
                 }
 
                 #[doc = "Resolver for an archived [`" $name "`]" ]
                 #[repr(u8)]
                 pub enum [<$name Resolver>] {
-                    $($opcode(Resolver<[<$name:snake _payloads>]::[<$opcode Payload>]>) = $code,)*
+                    $(
+                        #[doc = "Resolver for [`" $name "::" $opcode "`]" ]
+                        $opcode(Resolver<[<$name:snake _payloads>]::[<$opcode Payload>]>) = $code,
+                    )*
                 }
 
                 $(
