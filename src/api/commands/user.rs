@@ -112,7 +112,7 @@ command! {
     +struct GetRelationships -> Many Relationship: GET("user" / "@me" / "relationships") {}
 
     +struct PatchRelationship -> One Relationship: PATCH[1000 ms, 1]("user" / "@me" / "relationships" / user_id) {
-        pub user_id: Snowflake,
+        pub user_id: UserId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -167,7 +167,7 @@ command! {
 
     /// Fetches full user information, including profile data
     +struct GetUser -> One User: GET("user" / user_id) {
-        pub user_id: Snowflake,
+        pub user_id: UserId,
     }
 
     +struct UpdateUserPrefs -> One (): PATCH[200 ms]("user" / "@me" / "prefs") {

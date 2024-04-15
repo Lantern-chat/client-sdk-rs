@@ -272,7 +272,7 @@ impl Permissions {
     }
 
     /// Computes the final permissions for a user in a room given the overwrites and roles.
-    pub fn compute_overwrites(mut self, overwrites: &[Overwrite], roles: &[Snowflake], user_id: Snowflake) -> Permissions {
+    pub fn compute_overwrites(mut self, overwrites: &[Overwrite], user_roles: &[RoleId], user_id: UserId) -> Permissions {
         if self.contains(Permissions::ADMINISTRATOR) {
             return Permissions::all();
         }
@@ -288,7 +288,7 @@ impl Permissions {
 
         // overwrites are always sorted role-first
         for overwrite in overwrites {
-            if roles.contains(&overwrite.id) {
+            if user_roles.contains(&overwrite.id) {
                 deny |= overwrite.deny;
                 allow |= overwrite.allow;
             } else if overwrite.id == user_id {

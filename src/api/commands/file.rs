@@ -30,7 +30,7 @@ command! {
     +struct GetFilesystemStatus -> One FilesystemStatus: OPTIONS("file") {}
 
     +struct GetFileStatus -> One FileStatus: HEAD("file" / file_id) {
-        pub file_id: Snowflake,
+        pub file_id: FileId,
     }
 }
 

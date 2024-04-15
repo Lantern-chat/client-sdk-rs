@@ -3,7 +3,7 @@ use super::*;
 command! {
     /// Create message command
     +struct CreateMessage -> One Message: POST[100 ms, 2]("room" / room_id / "messages") where SEND_MESSAGES {
-        pub room_id: Snowflake,
+        pub room_id: RoomId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -14,7 +14,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
-            pub parent: Option<Snowflake>,
+            pub parent: Option<RoomId>,
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
@@ -36,8 +36,8 @@ command! {
     }
 
     +struct EditMessage -> One Message: PATCH[500 ms, 2]("room" / room_id / "messages" / msg_id) where SEND_MESSAGES {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -54,17 +54,17 @@ command! {
     }
 
     +struct DeleteMessage -> One (): DELETE("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
     }
 
     +struct GetMessage -> One Message: GET("room" / room_id / "messages" / msg_id) where READ_MESSAGE_HISTORY {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
     }
 
     +struct StartTyping -> One (): POST[100 ms]("room" / room_id / "typing") where SEND_MESSAGES {
-        pub room_id: Snowflake,
+        pub room_id: RoomId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -72,12 +72,12 @@ command! {
             /// Will only show within the parent context if set
             #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
-            pub parent: Option<Snowflake>,
+            pub parent: Option<MessageId>,
         }
     }
 
     +struct GetMessages -> Many Message: GET("room" / room_id / "messages") where READ_MESSAGE_HISTORY {
-        pub room_id: Snowflake,
+        pub room_id: RoomId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -88,7 +88,7 @@ command! {
 
             #[serde(default, alias = "thread", skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
-            pub parent: Option<Snowflake>,
+            pub parent: Option<MessageId>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
@@ -97,7 +97,7 @@ command! {
             #[serde(default, alias = "pins", skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
             #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
-            pub pinned: ThinVec<Snowflake>,
+            pub pinned: ThinVec<FolderId>,
 
             /// If true, return only messages in the channel which have been starred by us
             #[serde(default, skip_serializing_if = "crate::models::is_false")]
@@ -116,55 +116,55 @@ command! {
     }
 
     +struct PinMessage -> One (): PUT("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
-        pub pin_tag: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
+        pub pin_tag: FolderId,
     }
 
     +struct UnpinMessage -> One (): DELETE("room" / room_id / "messages" / msg_id / "pins" / pin_tag) {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
-        pub pin_tag: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
+        pub pin_tag: FolderId,
     }
 
     +struct StarMessage -> One (): PUT("room" / room_id / "messages" / msg_id / "star") {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
     }
 
     +struct UnstarMessage -> One (): DELETE("room" / room_id / "messages" / msg_id / "star") {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
     }
 
     +struct PutReaction -> One (): PUT("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
         pub emote_id: EmoteOrEmoji,
     }
 
     +struct DeleteOwnReaction -> One (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / "@me") {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
         pub emote_id: EmoteOrEmoji,
     }
 
     +struct DeleteUserReaction -> One (): DELETE("room" / room_id / "messages" / msg_id / "reactions" / emote_id / user_id) {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
         pub emote_id: EmoteOrEmoji,
-        pub user_id: Snowflake,
+        pub user_id: UserId,
     }
 
     +struct DeleteAllReactions -> One (): DELETE("room" / room_id / "messages" / msg_id / "reactions") {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
     }
 
     // TODO
     +struct GetReactions -> Many (): GET("room" / room_id / "messages" / msg_id / "reactions" / emote_id) {
-        pub room_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub room_id: RoomId,
+        pub msg_id: MessageId,
         pub emote_id: EmoteOrEmoji,
 
         ;
@@ -173,6 +173,7 @@ command! {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
             after: Option<Snowflake>,
+
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default))]
             limit: Option<i8>,
@@ -180,11 +181,11 @@ command! {
     }
 
     +struct GetRoom -> One FullRoom: GET("room" / room_id) {
-        pub room_id: Snowflake,
+        pub room_id: RoomId,
     }
 
     +struct PatchRoom -> One FullRoom: PATCH[500 ms, 1]("room" / room_id) {
-        pub room_id: Snowflake,
+        pub room_id: RoomId,
 
         ;
         /// `Nullable::Undefined` or `Option::None` fields indicate no change
@@ -225,6 +226,6 @@ command! {
     }
 
     +struct DeleteRoom -> One (): DELETE[500 ms, 1]("room" / room_id) {
-        pub room_id: Snowflake,
+        pub room_id: RoomId,
     }
 }

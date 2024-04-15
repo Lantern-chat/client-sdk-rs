@@ -10,7 +10,7 @@ pub use error::DriverError;
 
 use crate::{
     api::{Command, CommandFlags},
-    models::{AuthToken, Snowflake},
+    models::{AuthToken, FileId},
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -215,7 +215,7 @@ where
 use base64::engine::{general_purpose::STANDARD, Engine};
 
 impl Driver {
-    pub async fn patch_file(&self, file_id: Snowflake, offset: u64, chunk: bytes::Bytes) -> Result<u64, DriverError> {
+    pub async fn patch_file(&self, file_id: FileId, offset: u64, chunk: bytes::Bytes) -> Result<u64, DriverError> {
         let auth = match self.auth {
             Some(ref auth) => auth.1.clone(),
             None => return Err(DriverError::MissingAuthorization),

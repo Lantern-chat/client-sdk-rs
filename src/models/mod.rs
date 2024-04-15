@@ -16,6 +16,34 @@ pub mod nullable;
 
 pub use nullable::Nullable;
 
+/// Defines Snowflake aliases to easier keep track of what ID is for what.
+pub mod aliases {
+    use super::Snowflake;
+
+    /// Snowflake ID for a Party
+    pub type PartyId = Snowflake;
+    /// Snowflake ID for a User
+    pub type UserId = Snowflake;
+    /// Snowflake ID for a Role
+    pub type RoleId = Snowflake;
+    /// Snowflake ID for a Room
+    pub type RoomId = Snowflake;
+    /// Snowflake ID for a Message
+    pub type MessageId = Snowflake;
+    /// Snowflake ID for a Custom Emote
+    pub type EmoteId = Snowflake;
+    /// Snowflake ID for a File
+    pub type FileId = Snowflake;
+    /// Snowflake ID for an party Invite
+    pub type InviteId = Snowflake;
+    /// Snowflake ID for a message Thread
+    pub type ThreadId = Snowflake;
+    /// Snowflake ID for a Pin Folder
+    pub type FolderId = Snowflake;
+}
+
+pub use aliases::*;
+
 pub mod embed {
     pub use ::embed::{
         v1, BoxedEmbedMedia, Embed, EmbedAuthor, EmbedField, EmbedFlags, EmbedFooter, EmbedMedia, EmbedProvider, EmbedType,

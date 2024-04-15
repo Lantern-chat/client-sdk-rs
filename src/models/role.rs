@@ -17,10 +17,10 @@ common::impl_sql_for_bitflags!(RoleFlags);
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Role {
-    pub id: Snowflake,
+    pub id: RoleId,
 
     // TODO: Revist removing this
-    pub party_id: Snowflake,
+    pub party_id: PartyId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub avatar: Option<SmolStr>,
     pub name: SmolStr,

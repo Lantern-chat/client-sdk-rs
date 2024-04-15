@@ -56,9 +56,9 @@ common::impl_rkyv_for_pod!(MessageKind + CheckBytes);
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Message {
-    pub id: Snowflake,
-    pub room_id: Snowflake,
-    pub party_id: Snowflake,
+    pub id: MessageId,
+    pub room_id: RoomId,
+    pub party_id: PartyId,
 
     #[serde(default, skip_serializing_if = "is_default")]
     pub kind: MessageKind,
@@ -66,7 +66,7 @@ pub struct Message {
     pub author: PartyMember,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub parent: Option<Snowflake>,
+    pub parent: Option<MessageId>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub edited_at: Option<Timestamp>,
@@ -78,17 +78,17 @@ pub struct Message {
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
-    pub pins: ThinVec<Snowflake>,
+    pub pins: ThinVec<FolderId>,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
-    pub user_mentions: ThinVec<Snowflake>,
+    pub user_mentions: ThinVec<UserId>,
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
-    pub role_mentions: ThinVec<Snowflake>,
+    pub role_mentions: ThinVec<RoleId>,
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
-    pub room_mentions: ThinVec<Snowflake>,
+    pub room_mentions: ThinVec<RoomId>,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     pub reactions: ThinVec<Reaction>,
@@ -113,7 +113,7 @@ pub struct Message {
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 #[serde(untagged)]
 pub enum EmoteOrEmoji {
-    Emote { emote: Snowflake },
+    Emote { emote: EmoteId },
     Emoji { emoji: SmolStr },
 }
 
@@ -139,7 +139,7 @@ const _: () = {
     }
 
     impl FromStr for EmoteOrEmoji {
-        type Err = <Snowflake as FromStr>::Err;
+        type Err = <EmoteId as FromStr>::Err;
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
             // TODO: Better behavior for this?
@@ -179,7 +179,7 @@ pub struct ReactionFull {
     pub emote: EmoteOrEmoji,
 
     #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
-    pub users: ThinVec<Snowflake>,
+    pub users: ThinVec<UserId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

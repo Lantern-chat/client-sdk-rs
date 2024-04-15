@@ -19,9 +19,9 @@ common::impl_sql_for_bitflags!(EmoteFlags);
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct CustomEmote {
-    pub id: Snowflake,
-    pub party_id: Snowflake,
-    pub asset: Snowflake,
+    pub id: EmoteId,
+    pub party_id: PartyId,
+    pub asset: FileId,
     pub name: SmolStr,
     pub flags: EmoteFlags,
     pub aspect_ratio: f32,

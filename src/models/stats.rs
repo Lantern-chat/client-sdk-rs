@@ -5,7 +5,7 @@ use super::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Statistics {
-    pub rooms: HashMap<Snowflake, RoomStatistics, super::Hasher>,
+    pub rooms: HashMap<RoomId, RoomStatistics, super::Hasher>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

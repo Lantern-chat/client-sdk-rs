@@ -48,7 +48,7 @@ common::impl_sql_for_bitflags!(PartyFlags);
 //#[serde(untagged)]
 //pub enum UnavailableParty {
 //    Available(Party),
-//    Unavailable { id: Snowflake, unavailable: bool },
+//    Unavailable { id: PartyId, unavailable: bool },
 //}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,7 +56,7 @@ common::impl_sql_for_bitflags!(PartyFlags);
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct PartialParty {
-    pub id: Snowflake,
+    pub id: PartyId,
 
     /// Party name
     pub name: SmolStr,
@@ -81,14 +81,14 @@ pub struct Party {
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     pub banner: Nullable<SmolStr>,
 
-    pub default_room: Snowflake,
+    pub default_room: RoomId,
 
     /// Position of party is user's party list, will be null if not joined
     #[serde(default)]
     pub position: Option<i16>,
 
     /// Id of owner user
-    pub owner: Snowflake,
+    pub owner: UserId,
 
     pub roles: ThinVec<Role>,
 
@@ -138,7 +138,7 @@ pub struct PartyMember {
     /// List of Role id snowflakes, may be excluded from some queries
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
-    pub roles: ThinVec<Snowflake>,
+    pub roles: ThinVec<RoleId>,
 }
 
 impl Deref for PartyMember {
@@ -165,7 +165,7 @@ common::impl_sql_for_bitflags!(PinFolderFlags);
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct PinFolder {
-    pub id: Snowflake,
+    pub id: FolderId,
     pub name: SmolStr,
     pub flags: PinFolderFlags,
 

@@ -188,7 +188,7 @@ impl UserProfile {
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct User {
-    pub id: Snowflake,
+    pub id: UserId,
     pub username: SmolStr,
 
     /// Unsigned 16-bit integer

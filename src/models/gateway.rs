@@ -182,12 +182,12 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct TypingStart {
-        pub room_id: Snowflake,
-        pub party_id: Snowflake,
-        pub user_id: Snowflake,
+        pub room_id: RoomId,
+        pub party_id: PartyId,
+        pub user_id: UserId,
         pub member: PartyMember,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub parent: Option<Snowflake>,
+        pub parent: Option<MessageId>,
         // maybe timestamp?
         //ts: u32,
     }
@@ -197,7 +197,7 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct PartyPositionUpdate {
-        pub id: Snowflake,
+        pub id: PartyId,
         pub position: i16,
     }
 
@@ -207,7 +207,7 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct UserPresenceEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub party_id: Option<Snowflake>,
+        pub party_id: Option<PartyId>,
 
         pub user: User,
     }
@@ -217,9 +217,9 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct MessageDeleteEvent {
-        pub id: Snowflake,
-        pub room_id: Snowflake,
-        pub party_id: Snowflake,
+        pub id: MessageId,
+        pub room_id: RoomId,
+        pub party_id: PartyId,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -227,8 +227,8 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct RoleDeleteEvent {
-        pub id: Snowflake,
-        pub party_id: Snowflake,
+        pub id: RoleId,
+        pub party_id: PartyId,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -236,11 +236,11 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct RoomDeleteEvent {
-        pub id: Snowflake,
+        pub id: RoomId,
 
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
-        pub party_id: Option<Snowflake>,
+        pub party_id: Option<PartyId>,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -248,7 +248,7 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct PartyMemberEvent {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         #[serde(flatten)]
         pub member: PartyMember,
@@ -269,10 +269,10 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct UserReactionEvent {
-        pub user_id: Snowflake,
-        pub room_id: Snowflake,
-        pub party_id: Snowflake,
-        pub msg_id: Snowflake,
+        pub user_id: UserId,
+        pub room_id: RoomId,
+        pub party_id: PartyId,
+        pub msg_id: MessageId,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
         pub member: Option<Box<PartyMember>>,
@@ -285,13 +285,13 @@ pub mod events {
     #[cfg_attr(feature = "rkyv", archive(check_bytes))]
     pub struct ProfileUpdateEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub party_id: Option<Snowflake>,
+        pub party_id: Option<PartyId>,
         pub user: User,
     }
 
     //#[derive(Debug, Clone, Serialize, Deserialize)]
     //pub struct PresenceUpdate {
-    //    pub user_id: Snowflake,
+    //    pub user_id: UserId,
     //    pub presence: UserPresence,
     //}
 }
@@ -768,6 +768,7 @@ pub mod message {
     use futures::future::{BoxFuture, Future};
 
     use crate::models::{
+        aliases::*,
         commands::{Identify, SetPresence},
         events::*,
         Arc, Intent, Message as RoomMessage, Party, PartyMember, Relationship, Role, User, UserPresence,
@@ -791,7 +792,7 @@ pub mod message {
 
             4 => PartyCreate { #[serde(flatten)] inner *Deref: Arc<Party> },
             5 => PartyUpdate { #[serde(flatten)] inner *Deref: Arc<PartyUpdateEvent> },
-            6 => PartyDelete { id: Snowflake },
+            6 => PartyDelete { id: PartyId },
 
             7 => RoleCreate { #[serde(flatten)] inner *Deref: Arc<Role> },
             8 => RoleUpdate { #[serde(flatten)] inner *Deref: Arc<Role> },
@@ -823,7 +824,7 @@ pub mod message {
 
             29 => ProfileUpdate { #[serde(flatten)] inner *Deref: Arc<ProfileUpdateEvent> },
             30 => RelationAdd { #[serde(flatten)] inner *Deref: Arc<Relationship> },
-            31 => RelationRemove { user_id: Snowflake },
+            31 => RelationRemove { user_id: UserId },
         }
     }
 
@@ -832,12 +833,10 @@ pub mod message {
         enum ClientMsg {
             0 => Heartbeat: Default {},
             1 => Identify { #[serde(flatten)] inner *Deref: Box<Identify> },
-            2 => Resume {
-                session: Snowflake,
-            },
+            2 => Resume { session: Snowflake },
             3 => SetPresence { #[serde(flatten)] inner *Deref: Box<SetPresence> },
-            4 => Subscribe { party_id: Snowflake },
-            5 => Unsubscribe { party_id: Snowflake },
+            4 => Subscribe { party_id: PartyId },
+            5 => Unsubscribe { party_id: PartyId },
         }
     }
 
@@ -900,7 +899,7 @@ pub mod message {
         }
 
         /// If the event originated from a specific user, get their ID
-        pub fn user_id(&self) -> Option<Snowflake> {
+        pub fn user_id(&self) -> Option<UserId> {
             Some(match self {
                 ServerMsg::MemberAdd(e) => e.member.user.id,
                 ServerMsg::MemberUpdate(e) => e.member.user.id,

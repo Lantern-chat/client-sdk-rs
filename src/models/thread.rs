@@ -17,7 +17,7 @@ common::impl_sql_for_bitflags!(ThreadFlags);
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Thread {
-    pub id: Snowflake,
+    pub id: ThreadId,
     pub parent: Message,
     pub flags: ThreadFlags,
 }

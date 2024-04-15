@@ -2,7 +2,7 @@ use super::*;
 
 command! {
     +struct GetParty -> One Party: GET("party" / party_id) {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
     }
 
     +struct CreateParty -> One Party: POST[5000 ms, 1]("party") {
@@ -24,7 +24,7 @@ command! {
     }
 
     +struct PatchParty -> One Party: PATCH[500 ms, 1]("party" / party_id) {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         ;
         #[derive(Default, PartialEq)]
@@ -45,7 +45,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            pub default_room: Option<Snowflake>,
+            pub default_room: Option<RoomId>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "builder", builder(default, setter(into)))]
@@ -58,17 +58,17 @@ command! {
     }
 
     +struct DeleteParty -> One (): DELETE("party" / party_id) {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
     }
 
     // TODO: Use same command for accepting?
     +struct TransferOwnership -> One (): PUT("party" / party_id / "owner" / user_id) {
-        pub party_id: Snowflake,
-        pub user_id: Snowflake,
+        pub party_id: PartyId,
+        pub user_id: UserId,
     }
 
     +struct CreateRole -> One Role: POST[1000 ms, 1]("party" / party_id / "roles") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -79,8 +79,8 @@ command! {
     }
 
     +struct PatchRole -> One Role: PATCH("party" / party_id / "roles" / role_id) {
-        pub party_id: Snowflake,
-        pub role_id: Snowflake,
+        pub party_id: PartyId,
+        pub role_id: RoleId,
 
         ;
         #[derive(Default, PartialEq)]
@@ -114,34 +114,34 @@ command! {
     }
 
     +struct DeleteRole -> One (): DELETE("party" / party_id / "roles" / role_id) {
-        pub party_id: Snowflake,
-        pub role_id: Snowflake,
+        pub party_id: PartyId,
+        pub role_id: RoleId,
     }
 
     +struct GetPartyMembers -> Many PartyMember: GET("party" / party_id / "members") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
     }
 
     +struct GetPartyMember -> One PartyMember: GET("party" / party_id / "member" / member_id) {
-        pub party_id: Snowflake,
-        pub member_id: Snowflake,
+        pub party_id: PartyId,
+        pub member_id: UserId,
     }
 
     +struct GetPartyRooms -> Many Room: GET("party" / party_id / "rooms") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
     }
 
     +struct GetPartyInvites -> Many Invite: GET("party" / party_id / "invites") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
     }
 
     +struct GetMemberProfile -> One UserProfile: GET("party" / party_id / "members" / user_id / "profile") {
-        pub party_id: Snowflake,
-        pub user_id: Snowflake,
+        pub party_id: PartyId,
+        pub user_id: UserId,
     }
 
     +struct UpdateMemberProfile -> One UserProfile: PATCH("party" / party_id / "members" / "profile") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -152,7 +152,7 @@ command! {
     }
 
     +struct CreatePartyInvite -> One Invite: POST[2000 ms, 1]("party" / party_id / "invites") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         ;
         /// Infinite parameters may only be used with appropriate permissions
@@ -175,7 +175,7 @@ command! {
     }
 
     +struct CreatePinFolder -> One PinFolder: POST("party" / party_id / "pins") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -190,7 +190,7 @@ command! {
     }
 
     +struct CreateRoom -> One Room: POST[5000 ms, 1]("party" / party_id / "rooms") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
@@ -217,7 +217,7 @@ command! {
     }
 
     +struct SearchParty -> One (): POST("party" / party_id / "search") {
-        pub party_id: Snowflake,
+        pub party_id: PartyId,
 
         ;
         #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]

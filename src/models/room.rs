@@ -51,13 +51,11 @@ impl From<RoomKind> for RoomFlags {
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Room {
-    pub id: Snowflake,
+    pub id: RoomId,
 
     pub flags: RoomFlags,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
-    pub party_id: Option<Snowflake>,
+    pub party_id: PartyId,
 
     pub avatar: Option<SmolStr>,
 
@@ -77,7 +75,7 @@ pub struct Room {
     /// Parent room ID for categories
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
-    pub parent_id: Option<Snowflake>,
+    pub parent_id: Option<RoomId>,
 
     /// Permission overwrites for this room
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]

@@ -11,7 +11,7 @@ pub struct Invite {
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
-    pub inviter: Option<Snowflake>,
+    pub inviter: Option<UserId>,
 
     #[serde(default, skip_serializing_if = "is_none_or_empty")]
     pub description: Option<SmolStr>,
