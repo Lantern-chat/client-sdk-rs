@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ArchivedRoomKind","RoomKind","RoomKindResolver"],"struct":["ArchivedFullRoom","ArchivedRoom","FullRoom","FullRoomResolver","Room","RoomFlags","RoomResolver"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Embed","EmbedType"],"mod":["v1"],"struct":["BoxedEmbedMedia","EmbedAuthor","EmbedField","EmbedFlags","EmbedFooter","EmbedMedia","EmbedProvider","EmbedV1"],"type":["UrlSignature"]};
