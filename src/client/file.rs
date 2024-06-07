@@ -1,5 +1,4 @@
 use bytes::BytesMut;
-use smol_str::SmolStr;
 use tokio::io::{AsyncRead, AsyncReadExt};
 
 use super::{Client, ClientError};
@@ -16,7 +15,7 @@ impl Client {
     #[cfg(feature = "fs")]
     pub async fn upload_plain_file(
         &self,
-        filename: impl Into<SmolStr>,
+        filename: impl Into<smol_str::SmolStr>,
         mime: Option<mime::Mime>,
         file: &mut tokio::fs::File,
         progress: impl FnMut(u64, u64),
@@ -35,7 +34,7 @@ impl Client {
             },
             width: None,
             height: None,
-            mime: mime.map(|m| SmolStr::from(m.as_ref())),
+            mime: mime.map(|m| smol_str::SmolStr::from(m.as_ref())),
             preview: None,
         };
 

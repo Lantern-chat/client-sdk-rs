@@ -77,10 +77,10 @@ form_urlencoded = { version = "1.0.1", optional = true }
 percent-encoding = { version = "2.1.0", optional = true }
 arc-swap = { version = "1.5", optional = true }
 base64 = { version = "0.22.0", optional = true }
-tokio = { version = "1", optional = true, default_features = false, features = ["io-util"] }
-reqwest = { version = "0.12", optional = true, default_features = false, features = ["gzip", "deflate", "http2"] }
+tokio = { version = "1", optional = true, default-features = false, features = ["io-util"] }
+reqwest = { version = "0.12", optional = true, default-features = false, features = ["gzip", "deflate", "http2"] }
 
-tokio-tungstenite = { version = "0.21", optional = true, default_features = false, features = ["connect"] }
+tokio-tungstenite = { version = "0.23", optional = true, default-features = false, features = ["connect"] }
 miniz_oxide = { version = "0.7", optional = true }
 futures = { version = "0.3", optional = true }
 pin-project-lite = { version = "0.2.8", optional = true }
@@ -109,7 +109,7 @@ fs = ["tokio/fs"]
 brotli = ["reqwest?/brotli"]
 
 # Realtime gateway support
-gateway = ["serde_json", "tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
+gateway = ["serde_json", "client", "tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
 
 framework_utils = ["smallvec"]
 framework = ["client", "gateway", "async-trait", "tokio/macros", "framework_utils"]
