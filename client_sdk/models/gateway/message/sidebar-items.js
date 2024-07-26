@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ArchivedClientMsg","ArchivedServerMsg","ClientMsg","ClientMsgOpcode","ClientMsgResolver","ServerMsg","ServerMsgOpcode","ServerMsgResolver"],"mod":["client_msg_payloads","server_msg_payloads"],"struct":["DynamicClientMsgHandlers","DynamicServerMsgHandlers"],"trait":["ClientMsgHandlers","ServerMsgHandlers"]};

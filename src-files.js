@@ -1,0 +1,4 @@
+var srcIndex = new Map(JSON.parse('[\
+["client_sdk",["",[["api",[["commands",[],["config.rs","file.rs","invite.rs","mod.rs","party.rs","room.rs","user.rs"]]],["asset.rs","command.rs","error.rs","gateway.rs","mod.rs"]],["client",[],["error.rs","file.rs","mod.rs"]],["driver",[],["error.rs","mod.rs"]],["framework",[["standard",[["cmd",[],["mod.rs"]]],["ctx.rs","error.rs","mod.rs","util.rs"]]],["mod.rs"]],["framework_utils",[],["args.rs","mod.rs"]],["gateway",[],["conn.rs","error.rs","mod.rs","socket.rs"]],["models",[["party",[],["mod.rs","prefs.rs"]],["user",[],["mod.rs","prefs.rs"]]],["asset.rs","auth.rs","config.rs","emote.rs","file.rs","gateway.rs","invite.rs","message.rs","mod.rs","nullable.rs","permission.rs","presence.rs","role.rs","room.rs","session.rs","sf.rs","stats.rs","thread.rs"]]],["lib.rs"]]]\
+]'));
+createSrcSidebar();

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GatewayError","GatewayErrorCode"],"struct":["GatewayConnection","GatewayConnectionControl","GatewaySocket"]};

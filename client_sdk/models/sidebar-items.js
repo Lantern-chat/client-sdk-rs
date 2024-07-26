@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ArchivedCursor","Cursor","CursorResolver"],"mod":["aliases","asset","auth","config","embed","emote","file","gateway","invite","message","nullable","party","permission","presence","role","room","session","sf","stats","thread","user"],"struct":["Arc","SmolStr","ThinVec","Timestamp"]};
