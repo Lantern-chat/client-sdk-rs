@@ -49,7 +49,7 @@ static_assertions = "1"
 byteorder = "1.4"
 triomphe = "0.1.8"
 
-typed-builder = { version = "0.18", optional = true }
+typed-builder = { version = "0.19", optional = true }
 schemars = { version = "0.8", optional = true, features = ["triomphe"] }
 okapi = { version = "0.7.0-rc.1", optional = true }
 ahash = { version = "0.8", optional = true }
@@ -65,7 +65,6 @@ rusqlite = { version = "0.31.0", optional = true }
 
 crc32fast = { version = "1", optional = true }
 ciborium = { version = "0.2", optional = true }
-lazy_static = { version = "1.4.0", optional = true }
 
 url = { version = "2", optional = true }
 thiserror = { version = "1", optional = true }
@@ -100,7 +99,7 @@ rusqlite = ["dep:rusqlite", "common/rusqlite", "timestamp/rusqlite", "snowflake/
 api = ["http", "_internal_common", "percent-encoding", "futures"]                                              # http required for Method
 
 # Low-level command execution
-driver = ["serde_json", "reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes", "lazy_static"]
+driver = ["serde_json", "reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes"]
 
 # High-level client library
 client = ["driver", "arc-swap", "tokio"]
