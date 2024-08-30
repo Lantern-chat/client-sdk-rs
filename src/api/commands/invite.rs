@@ -13,10 +13,11 @@ command! {
         pub code: SmolStr,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct RedeemInviteBody {
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub nickname: Option<SmolStr>,
         }
     }

@@ -13,8 +13,9 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(UserPresenceFlags);
-common::impl_schema_for_bitflags!(UserPresenceFlags);
+impl_rkyv_for_bitflags!(pub UserPresenceFlags: i16);
+impl_serde_for_bitflags!(UserPresenceFlags);
+impl_schema_for_bitflags!(UserPresenceFlags);
 
 impl UserPresenceFlags {
     pub const fn from_bits_truncate_public(bits: i16) -> Self {
@@ -24,8 +25,11 @@ impl UserPresenceFlags {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct UserPresence {
     pub flags: UserPresenceFlags,
 
@@ -60,8 +64,11 @@ impl UserPresence {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 #[serde(untagged)]
 pub enum AnyActivity {
     Typed(Activity),
@@ -71,6 +78,9 @@ pub enum AnyActivity {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct Activity {}

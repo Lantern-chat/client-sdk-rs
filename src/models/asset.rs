@@ -54,9 +54,10 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(AssetFlags);
-common::impl_schema_for_bitflags!(AssetFlags);
-common::impl_sql_for_bitflags!(AssetFlags);
+impl_rkyv_for_bitflags!(pub AssetFlags: i16);
+impl_serde_for_bitflags!(AssetFlags);
+impl_schema_for_bitflags!(AssetFlags);
+impl_sql_for_bitflags!(AssetFlags);
 
 impl AssetFlags {
     /// Sets the quality of the asset, clamping to `[0-128)`
@@ -92,8 +93,7 @@ impl AssetFlags {
             (AssetFlags::FORMAT_AVIF, "avif"),
         ];
 
-        // bailout on obviously invalid extensions
-        if 3 <= ext.len() && ext.len() < 5 {
+        if (3..5).contains(&ext.len()) {
             for &(f, e) in FORMAT_EXTS {
                 if ext.eq_ignore_ascii_case(e) {
                     return f;

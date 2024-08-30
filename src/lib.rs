@@ -2,10 +2,14 @@
 
 #![allow(clippy::bad_bit_mask)]
 
+#[cfg(all(feature = "typed-builder", feature = "bon"))]
+compile_error!("'typed-builder' and 'bon' features are mutually exclusive");
+
 #[macro_use]
 extern crate serde;
 
-pub extern crate common;
+#[macro_use]
+extern crate bitflags_serde_shim;
 
 pub use models::Snowflake;
 

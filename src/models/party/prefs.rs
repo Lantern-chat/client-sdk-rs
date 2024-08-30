@@ -13,8 +13,9 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(PartyPrefsFlags);
-common::impl_sql_for_bitflags!(PartyPrefsFlags);
+impl_rkyv_for_bitflags!(pub PartyPrefsFlags: i32);
+impl_serde_for_bitflags!(PartyPrefsFlags);
+impl_sql_for_bitflags!(PartyPrefsFlags);
 
 impl From<u64> for PartyPrefsFlags {
     fn from(value: u64) -> Self {
@@ -33,8 +34,11 @@ mod preferences {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct PartyPreferences {
     #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
     pub l: Locale,

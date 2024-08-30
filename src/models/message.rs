@@ -25,8 +25,10 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(MessageFlags);
-common::impl_schema_for_bitflags!(MessageFlags);
+impl_rkyv_for_bitflags!(pub MessageFlags: i32);
+impl_serde_for_bitflags!(MessageFlags);
+impl_schema_for_bitflags!(MessageFlags);
+impl_sql_for_bitflags!(MessageFlags);
 
 impl MessageFlags {
     #[inline]
@@ -35,26 +37,27 @@ impl MessageFlags {
     }
 }
 
-#[rustfmt::skip]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
-#[derive(enum_primitive_derive::Primitive)]
-#[repr(i16)]
-pub enum MessageKind {
-    #[default]
-    Normal  = 0,
-    Welcome = 1,
-    Ephemeral = 2,
-    Unavailable = 3,
+decl_enum! {
+    #[derive(Default)]
+    #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+    #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[derive(enum_primitive_derive::Primitive)]
+    pub enum MessageKind: i16 {
+        #[default]
+        0 = Normal,
+        1 = Welcome,
+        2 = Ephemeral,
+        3 = Unavailable,
+    }
 }
-
-common::impl_rkyv_for_pod!(MessageKind + CheckBytes);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct Message {
     pub id: MessageId,
     pub room_id: RoomId,
@@ -77,17 +80,13 @@ pub struct Message {
     pub flags: MessageFlags,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub pins: ThinVec<FolderId>,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub user_mentions: ThinVec<UserId>,
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub role_mentions: ThinVec<RoleId>,
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub room_mentions: ThinVec<RoomId>,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
@@ -109,8 +108,11 @@ pub struct Message {
 /// are prefixed with a colon (`:`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 #[serde(untagged)]
 pub enum EmoteOrEmoji {
     Emote { emote: EmoteId },
@@ -161,8 +163,11 @@ const _: () = {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct ReactionShorthand {
     #[serde(flatten)]
     pub emote: EmoteOrEmoji,
@@ -173,19 +178,23 @@ pub struct ReactionShorthand {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct ReactionFull {
     pub emote: EmoteOrEmoji,
-
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub users: ThinVec<UserId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 #[serde(untagged)]
 pub enum Reaction {
     Shorthand(ReactionShorthand),
@@ -194,8 +203,11 @@ pub enum Reaction {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct Attachment {
     #[serde(flatten)]
     pub file: File,

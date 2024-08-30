@@ -8,14 +8,18 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(ThreadFlags);
-common::impl_schema_for_bitflags!(ThreadFlags);
-common::impl_sql_for_bitflags!(ThreadFlags);
+impl_rkyv_for_bitflags!(pub ThreadFlags: i16);
+impl_serde_for_bitflags!(ThreadFlags);
+impl_schema_for_bitflags!(ThreadFlags);
+impl_sql_for_bitflags!(ThreadFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct Thread {
     pub id: ThreadId,
     pub parent: Message,

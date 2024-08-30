@@ -40,9 +40,10 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(PartyFlags);
-common::impl_schema_for_bitflags!(PartyFlags);
-common::impl_sql_for_bitflags!(PartyFlags);
+impl_rkyv_for_bitflags!(pub PartyFlags: i32);
+impl_serde_for_bitflags!(PartyFlags);
+impl_schema_for_bitflags!(PartyFlags);
+impl_sql_for_bitflags!(PartyFlags);
 
 //#[derive(Debug, Clone, Serialize, Deserialize)]
 //#[serde(untagged)]
@@ -53,8 +54,11 @@ common::impl_sql_for_bitflags!(PartyFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct PartialParty {
     pub id: PartyId,
 
@@ -67,8 +71,11 @@ pub struct PartialParty {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct Party {
     #[serde(flatten)]
     pub partial: PartialParty,
@@ -100,6 +107,17 @@ pub struct Party {
 impl Deref for Party {
     type Target = PartialParty;
 
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.partial
+    }
+}
+
+#[cfg(feature = "rkyv")]
+impl Deref for ArchivedParty {
+    type Target = ArchivedPartialParty;
+
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.partial
     }
@@ -118,14 +136,18 @@ impl Default for PartyMemberFlags {
     }
 }
 
-common::impl_serde_for_bitflags!(PartyMemberFlags);
-common::impl_schema_for_bitflags!(PartyMemberFlags);
-common::impl_sql_for_bitflags!(PartyMemberFlags);
+impl_rkyv_for_bitflags!(pub PartyMemberFlags: i16);
+impl_serde_for_bitflags!(PartyMemberFlags);
+impl_schema_for_bitflags!(PartyMemberFlags);
+impl_sql_for_bitflags!(PartyMemberFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct PartyMember {
     pub user: User,
 
@@ -137,7 +159,6 @@ pub struct PartyMember {
 
     /// List of Role id snowflakes, may be excluded from some queries
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub roles: ThinVec<RoleId>,
 }
 
@@ -156,14 +177,18 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(PinFolderFlags);
-common::impl_schema_for_bitflags!(PinFolderFlags);
-common::impl_sql_for_bitflags!(PinFolderFlags);
+impl_rkyv_for_bitflags!(pub PinFolderFlags: i32);
+impl_serde_for_bitflags!(PinFolderFlags);
+impl_schema_for_bitflags!(PinFolderFlags);
+impl_sql_for_bitflags!(PinFolderFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct PinFolder {
     pub id: FolderId,
     pub name: SmolStr,

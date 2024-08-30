@@ -1,3 +1,5 @@
+//! Small fixed-size string type that can only be a given length, no more or less, exactly `N` bytes.
+
 use core::fmt;
 
 /// Fixed-size String that can *only* be a given length, no more or less, exactly N bytes
@@ -6,76 +8,6 @@ use core::fmt;
 pub struct FixedStr<const N: usize> {
     data: [u8; N],
 }
-
-#[cfg(feature = "rkyv")]
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct FixedStrCheckError(pub core::str::Utf8Error);
-
-#[cfg(feature = "rkyv")]
-const _: () = {
-    impl From<core::str::Utf8Error> for FixedStrCheckError {
-        fn from(e: core::str::Utf8Error) -> Self {
-            Self(e)
-        }
-    }
-
-    impl fmt::Display for FixedStrCheckError {
-        #[inline]
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "utf8 error: {}", self.0)
-        }
-    }
-
-    #[cfg(feature = "std")]
-    impl std::error::Error for FixedStrCheckError {
-        #[inline]
-        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-            Some(&self.0)
-        }
-    }
-
-    use rkyv::{bytecheck::CheckBytes, Archive, Deserialize, Fallible, Serialize};
-
-    impl<const N: usize> Archive for FixedStr<N> {
-        type Archived = FixedStr<N>;
-        type Resolver = ();
-
-        #[inline]
-        unsafe fn resolve(&self, _pos: usize, _resolver: Self::Resolver, out: *mut Self::Archived) {
-            *out = *self;
-        }
-    }
-
-    impl<const N: usize, S> Serialize<S> for FixedStr<N>
-    where
-        S: Fallible + ?Sized,
-    {
-        #[inline]
-        fn serialize(&self, _serializer: &mut S) -> Result<Self::Resolver, S::Error> {
-            Ok(())
-        }
-    }
-
-    impl<const N: usize, D> Deserialize<Self, D> for FixedStr<N>
-    where
-        D: Fallible + ?Sized,
-    {
-        #[inline]
-        fn deserialize(&self, _deserializer: &mut D) -> Result<Self, D::Error> {
-            Ok(*self)
-        }
-    }
-
-    impl<const N: usize, C: ?Sized> CheckBytes<C> for FixedStr<N> {
-        type Error = FixedStrCheckError;
-
-        unsafe fn check_bytes<'a>(value: *const Self, _context: &mut C) -> Result<&'a Self, Self::Error> {
-            core::str::from_utf8(core::slice::from_raw_parts(value.cast::<u8>(), N))?;
-            Ok(&*value)
-        }
-    }
-};
 
 impl<const N: usize> AsRef<str> for FixedStr<N> {
     #[inline(always)]
@@ -120,6 +52,9 @@ impl<const N: usize> FixedStr<N> {
     pub const LEN: usize = N;
 
     /// Construct a new [FixedStr] from a given ASCII character repeated for the entire length
+    ///
+    /// # Panics
+    /// * if the character is not ASCII
     pub const fn repeat_ascii(c: char) -> FixedStr<N> {
         if !c.is_ascii() {
             panic!("Non-ASCII character given");
@@ -128,14 +63,10 @@ impl<const N: usize> FixedStr<N> {
         FixedStr { data: [c as u8; N] }
     }
 
-    /// # Safety
+    /// Construct a new [FixedStr] from a [`&str`](str) if the length is correct.
     ///
-    /// Create a string of `\0` values. Don't use this in client code.
-    pub const unsafe fn zeroized() -> FixedStr<N> {
-        FixedStr { data: [0; N] }
-    }
-
-    /// Construct a new [FixedStr] from a `&str`, panics if the length is not exactly correct.
+    /// # Panics
+    /// * if the length is not exactly correct.
     #[inline]
     pub const fn new(s: &str) -> FixedStr<N> {
         if s.len() != N {
@@ -155,6 +86,7 @@ impl<const N: usize> FixedStr<N> {
         FixedStr { data }
     }
 
+    /// Construct a new [FixedStr] from a [`&str`](str) if the length is correct.
     #[inline]
     pub const fn try_from(s: &str) -> Option<FixedStr<N>> {
         if s.len() != N {
@@ -183,9 +115,8 @@ impl<const N: usize> fmt::Display for FixedStr<N> {
     }
 }
 
-mod serde_impl {
-    use super::FixedStr;
-
+//#[cfg(feature = "serde")]
+const _: () = {
     use core::fmt;
     use core::marker::PhantomData;
 
@@ -222,13 +153,72 @@ mod serde_impl {
             deserializer.deserialize_str(FixedStrVisitor(PhantomData))
         }
     }
-}
+};
+
+#[cfg(feature = "rkyv")]
+const _: () = {
+    use core::{slice::from_raw_parts, str::from_utf8};
+
+    use rkyv::{
+        bytecheck::CheckBytes,
+        place::Place,
+        rancor::{Fallible, ResultExt, Source},
+        traits::NoUndef,
+        Archive, Deserialize, Portable, Serialize,
+    };
+
+    unsafe impl<const N: usize> Portable for FixedStr<N> {}
+    unsafe impl<const N: usize> NoUndef for FixedStr<N> {}
+
+    impl<const N: usize> Archive for FixedStr<N> {
+        type Archived = FixedStr<N>;
+        type Resolver = ();
+
+        #[inline]
+        fn resolve(&self, _resolver: Self::Resolver, out: Place<Self::Archived>) {
+            out.write(*self);
+        }
+    }
+
+    impl<const N: usize, S> Serialize<S> for FixedStr<N>
+    where
+        S: Fallible + ?Sized,
+    {
+        #[inline]
+        fn serialize(&self, _serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+            Ok(())
+        }
+    }
+
+    impl<const N: usize, D> Deserialize<Self, D> for FixedStr<N>
+    where
+        D: Fallible + ?Sized,
+    {
+        #[inline]
+        fn deserialize(&self, _deserializer: &mut D) -> Result<Self, D::Error> {
+            Ok(*self)
+        }
+    }
+
+    unsafe impl<const N: usize, C> CheckBytes<C> for FixedStr<N>
+    where
+        C: Fallible + ?Sized,
+        C::Error: Source,
+    {
+        unsafe fn check_bytes<'a>(value: *const Self, _context: &mut C) -> Result<(), C::Error> {
+            from_utf8(from_raw_parts(value.cast::<u8>(), N)).into_error()?;
+
+            Ok(())
+        }
+    }
+};
 
 #[cfg(feature = "schemars")]
-mod schemars_impl {
-    use alloc::{boxed::Box, string::String};
+const _: () = {
+    extern crate alloc;
 
-    use schemars::_serde_json::json;
+    use alloc::{borrow::ToOwned, boxed::Box, string::String};
+
     use schemars::{
         schema::{InstanceType, Metadata, Schema, SchemaObject, SingleOrVec},
         JsonSchema,
@@ -249,11 +239,11 @@ mod schemars_impl {
                 ..Default::default()
             };
 
-            obj.string().pattern = Some(alloc::format!("[a-fA-F0-9]{{{N}}}"));
+            obj.string().pattern = Some(alloc::format!(r#"[\x00-\x7F]{{{N}}}"#));
             obj.string().min_length = Some(N as u32);
             obj.string().max_length = Some(N as u32);
 
             Schema::Object(obj)
         }
     }
-}
+};

@@ -8,14 +8,18 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(RoleFlags);
-common::impl_schema_for_bitflags!(RoleFlags);
-common::impl_sql_for_bitflags!(RoleFlags);
+impl_rkyv_for_bitflags!(pub RoleFlags: i16);
+impl_serde_for_bitflags!(RoleFlags);
+impl_schema_for_bitflags!(RoleFlags);
+impl_sql_for_bitflags!(RoleFlags);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct Role {
     pub id: RoleId,
 

@@ -21,9 +21,9 @@ pub struct ApiError {
 #[cfg(feature = "rkyv")]
 impl ArchivedApiError {
     /// Get the error code for this error.
-    pub fn code(&self) -> ApiErrorCode {
-        rkyv::Deserialize::deserialize(&self.code, &mut rkyv::Infallible)
-            .unwrap_or_else(|_| unsafe { core::hint::unreachable_unchecked() })
+    #[inline]
+    pub const fn code(&self) -> ApiErrorCode {
+        self.code.get()
     }
 }
 
@@ -46,14 +46,14 @@ macro_rules! error_codes {
         $(#[$meta:meta])*
         $vis:vis enum $name:ident: $repr:ty $(= $unknown:ident)? {$(
             $(#[$variant_meta:meta])*
-            $variant:ident = $code:literal = $status:expr,
+            $code:literal = $variant:ident = $status:expr,
         )*}
     ) => {
-        common::enum_codes! {
+        enum_codes! {
             $(#[$meta])*
-            $vis enum $name: $repr $(= $unknown)? {$(
+            $vis enum $name: pub $repr $(= $unknown)? {$(
                 $(#[$variant_meta])*
-                $variant = $code,
+                $code = $variant,
             )*}
         }
 
@@ -70,79 +70,78 @@ macro_rules! error_codes {
 
 error_codes! {
     /// Standard API error codes.
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-    #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema_repr))]
     #[derive(enum_primitive_derive::Primitive)]
     pub enum ApiErrorCode: u16 = Unknown {
         // Server errors
-        DbError                  = 50001 = StatusCode::INTERNAL_SERVER_ERROR,
-        JoinError                = 50002 = StatusCode::INTERNAL_SERVER_ERROR,
-        SemaphoreError           = 50003 = StatusCode::INTERNAL_SERVER_ERROR,
-        HashError                = 50004 = StatusCode::INTERNAL_SERVER_ERROR,
-        JsonError                = 50005 = StatusCode::INTERNAL_SERVER_ERROR,
-        EventEncodingError       = 50006 = StatusCode::INTERNAL_SERVER_ERROR,
-        InternalError            = 50007 = StatusCode::INTERNAL_SERVER_ERROR,
-        Utf8ParseError           = 50008 = StatusCode::INTERNAL_SERVER_ERROR,
-        IOError                  = 50009 = StatusCode::INTERNAL_SERVER_ERROR,
-        InvalidHeaderValue       = 50010 = StatusCode::INTERNAL_SERVER_ERROR,
-        XMLError                 = 50011 = StatusCode::INTERNAL_SERVER_ERROR,
-        RequestError             = 50012 = StatusCode::INTERNAL_SERVER_ERROR,
-        Unimplemented            = 50013 = StatusCode::INTERNAL_SERVER_ERROR,
-        BincodeError             = 50014 = StatusCode::INTERNAL_SERVER_ERROR,
-        CborError                = 50015 = StatusCode::INTERNAL_SERVER_ERROR,
-        RkyvEncodingError        = 50016 = StatusCode::INTERNAL_SERVER_ERROR,
+        50001 = DbError                  = StatusCode::INTERNAL_SERVER_ERROR,
+        50002 = JoinError                = StatusCode::INTERNAL_SERVER_ERROR,
+        50003 = SemaphoreError           = StatusCode::INTERNAL_SERVER_ERROR,
+        50004 = HashError                = StatusCode::INTERNAL_SERVER_ERROR,
+        50005 = JsonError                = StatusCode::INTERNAL_SERVER_ERROR,
+        50006 = EventEncodingError       = StatusCode::INTERNAL_SERVER_ERROR,
+        50007 = InternalError            = StatusCode::INTERNAL_SERVER_ERROR,
+        50008 = Utf8ParseError           = StatusCode::INTERNAL_SERVER_ERROR,
+        50009 = IOError                  = StatusCode::INTERNAL_SERVER_ERROR,
+        50010 = InvalidHeaderValue       = StatusCode::INTERNAL_SERVER_ERROR,
+        50011 = XMLError                 = StatusCode::INTERNAL_SERVER_ERROR,
+        50012 = RequestError             = StatusCode::INTERNAL_SERVER_ERROR,
+        50013 = Unimplemented            = StatusCode::INTERNAL_SERVER_ERROR,
+        50014 = BincodeError             = StatusCode::INTERNAL_SERVER_ERROR,
+        50015 = CborError                = StatusCode::INTERNAL_SERVER_ERROR,
+        50016 = RkyvEncodingError        = StatusCode::INTERNAL_SERVER_ERROR,
 
         // Client errors
-        AlreadyExists            = 40001 = StatusCode::CONFLICT,
-        UsernameUnavailable      = 40002 = StatusCode::BAD_REQUEST,
-        InvalidEmail             = 40003 = StatusCode::UNAUTHORIZED,
-        InvalidUsername          = 40004 = StatusCode::UNAUTHORIZED,
-        InvalidPassword          = 40005 = StatusCode::UNAUTHORIZED,
-        InvalidCredentials       = 40006 = StatusCode::UNAUTHORIZED,
-        InsufficientAge          = 40007 = StatusCode::BAD_REQUEST,
-        InvalidDate              = 40008 = StatusCode::BAD_REQUEST,
-        InvalidContent           = 40009 = StatusCode::BAD_REQUEST,
-        InvalidName              = 40010 = StatusCode::BAD_REQUEST,
-        InvalidTopic             = 40011 = StatusCode::BAD_REQUEST,
-        MissingUploadMetadataHeader  = 40012 = StatusCode::BAD_REQUEST,
-        MissingAuthorizationHeader   = 40013 = StatusCode::BAD_REQUEST,
-        NoSession                = 40014 = StatusCode::UNAUTHORIZED,
-        InvalidAuthFormat        = 40015 = StatusCode::BAD_REQUEST,
-        HeaderParseError         = 40016 = StatusCode::UNPROCESSABLE_ENTITY,
-        MissingFilename          = 40017 = StatusCode::BAD_REQUEST,
-        MissingMime              = 40018 = StatusCode::BAD_REQUEST,
-        AuthTokenError           = 40019 = StatusCode::UNPROCESSABLE_ENTITY,
-        Base64DecodeError        = 40020 = StatusCode::BAD_REQUEST,
-        BodyDeserializeError     = 40021 = StatusCode::UNPROCESSABLE_ENTITY,
-        QueryParseError          = 40022 = StatusCode::BAD_REQUEST,
-        UploadError              = 40023 = StatusCode::BAD_REQUEST,
-        InvalidPreview           = 40024 = StatusCode::BAD_REQUEST,
-        MimeParseError           = 40025 = StatusCode::BAD_REQUEST,
-        InvalidImageFormat       = 40026 = StatusCode::BAD_REQUEST,
-        TOTPRequired             = 40027 = StatusCode::UNAUTHORIZED,
-        InvalidPreferences       = 40028 = StatusCode::BAD_REQUEST,
-        TemporarilyDisabled      = 40029 = StatusCode::FORBIDDEN,
-        InvalidCaptcha           = 40030 = StatusCode::UNAUTHORIZED,
-        Base85DecodeError        = 40031 = StatusCode::BAD_REQUEST,
-        WebsocketError           = 40032 = StatusCode::BAD_REQUEST,
-        MissingContentTypeHeader = 40033 = StatusCode::BAD_REQUEST,
-        Blocked                  = 40034 = StatusCode::FORBIDDEN,
-        Banned                   = 40035 = StatusCode::FORBIDDEN,
-        SearchError              = 40036 = StatusCode::BAD_REQUEST,
+        40001 = AlreadyExists            = StatusCode::CONFLICT,
+        40002 = UsernameUnavailable      = StatusCode::BAD_REQUEST,
+        40003 = InvalidEmail             = StatusCode::UNAUTHORIZED,
+        40004 = InvalidUsername          = StatusCode::UNAUTHORIZED,
+        40005 = InvalidPassword          = StatusCode::UNAUTHORIZED,
+        40006 = InvalidCredentials       = StatusCode::UNAUTHORIZED,
+        40007 = InsufficientAge          = StatusCode::BAD_REQUEST,
+        40008 = InvalidDate              = StatusCode::BAD_REQUEST,
+        40009 = InvalidContent           = StatusCode::BAD_REQUEST,
+        40010 = InvalidName              = StatusCode::BAD_REQUEST,
+        40011 = InvalidTopic             = StatusCode::BAD_REQUEST,
+        40012 = MissingUploadMetadataHeader  = StatusCode::BAD_REQUEST,
+        40013 = MissingAuthorizationHeader   = StatusCode::BAD_REQUEST,
+        40014 = NoSession                = StatusCode::UNAUTHORIZED,
+        40015 = InvalidAuthFormat        = StatusCode::BAD_REQUEST,
+        40016 = HeaderParseError         = StatusCode::UNPROCESSABLE_ENTITY,
+        40017 = MissingFilename          = StatusCode::BAD_REQUEST,
+        40018 = MissingMime              = StatusCode::BAD_REQUEST,
+        40019 = AuthTokenError           = StatusCode::UNPROCESSABLE_ENTITY,
+        40020 = Base64DecodeError        = StatusCode::BAD_REQUEST,
+        40021 = BodyDeserializeError     = StatusCode::UNPROCESSABLE_ENTITY,
+        40022 = QueryParseError          = StatusCode::BAD_REQUEST,
+        40023 = UploadError              = StatusCode::BAD_REQUEST,
+        40024 = InvalidPreview           = StatusCode::BAD_REQUEST,
+        40025 = MimeParseError           = StatusCode::BAD_REQUEST,
+        40026 = InvalidImageFormat       = StatusCode::BAD_REQUEST,
+        40027 = TOTPRequired             = StatusCode::UNAUTHORIZED,
+        40028 = InvalidPreferences       = StatusCode::BAD_REQUEST,
+        40029 = TemporarilyDisabled      = StatusCode::FORBIDDEN,
+        40030 = InvalidCaptcha           = StatusCode::UNAUTHORIZED,
+        40031 = Base85DecodeError        = StatusCode::BAD_REQUEST,
+        40032 = WebsocketError           = StatusCode::BAD_REQUEST,
+        40033 = MissingContentTypeHeader = StatusCode::BAD_REQUEST,
+        40034 = Blocked                  = StatusCode::FORBIDDEN,
+        40035 = Banned                   = StatusCode::FORBIDDEN,
+        40036 = SearchError              = StatusCode::BAD_REQUEST,
 
         // Generic HTTP-like error codes
-        BadRequest               = 40400 = StatusCode::BAD_REQUEST,
-        Unauthorized             = 40401 = StatusCode::UNAUTHORIZED,
-        NotFound                 = 40404 = StatusCode::NOT_FOUND,
-        MethodNotAllowed         = 40405 = StatusCode::METHOD_NOT_ALLOWED,
-        Conflict                 = 40409 = StatusCode::CONFLICT,
-        RequestEntityTooLarge    = 40413 = unsafe { StatusCode::from_u16(413).unwrap_unchecked() }, // 413 Request Entity Too Large
-        UnsupportedMediaType     = 40415 = StatusCode::UNSUPPORTED_MEDIA_TYPE,
-        ChecksumMismatch         = 40460 = unsafe { StatusCode::from_u16(460).unwrap_unchecked() }, // 460 Checksum Mismatch
+        40400 = BadRequest               = StatusCode::BAD_REQUEST,
+        40401 = Unauthorized             = StatusCode::UNAUTHORIZED,
+        40404 = NotFound                 = StatusCode::NOT_FOUND,
+        40405 = MethodNotAllowed         = StatusCode::METHOD_NOT_ALLOWED,
+        40409 = Conflict                 = StatusCode::CONFLICT,
+        40413 = RequestEntityTooLarge    = unsafe { StatusCode::from_u16(413).unwrap_unchecked() }, // 413 Request Entity Too Large
+        40415 = UnsupportedMediaType     = StatusCode::UNSUPPORTED_MEDIA_TYPE,
+        40460 = ChecksumMismatch         = unsafe { StatusCode::from_u16(460).unwrap_unchecked() }, // 460 Checksum Mismatch
 
         #[serde(other)]
-        Unknown = 1 = StatusCode::IM_A_TEAPOT,
+        1 = Unknown = StatusCode::IM_A_TEAPOT,
     }
 }
 

@@ -8,17 +8,18 @@ command! {
     +struct CreateParty -> One Party: POST[5000 ms, 1]("party") {
         ;
 
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct CreatePartyForm {
-            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub name: SmolStr,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub description: Option<SmolStr>,
 
             #[serde(default)]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub flags: PartyFlags,
         }
     }
@@ -28,31 +29,32 @@ command! {
 
         ;
         #[derive(Default, PartialEq)]
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         #[cfg_attr(feature = "rkyv", archive(compare(PartialEq)))]
         struct PatchPartyForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub name: Option<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub description: Nullable<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub flags: Option<PartyFlags>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub default_room: Option<RoomId>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub avatar: Nullable<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub banner: Nullable<Snowflake>,
         }
     }
@@ -71,9 +73,10 @@ command! {
         pub party_id: PartyId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct CreateRoleForm {
-            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub name: SmolStr,
         }
     }
@@ -84,31 +87,32 @@ command! {
 
         ;
         #[derive(Default, PartialEq)]
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         #[cfg_attr(feature = "rkyv", archive(compare(PartialEq)))]
         struct PatchRoleForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub flags: Option<RoleFlags>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub name: Option<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub color: Option<u32>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub permissions: Option<Permissions>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub avatar: Nullable<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub position: Option<u8>,
         }
     }
@@ -144,7 +148,8 @@ command! {
         pub party_id: PartyId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct UpdateMemberProfileBody {
             #[serde(flatten)]
             pub profile: user::UpdateUserProfileBody,
@@ -156,20 +161,21 @@ command! {
 
         ;
         /// Infinite parameters may only be used with appropriate permissions
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct CreatePartyInviteBody {
             /// If `None`, invite has infinite uses
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub max_uses: Option<u16>,
 
             /// If `None`, invite has infinite duration
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub duration: Option<u64>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub description: Option<SmolStr>,
         }
     }
@@ -178,13 +184,14 @@ command! {
         pub party_id: PartyId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct CreatePinFolderForm {
-            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub name: SmolStr,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub description: Option<SmolStr>,
         }
     }
@@ -193,25 +200,25 @@ command! {
         pub party_id: PartyId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct CreateRoomForm {
-            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub name: SmolStr,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub topic: Option<SmolStr>,
 
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub kind: CreateRoomKind,
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub overwrites: ThinVec<Overwrite>,
 
             #[serde(default)]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub position: i16,
         }
     }
@@ -220,32 +227,47 @@ command! {
         pub party_id: PartyId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct SearchQuery {
             #[serde(flatten)]
-            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub query: String,
         }
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
-#[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
-#[repr(u8)]
-pub enum CreateRoomKind {
-    #[default]
-    Text = RoomKind::Text as u8,
-    Voice = RoomKind::Voice as u8,
-    UserForum = RoomKind::UserForum as u8,
+decl_enum! {
+    #[derive(Default, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    pub enum CreateRoomKind: u8 {
+        #[default]
+        0 = Text,
+        3 = Voice,
+        4 = UserForum,
+    }
 }
 
-common::impl_rkyv_for_pod!(CreateRoomKind);
-
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+#[cfg_attr(feature = "bon", bon::builder)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct PartySettings {
     pub flags: PartyFlags,
     pub prefs: PartyPreferences,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_create_room_kind_equivalence() {
+        assert_eq!(CreateRoomKind::Text as u8, RoomKind::Text as u8);
+        assert_eq!(CreateRoomKind::Voice as u8, RoomKind::Voice as u8);
+        assert_eq!(CreateRoomKind::UserForum as u8, RoomKind::UserForum as u8);
+    }
 }

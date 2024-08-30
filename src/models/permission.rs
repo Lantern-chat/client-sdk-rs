@@ -97,8 +97,8 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_rkyv_for_pod!(Permissions + CheckBytes);
-common::impl_schema_for_bitflags!(Permissions);
+impl_rkyv_for_bitflags!(pub Permissions: u128);
+impl_schema_for_bitflags!(Permissions);
 
 impl Default for Permissions {
     fn default() -> Self {
@@ -246,7 +246,7 @@ impl Permissions {
 
     /// Converts the `Permissions` into two `i64` values.
     #[inline(always)]
-    pub fn to_i64(self) -> [i64; 2] {
+    pub const fn to_i64(self) -> [i64; 2] {
         let bits = self.bits();
         let low = bits as u64 as i64;
         let high = (bits >> 64) as u64 as i64;

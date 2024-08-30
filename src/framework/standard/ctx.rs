@@ -1,10 +1,6 @@
-use std::{
-    future::Future,
-    pin::Pin,
-    sync::{
-        atomic::{AtomicU32, Ordering::SeqCst},
-        Arc,
-    },
+use std::sync::{
+    atomic::{AtomicU32, Ordering::SeqCst},
+    Arc,
 };
 
 use crate::{
@@ -118,34 +114,16 @@ impl<H> InternalEventHandlers<H> {
 }
 
 use crate::models::events::*;
-
-//#[async_trait::async_trait]
 impl<H, E> ServerMsgHandlers<StandardContext, Result<(), E>> for InternalEventHandlers<H>
 where
     H: ServerMsgHandlers<StandardContext, Result<(), E>>,
 {
     #[inline(always)]
-    fn fallback<'life0, 'async_trait>(
-        &'life0 self,
-        ctx: StandardContext,
-        msg: ServerMsg,
-    ) -> Pin<Box<dyn Future<Output = Result<(), E>> + Send + 'async_trait>>
-    where
-        'life0: 'async_trait,
-        Self: 'async_trait,
-    {
-        self.user.dispatch(ctx, msg)
+    async fn fallback(&self, ctx: StandardContext, msg: ServerMsg) -> Result<(), E> {
+        self.user.dispatch(ctx, msg).await
     }
 
-    fn hello<'life0, 'async_trait>(
-        &'life0 self,
-        ctx: StandardContext,
-        inner: Hello,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<(), E>> + Send + 'async_trait>>
-    where
-        'life0: 'async_trait,
-        Self: 'async_trait,
-    {
+    async fn hello(&self, ctx: StandardContext, inner: Hello) -> Result<(), E> {
         self.interval.store(inner.heartbeat_interval, SeqCst);
 
         self.setup_new_heartbeat(ctx.clone());
@@ -157,20 +135,13 @@ where
             }));
         }
 
-        self.user.hello(ctx, inner)
+        self.user.hello(ctx, inner).await
     }
 
-    fn heartbeat_ack<'life0, 'async_trait>(
-        &'life0 self,
-        ctx: StandardContext,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<(), E>> + Send + 'async_trait>>
-    where
-        'life0: 'async_trait,
-        Self: 'async_trait,
-    {
+    async fn heartbeat_ack(&self, ctx: StandardContext) -> Result<(), E> {
         self.setup_new_heartbeat(ctx.clone());
 
-        self.user.heartbeat_ack(ctx)
+        self.user.heartbeat_ack(ctx).await
     }
 
     //async fn ready(&self, ctx: StandardContext, ready: Box<Ready>) -> Result<(), E> {

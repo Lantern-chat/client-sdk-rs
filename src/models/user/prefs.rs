@@ -3,40 +3,40 @@ use std::fmt;
 
 use super::*;
 
-common::enum_codes! {
+enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     #[allow(non_camel_case_types)]
     pub enum Locale: u16 = enUS {
         #[default]
-        enUS = 0,
+        0 = enUS,
     }
 }
 
-common::enum_codes! {
+enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     pub enum Font: u16 = SansSerif {
         #[default]
-        SansSerif = 0,
-        Serif = 1,
-        Monospace = 2,
-        Cursive = 3,
-        ComicSans = 4,
+        0 = SansSerif,
+        1 = Serif,
+        2 = Monospace,
+        3 = Cursive,
+        4 = ComicSans,
 
         // third-party fonts
-        OpenDyslexic = 30,
+        30 = OpenDyslexic,
 
-        AtkinsonHyperlegible = 31,
+        31 = AtkinsonHyperlegible,
     }
 }
 
-common::enum_codes! {
+enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     pub enum FriendAddability: u8 = None {
         #[default]
-        None = 0,
-        FriendsOfFriends = 10,
-        ServerMembers = 20,
-        Anyone = 30,
+        0  = None,
+        10 = FriendsOfFriends,
+        20 = ServerMembers,
+        30 = Anyone,
     }
 }
 
@@ -103,8 +103,9 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(UserPrefsFlags);
-common::impl_sql_for_bitflags!(UserPrefsFlags);
+impl_rkyv_for_bitflags!(pub UserPrefsFlags: i32);
+impl_serde_for_bitflags!(UserPrefsFlags);
+impl_sql_for_bitflags!(UserPrefsFlags);
 
 impl From<u64> for UserPrefsFlags {
     fn from(value: u64) -> Self {

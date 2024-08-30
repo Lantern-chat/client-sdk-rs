@@ -1,3 +1,5 @@
+#![allow(async_fn_in_trait)]
+
 use super::*;
 
 bitflags::bitflags! {
@@ -80,9 +82,10 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(Intent);
-common::impl_schema_for_bitflags!(Intent);
-common::impl_sql_for_bitflags!(Intent);
+impl_rkyv_for_bitflags!(pub Intent: u32);
+impl_serde_for_bitflags!(Intent);
+impl_schema_for_bitflags!(Intent);
+impl_sql_for_bitflags!(Intent);
 
 pub mod commands {
     use super::*;
@@ -441,21 +444,16 @@ pub mod message {
             }
 
             #[cfg(feature = "framework")]
-            #[async_trait::async_trait]
             impl<C: Send + 'static, U, S> [<$name Handlers>]<C, U> for [<Dynamic $name Handlers>]<C, U, S> where S: Send + Sync {
                 async fn fallback(&self, ctx: C, msg: $name) -> U {
                     (self.fallback)(self.state.clone(), ctx, msg).await
                 }
 
                 $(
-                    fn [<$opcode:snake>]<'life0, 'async_trait>(&'life0 self, ctx: C, $($field: $ty,)*)
-                        -> std::pin::Pin<Box<dyn Future<Output = U> + Send + 'async_trait>>
-                    where
-                        'life0: 'async_trait, Self: 'async_trait,
-                    {
+                    async fn [<$opcode:snake>](&self, ctx: C, $($field: $ty,)*) -> U {
                         match self.[<$opcode:snake _handler>] {
-                            Some(ref cb) => cb(self.state.clone(), ctx, $($field,)*),
-                            None => (self.fallback)(self.state.clone(), ctx, $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }))
+                            Some(ref cb) => cb(self.state.clone(), ctx, $($field,)*).await,
+                            None => self.fallback(ctx, $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* })).await,
                         }
                     }
                 )*
@@ -463,17 +461,12 @@ pub mod message {
 
             #[doc = "Handler callbacks for [`" $name "`]"]
             #[cfg(feature = "framework")]
-            #[async_trait::async_trait]
             pub trait [<$name Handlers>]<C, U = ()>: Send + Sync where C: Send + 'static {
                 /// Dispatches a message to the appropriate event handler
-                fn dispatch<'life0, 'async_trait>(&'life0 self, ctx: C, msg: $name)
-                    -> std::pin::Pin<Box<dyn Future<Output = U> + Send + 'async_trait>>
-                where
-                    'life0: 'async_trait, Self: 'async_trait,
-                {
+                async fn dispatch(&self, ctx: C, msg: $name) -> U {
                     match msg {
                         $($name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }) => {
-                            self.[<$opcode:snake>](ctx, $($field,)*)
+                            self.[<$opcode:snake>](ctx, $($field,)*).await
                         })*
                     }
                 }
@@ -486,12 +479,8 @@ pub mod message {
                     #[doc = ""]
                     #[doc = "Handler callback for [`" $name "::" $opcode "`]"]
                     #[inline(always)]
-                    fn [<$opcode:snake>]<'life0, 'async_trait>(&'life0 self, ctx: C, $($field: $ty,)*)
-                        -> std::pin::Pin<Box<dyn Future<Output = U> + Send + 'async_trait>>
-                    where
-                        'life0: 'async_trait, Self: 'async_trait,
-                    {
-                        self.fallback(ctx, $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* }))
+                    async fn [<$opcode:snake>](&self, ctx: C, $($field: $ty,)*) -> U {
+                        self.fallback(ctx, $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] { $($field,)* })).await
                     }
                 )*
             }
@@ -499,6 +488,7 @@ pub mod message {
             $(#[$meta])*
             #[derive(Debug)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
             #[repr(u8)]
             pub enum $name {
                 $(
@@ -506,129 +496,8 @@ pub mod message {
                     #[doc = ""]
                     #[doc = "See [`" [<new_ $opcode:snake>] "`](" $name "::" [<new_ $opcode:snake>] ") for an easy way to create this message."]
                     #[cfg_attr(feature = "schema", schemars(description = "" $name "::" $opcode "" ))]
-                    $opcode([<$name:snake _payloads>]::[<$opcode Payload>]),
+                    $opcode([<$name:snake _payloads>]::[<$opcode Payload>]) = $code,
                 )*
-            }
-
-            #[cfg(feature = "rkyv")]
-            pub use [<$name:snake _proc_impl>]::{[<Archived $name>], [<$name Resolver>]};
-
-            #[cfg(feature = "rkyv")]
-            mod [<$name:snake _proc_impl>] {
-                use super::*;
-
-                use core::marker::PhantomData;
-                use rkyv::{Archive, Archived, Serialize, Fallible, Deserialize, Resolver};
-
-                #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-                #[repr(u8, align(1))]
-                enum ArchivedTag {
-                    $($opcode = $code,)* // NOTE: mirror tag if discriminator grows to u16
-                }
-
-                #[doc = "An archived [`" $name "`]" ]
-                #[repr(u8, align(1))]
-                pub enum [<Archived $name>] {
-                    $(
-                        #[doc = "Archived counterpart of [`" $name "::" $opcode "`]" ]
-                        $opcode(Archived<[<$name:snake _payloads>]::[<$opcode Payload>]>) = ArchivedTag::$opcode as u8,
-                    )*
-                }
-
-                #[doc = "Resolver for an archived [`" $name "`]" ]
-                #[repr(u8)]
-                pub enum [<$name Resolver>] {
-                    $(
-                        #[doc = "Resolver for [`" $name "::" $opcode "`]" ]
-                        $opcode(Resolver<[<$name:snake _payloads>]::[<$opcode Payload>]>) = $code,
-                    )*
-                }
-
-                $(
-                    #[repr(C)]
-                    struct [<Archived $opcode Variant>] {
-                        tag: ArchivedTag,
-                        op: Archived<[<$name:snake _payloads>]::[<$opcode Payload>]>,
-                        mkr: PhantomData<$name>,
-                    }
-                )*
-
-                impl Archive for $name {
-                    type Archived = [<Archived $name>];
-                    type Resolver = [<$name Resolver>];
-
-                    unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-                        match resolver {$(
-                            [<$name Resolver>]::$opcode(resolver_0) => match self {
-                                $name::$opcode(self_0) => {
-                                    let out = out.cast::<[<Archived $opcode Variant>]>();
-                                    core::ptr::addr_of_mut!((*out).tag).write(ArchivedTag::$opcode);
-                                    let (fp, fo) = rkyv::out_field!(out.op);
-                                    rkyv::Archive::resolve(self_0, pos + fp, resolver_0, fo);
-                                },
-                                _ => core::hint::unreachable_unchecked(),
-                            },
-                        )*}
-                    }
-                }
-
-                impl<S: Fallible + ?Sized> Serialize<S> for $name
-                    where $([<$name:snake _payloads>]::[<$opcode Payload>]: Serialize<S>,)*
-                {
-                    fn serialize(&self, serializer: &mut S) -> Result<[<$name Resolver>], S::Error> {
-                        Ok(match self {
-                            $($name::$opcode(op) => [<$name Resolver>]::$opcode(Serialize::serialize(op, serializer)?),)*
-                        })
-                    }
-                }
-
-                impl<D: Fallible + ?Sized> Deserialize<$name, D> for [<Archived $name>]
-                    where $(Archived<[<$name:snake _payloads>]::[<$opcode Payload>]>:
-                            Deserialize<[<$name:snake _payloads>]::[<$opcode Payload>], D>,)*
-                {
-                    fn deserialize(&self, deserializer: &mut D) -> Result<$name, D::Error> {
-                        Ok(match self {$(
-                            [<Archived $name>]::$opcode(op) => $name::$opcode(Deserialize::deserialize(op, deserializer)?),
-                        )*})
-                    }
-                }
-
-                use rkyv::bytecheck::{CheckBytes, EnumCheckError, ErrorBox, TupleStructCheckError};
-
-                impl<C: ?Sized> CheckBytes<C> for [<Archived $name>]
-                    where $(Archived<[<$name:snake _payloads>]::[<$opcode Payload>]>: CheckBytes<C>,)*
-                {
-                    type Error = EnumCheckError<u8>;
-
-                    unsafe fn check_bytes<'a>(value: *const Self, context: &mut C) -> Result<&'a Self, Self::Error> {
-                        let tag = *value.cast::<u8>();
-
-                        struct Discriminant;
-
-                        #[allow(non_upper_case_globals)]
-                        impl Discriminant {
-                            $(pub const $opcode: u8 = ArchivedTag::$opcode as u8;)*
-                        }
-
-                        match tag {
-                        $(
-                            Discriminant::$opcode => {
-                                let value = value.cast::<[<Archived $opcode Variant>]>();
-
-                                if let Err(e) = CheckBytes::<C>::check_bytes(core::ptr::addr_of!((*value).op), context) {
-                                    return Err(EnumCheckError::InvalidTuple {
-                                        variant_name: stringify!($opcode),
-                                        inner: TupleStructCheckError { field_index: 0, inner: ErrorBox::new(e) }
-                                    });
-                                }
-                            }
-                        )*
-                            _ => return Err(EnumCheckError::InvalidTag(tag)),
-                        }
-
-                        Ok(&*value)
-                    }
-                }
             }
 
             impl $name {

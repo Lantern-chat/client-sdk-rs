@@ -1,4 +1,78 @@
-#[macro_export]
+macro_rules! impl_rkyv_for_bitflags {
+    ($vis:vis $name:ident: $ty:ty) => {
+        #[cfg(feature = "rkyv")]
+        rkyv_rpc::bitflags!(@RKYV_ONLY $vis $name: $ty);
+    }
+}
+
+#[cfg(feature = "rkyv")]
+macro_rules! enum_codes {
+    (
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident: $archived_vis:vis $repr:ty $(= $unknown:ident)? {
+            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
+        }
+    ) => {
+        rkyv_rpc::enum_codes! {
+            $(#[$meta])*
+            $vis enum $name: $archived_vis $repr $(= $unknown)? {
+                $($(#[$variant_meta])* $code = $variant,)*
+            }
+        }
+    };
+}
+
+#[cfg(not(feature = "rkyv"))]
+macro_rules! enum_codes {
+    (
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident: $archived_vis:vis $repr:ty $(= $unknown:ident)? {
+            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
+        }
+    ) => {
+        $(#[$meta])*
+        #[repr($repr)]
+        $vis enum $name {
+            $($(#[$variant_meta])* $variant = $code,)*
+        }
+    };
+}
+
+#[cfg(feature = "rkyv")]
+macro_rules! decl_enum {
+    (
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident: $repr:ty  {
+            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
+        }
+    ) => {
+        rkyv_rpc::unit_enum! {
+            $(#[$meta])*
+            $vis enum $name: $repr {
+                $($(#[$variant_meta])* $code = $variant,)*
+            }
+        }
+    };
+}
+
+#[cfg(not(feature = "rkyv"))]
+macro_rules! decl_enum {
+    (
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident: $repr:ty {
+            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
+        }
+    ) => {
+        $(#[$meta])*
+        #[repr($repr)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        $vis enum $name {
+            $($(#[$variant_meta])* $variant = $code,)*
+        }
+    };
+}
+
+#[allow(unused)]
 macro_rules! impl_sql_common {
     (@ACCEPTS $id:ident) => {
         fn accepts(ty: &postgres_types::Type) -> bool {
@@ -14,7 +88,6 @@ macro_rules! impl_sql_common {
     };
 }
 
-#[macro_export]
 macro_rules! impl_sql_for_bitflags {
     ($id:ident) => {
         #[cfg(feature = "rusqlite")]
@@ -50,7 +123,7 @@ macro_rules! impl_sql_for_bitflags {
                     Ok(Self::from_bits_truncate(FromSql::from_sql(ty, raw)?))
                 }
 
-                $crate::impl_sql_common!(@ACCEPTS $id);
+                impl_sql_common!(@ACCEPTS $id);
             }
 
             impl ToSql for $id {
@@ -62,14 +135,13 @@ macro_rules! impl_sql_for_bitflags {
                     self.bits().to_sql(ty, out)
                 }
 
-                $crate::impl_sql_common!(@ACCEPTS $id);
+                impl_sql_common!(@ACCEPTS $id);
                 to_sql_checked!();
             }
         };
     };
 }
 
-#[macro_export]
 macro_rules! impl_sql_for_enum_primitive {
     ($id:ident) => {
         #[cfg(feature = "rusqlite")]
@@ -149,8 +221,57 @@ macro_rules! impl_sql_for_enum_primitive {
                     }
                 }
 
-                $crate::impl_sql_common!(@ACCEPTS $id);
+                impl_sql_common!(@ACCEPTS $id);
                 to_sql_checked!();
+            }
+        };
+    };
+}
+
+macro_rules! impl_schema_for_bitflags {
+    ($name:ident) => {
+        #[cfg(feature = "schemars")]
+        const _: () = {
+            use schemars::_serde_json::json;
+            use schemars::{
+                schema::{InstanceType, Metadata, Schema, SchemaObject, SingleOrVec},
+                JsonSchema,
+            };
+
+            impl JsonSchema for $name {
+                fn schema_name() -> String {
+                    stringify!($name).to_owned()
+                }
+
+                fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> Schema {
+                    let size = std::mem::size_of::<Self>();
+                    let bignum = size >= 16;
+
+                    let mut obj = SchemaObject {
+                        metadata: Some(Box::new(Metadata {
+                            description: Some(format!("{} Bitflags", stringify!($name))),
+                            examples: vec![json!($name::all().bits())],
+                            ..Default::default()
+                        })),
+                        instance_type: Some(SingleOrVec::Single(Box::new(if bignum {
+                            InstanceType::String
+                        } else {
+                            InstanceType::Number
+                        }))),
+                        ..Default::default()
+                    };
+
+                    if bignum {
+                        obj.string().pattern = Some(match size {
+                            16 => "\\d{0,38}".to_owned(),
+                            _ => unreachable!(),
+                        });
+                    } else {
+                        obj.number().maximum = Some($name::all().bits() as _);
+                    }
+
+                    Schema::Object(obj)
+                }
             }
         };
     };

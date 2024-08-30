@@ -6,31 +6,31 @@ command! {
         pub room_id: RoomId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct CreateMessageBody {
             #[serde(default)]
-            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub content: SmolStr,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub parent: Option<RoomId>,
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub attachments: ThinVec<Snowflake> where ATTACH_FILES if !attachments.is_empty(),
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub embeds: ThinVec<Embed> where EMBED_LINKS if !embeds.is_empty(),
 
             #[serde(default, skip_serializing_if = "is_false")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub ephemeral: bool,
 
             #[serde(default, skip_serializing_if = "is_false")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub tts: bool,
         }
     }
@@ -40,15 +40,15 @@ command! {
         pub msg_id: MessageId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct EditMessageBody {
             #[serde(default)]
-            #[cfg_attr(feature = "builder", builder(setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub content: SmolStr,
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub attachments: ThinVec<Snowflake>,
         }
     }
@@ -67,11 +67,12 @@ command! {
         pub room_id: RoomId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         #[derive(Default)] struct StartTypingBody {
             /// Will only show within the parent context if set
             #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub parent: Option<MessageId>,
         }
     }
@@ -80,28 +81,28 @@ command! {
         pub room_id: RoomId,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         #[derive(Default)] struct GetMessagesQuery {
             #[serde(flatten, default, alias = "q", skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub query: Option<Cursor>,
 
             #[serde(default, alias = "thread", skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub parent: Option<MessageId>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub limit: Option<u8>,
 
             #[serde(default, alias = "pins", skip_serializing_if = "ThinVec::is_empty")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub pinned: ThinVec<FolderId>,
 
             /// If true, return only messages in the channel which have been starred by us
             #[serde(default, skip_serializing_if = "crate::models::is_false")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub starred: bool,
 
             /// If above zero, this will also fetch child messages of messages
@@ -110,7 +111,7 @@ command! {
             ///
             /// Child messages will not obey other filtering criteria.
             #[serde(default, alias = "depth", skip_serializing_if = "crate::models::is_default")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             pub recurse: u8,
         }
     }
@@ -168,14 +169,15 @@ command! {
         pub emote_id: EmoteOrEmoji,
 
         ;
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
         struct GetReactionsForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             after: Option<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default))]
+            #[cfg_attr(feature = "typed-builder", builder(default))]
             limit: Option<i8>,
         }
     }
@@ -189,38 +191,37 @@ command! {
 
         ;
         /// `Nullable::Undefined` or `Option::None` fields indicate no change
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
-        #[cfg_attr(feature = "rkyv", archive(compare(PartialEq)))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
+        #[cfg_attr(feature = "rkyv", archive(compare(PartialEq)))] // waiting on https://github.com/rkyv/rkyv/pull/525
         #[derive(Default, PartialEq)]
         struct PatchRoomForm {
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub name: Option<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub topic: Nullable<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub avatar: Nullable<Snowflake>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub position: Option<u8>,
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub remove_overwrites: ThinVec<Snowflake>,
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
-            #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub overwrites: ThinVec<Overwrite>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub nsfw: Option<bool>,
         }
     }

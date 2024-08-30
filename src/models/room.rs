@@ -7,7 +7,7 @@ use super::*;
 #[cfg_attr(
     feature = "rkyv",
     derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes, copy_safe)
+    archive(check_bytes)
 )]
 #[repr(u8)]
 pub enum RoomKind {
@@ -28,9 +28,10 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(RoomFlags);
-common::impl_schema_for_bitflags!(RoomFlags);
-common::impl_sql_for_bitflags!(RoomFlags);
+impl_rkyv_for_bitflags!(pub RoomFlags: i16);
+impl_serde_for_bitflags!(RoomFlags);
+impl_schema_for_bitflags!(RoomFlags);
+impl_sql_for_bitflags!(RoomFlags);
 
 impl RoomFlags {
     pub fn kind(self) -> RoomKind {
@@ -48,8 +49,11 @@ impl From<RoomKind> for RoomFlags {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct Room {
     pub id: RoomId,
 
@@ -79,7 +83,6 @@ pub struct Room {
 
     /// Permission overwrites for this room
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::CopyOptimize))]
     pub overwrites: ThinVec<Overwrite>,
     // /// Direct/Group Message Users
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -88,8 +91,11 @@ pub struct Room {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct FullRoom {
     #[serde(flatten)]
     pub room: Room,

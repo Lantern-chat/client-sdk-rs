@@ -19,7 +19,7 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_rkyv_for_pod!(CommandFlags);
+impl_rkyv_for_bitflags!(pub CommandFlags: u8);
 
 /// Rate-limiting configuration for a command
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -488,9 +488,9 @@ macro_rules! command {
         }
 
         #[derive(Debug)]
-        #[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
-        #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-        #[cfg_attr(feature = "rkyv", archive(check_bytes))]
+        #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+        #[cfg_attr(feature = "bon", bon::builder)]
+        #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
         $(#[$($meta)*])*
         pub struct $name {
             $($(#[$($field_meta)*])* $field_vis $field_name: $field_ty, )*
@@ -506,8 +506,7 @@ macro_rules! command {
         $(
             #[derive(Debug, Serialize, Deserialize)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-            #[cfg_attr(feature = "rkyv", archive(check_bytes))]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
             $(#[$body_meta])*
             pub struct $body_name {
                 $( $(#[$($body_field_meta)*])* $body_field_vis $body_field_name: $body_field_ty ),*

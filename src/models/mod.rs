@@ -1,8 +1,7 @@
 //! Object data structures used within Lantern
 
 #![allow(unused_imports, clippy::identity_op)]
-
-use common::fixed::FixedStr;
+//#![cfg_attr(debug_assertions, warn(missing_docs))]
 
 #[cfg(feature = "rkyv")]
 use rkyv::with::Niche;
@@ -11,10 +10,15 @@ pub use smol_str::SmolStr;
 pub use thin_vec::ThinVec;
 pub use timestamp::Timestamp;
 pub use triomphe::Arc;
+pub use util::fixed_str::FixedStr;
 
+#[macro_use]
+pub mod util;
 pub mod nullable;
+pub mod sf;
 
 pub use nullable::Nullable;
+pub use sf::{NicheSnowflake, Snowflake};
 
 /// Defines Snowflake aliases to easier keep track of what ID is for what.
 pub mod aliases {
@@ -44,19 +48,12 @@ pub mod aliases {
 
 pub use aliases::*;
 
-pub mod embed {
-    pub use ::embed::{
-        v1, BoxedEmbedMedia, Embed, EmbedAuthor, EmbedField, EmbedFlags, EmbedFooter, EmbedMedia, EmbedProvider, EmbedType,
-        EmbedV1, UrlSignature,
-    };
-}
-
 macro_rules! decl_newtype_prefs {
     ($( $(#[$meta:meta])* $name:ident: $ty:ty $(= $default:expr)?,)*) => {
         $(
             $(#[$meta])*
             #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
-            #[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
             #[repr(transparent)]
             pub struct $name(pub $ty);
 
@@ -84,8 +81,6 @@ macro_rules! decl_newtype_prefs {
                     &mut self.0
                 }
             }
-
-            common::impl_rkyv_for_pod!($name);
         )*
     };
 }
@@ -93,6 +88,7 @@ macro_rules! decl_newtype_prefs {
 pub mod asset;
 pub mod auth;
 pub mod config;
+pub mod embed;
 pub mod emote;
 pub mod file;
 pub mod gateway;
@@ -104,7 +100,6 @@ pub mod presence;
 pub mod role;
 pub mod room;
 pub mod session;
-pub mod sf;
 pub mod stats;
 pub mod thread;
 pub mod user;
@@ -116,15 +111,18 @@ type Hasher = std::collections::hash_map::RandomState;
 type Hasher = ahash::RandomState;
 
 pub use self::{
-    asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,
-    presence::*, role::*, room::*, session::*, sf::*, stats::*, thread::*, user::*,
+    asset::*, auth::*, config::*, embed::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*,
+    permission::*, presence::*, role::*, room::*, session::*, sf::*, stats::*, thread::*, user::*,
 };
 
 /// Directional search query
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Cursor {
     Exact(Snowflake),

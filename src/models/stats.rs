@@ -13,7 +13,7 @@ pub struct Statistics {
 #[cfg_attr(
     feature = "rkyv",
     derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(copy_safe, check_bytes)
+    archive(check_bytes)
 )]
 pub struct RoomStatistics {
     pub messages: u64,

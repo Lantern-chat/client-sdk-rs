@@ -67,8 +67,9 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(UserFlags);
-common::impl_schema_for_bitflags!(UserFlags);
+impl_rkyv_for_bitflags!(pub UserFlags: i32);
+impl_serde_for_bitflags!(UserFlags);
+impl_schema_for_bitflags!(UserFlags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
@@ -127,45 +128,51 @@ bitflags::bitflags! {
     }
 }
 
-common::impl_serde_for_bitflags!(UserProfileBits);
-common::impl_schema_for_bitflags!(UserProfileBits);
-common::impl_sql_for_bitflags!(UserProfileBits);
+impl_rkyv_for_bitflags!(pub UserProfileBits: i32);
+impl_serde_for_bitflags!(UserProfileBits);
+impl_schema_for_bitflags!(UserProfileBits);
+impl_sql_for_bitflags!(UserProfileBits);
 
-common::impl_serde_for_bitflags!(ExtraUserProfileBits);
-common::impl_schema_for_bitflags!(ExtraUserProfileBits);
-common::impl_sql_for_bitflags!(ExtraUserProfileBits);
+impl_rkyv_for_bitflags!(pub ExtraUserProfileBits: i32);
+impl_serde_for_bitflags!(ExtraUserProfileBits);
+impl_schema_for_bitflags!(ExtraUserProfileBits);
+impl_sql_for_bitflags!(ExtraUserProfileBits);
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
+#[cfg_attr(feature = "bon", bon::builder)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct UserProfile {
-    #[cfg_attr(feature = "builder", builder(default))]
+    #[cfg_attr(feature = "typed-builder", builder(default))]
     pub bits: UserProfileBits,
 
     #[serde(default, skip_serializing_if = "ExtraUserProfileBits::is_empty")]
-    #[cfg_attr(feature = "builder", builder(default))]
+    #[cfg_attr(feature = "typed-builder", builder(default))]
     pub extra: ExtraUserProfileBits,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     pub nick: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     pub avatar: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     pub banner: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     pub status: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    #[cfg_attr(feature = "builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     pub bio: Nullable<SmolStr>,
 }
 
@@ -185,8 +192,11 @@ impl UserProfile {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct User {
     pub id: UserId,
     pub username: SmolStr,
@@ -234,30 +244,30 @@ mod tests {
     }
 }
 
-common::enum_codes! {
-    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum_codes! {
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     #[derive(enum_primitive_derive::Primitive)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     pub enum UserRelationship: i8 = None {
         #[default]
-        None = 0,
+        0 = None,
 
-        Friend = 1,
+        1 = Friend,
 
         //
         // reserve some space for future relationships
         //
 
         /// Normal user blocking
-        Blocked = 100,
+        100 = Blocked,
 
         /// Blocking + hide messages from the blocked user
-        BlockedDangerous = 101,
+        101 = BlockedDangerous,
     }
 }
 
-common::impl_sql_for_enum_primitive!(UserRelationship);
+impl_sql_for_enum_primitive!(UserRelationship);
 
 /*
 UserA               UserB

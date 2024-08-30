@@ -6,7 +6,6 @@
 /// Similarly, not all gateway events provide all information in objects. Again, user profiles
 /// are notable in that biographies are typically excluded in events to save on bandwidth.
 #[derive(Default, Debug, Clone, Copy, Hash)]
-#[cfg_attr(feature = "rkyv", derive(rkyv::CheckBytes))]
 #[repr(u8)]
 pub enum Nullable<T> {
     /// Neither present nor absent, an indeterminant value.
@@ -95,8 +94,11 @@ mod impl_serde {
             S: Serializer,
         {
             match *self {
+                Nullable::Undefined => {
+                    panic!("Cannot serialize an `Undefined` value, use skip_serializing_if = \"Nullable::is_undefined\"")
+                }
+                Nullable::Null => serializer.serialize_none(),
                 Nullable::Some(ref value) => serializer.serialize_some(value),
-                _ => serializer.serialize_none(),
             }
         }
     }
@@ -221,11 +223,18 @@ mod schema_impl {
 
 #[cfg(feature = "rkyv")]
 mod rkyv_impl {
-    use std::mem::MaybeUninit;
+    use std::{marker::PhantomData, mem::MaybeUninit};
 
     use super::*;
 
-    use rkyv::{Archive, Deserialize, Fallible, Serialize};
+    use rkyv::{
+        bytecheck::{CheckBytes, InvalidEnumDiscriminantError, UnnamedEnumVariantCheckContext},
+        rancor::{Fallible, Source, Trace},
+        traits::CopyOptimization,
+        Archive, Archived, Deserialize, Place, Portable, Serialize,
+    };
+
+    unsafe impl<T> Portable for Nullable<T> where T: Portable {}
 
     #[repr(u8)]
     pub enum ArchivedNullableTag {
@@ -235,30 +244,39 @@ mod rkyv_impl {
     }
 
     #[repr(C)]
-    struct ArchivedNullableRepr<T>(ArchivedNullableTag, MaybeUninit<T>);
+    struct NullableRepr<T>(ArchivedNullableTag, T, PhantomData<Nullable<T>>);
 
     impl<T: Archive> Archive for Nullable<T> {
         type Archived = Nullable<T::Archived>;
         type Resolver = Nullable<T::Resolver>;
 
-        #[inline]
-        unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-            let out = out.cast::<ArchivedNullableRepr<T::Archived>>();
+        const COPY_OPTIMIZATION: CopyOptimization<Self> =
+            unsafe { CopyOptimization::enable_if(<T as Archive>::COPY_OPTIMIZATION.is_enabled()) };
 
+        #[inline]
+        fn resolve(&self, resolver: Self::Resolver, out: Place<Self::Archived>) {
             match resolver {
-                Nullable::Undefined => core::ptr::addr_of_mut!((*out).0).write(ArchivedNullableTag::Undefined),
-                Nullable::Null => core::ptr::addr_of_mut!((*out).0).write(ArchivedNullableTag::Null),
-                Nullable::Some(resolver) => {
-                    core::ptr::addr_of_mut!((*out).0).write(ArchivedNullableTag::Some);
+                Nullable::Undefined => unsafe {
+                    out.cast_unchecked::<ArchivedNullableTag>().write_unchecked(ArchivedNullableTag::Undefined);
+                },
+                Nullable::Null => unsafe {
+                    out.cast_unchecked::<ArchivedNullableTag>().write_unchecked(ArchivedNullableTag::Null);
+                },
+                Nullable::Some(resolver) => unsafe {
+                    let out = out.cast_unchecked::<NullableRepr<Archived<T>>>();
 
                     let Nullable::Some(ref value) = *self else {
                         core::hint::unreachable_unchecked()
                     };
 
-                    // SAFETY: MaybeUninit<T> has the same repr as T, so it's safe to write to after casting
-                    let (fp, fo) = rkyv::out_field!(out.1);
-                    value.resolve(pos + fp, resolver, fo.cast());
-                }
+                    core::ptr::addr_of_mut!((*out.ptr()).0).write(ArchivedNullableTag::Some);
+
+                    <T as Archive>::resolve(
+                        value,
+                        resolver,
+                        Place::from_field_unchecked(out, core::ptr::addr_of_mut!((*out.ptr()).1)),
+                    );
+                },
             }
         }
     }
@@ -276,7 +294,7 @@ mod rkyv_impl {
 
     impl<T: Archive, D: Fallible + ?Sized> Deserialize<Nullable<T>, D> for Nullable<T::Archived>
     where
-        T::Archived: Deserialize<T, D>,
+        Archived<T>: Deserialize<T, D>,
     {
         #[inline]
         fn deserialize(&self, deserializer: &mut D) -> Result<Nullable<T>, D::Error> {
@@ -284,6 +302,40 @@ mod rkyv_impl {
                 Nullable::Undefined => Ok(Nullable::Undefined),
                 Nullable::Null => Ok(Nullable::Null),
                 Nullable::Some(value) => Ok(Nullable::Some(value.deserialize(deserializer)?)),
+            }
+        }
+    }
+
+    unsafe impl<T, C> CheckBytes<C> for Nullable<T>
+    where
+        C: Fallible + ?Sized,
+        <C as Fallible>::Error: Source,
+        T: CheckBytes<C>,
+    {
+        unsafe fn check_bytes(value: *const Self, ctx: &mut C) -> Result<(), C::Error> {
+            let tag = *value.cast::<u8>();
+
+            match tag {
+                0 => Ok(()),
+                1 => Ok(()),
+                2 => {
+                    let value = value.cast::<NullableRepr<T>>();
+
+                    <T as CheckBytes<C>>::check_bytes(core::ptr::addr_of!((*value).1), ctx).map_err(|e| {
+                        <<C as Fallible>::Error as Trace>::trace(
+                            e,
+                            UnnamedEnumVariantCheckContext {
+                                enum_name: "Nullable",
+                                variant_name: "Some",
+                                field_index: 1,
+                            },
+                        )
+                    })
+                }
+                invalid_discriminant => Err(<<C as Fallible>::Error as Source>::new(InvalidEnumDiscriminantError {
+                    enum_name: "Nullable",
+                    invalid_discriminant,
+                })),
             }
         }
     }
