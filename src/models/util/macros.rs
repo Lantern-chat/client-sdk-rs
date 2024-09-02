@@ -38,12 +38,14 @@ macro_rules! enum_codes {
     };
 }
 
+// NOTE: Passing `$repr` as ident is required for it to be matched against u8/i8 specialization. I don't know why.
+
 #[cfg(feature = "rkyv")]
 macro_rules! decl_enum {
     (
         $(#[$meta:meta])*
-        $vis:vis enum $name:ident: $repr:ty  {
-            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
+        $vis:vis enum $name:ident: $repr:ident  {
+            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)* $(,)?
         }
     ) => {
         rkyv_rpc::unit_enum! {
@@ -59,8 +61,8 @@ macro_rules! decl_enum {
 macro_rules! decl_enum {
     (
         $(#[$meta:meta])*
-        $vis:vis enum $name:ident: $repr:ty {
-            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
+        $vis:vis enum $name:ident: $repr:ident {
+            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)* $(,)?
         }
     ) => {
         $(#[$meta])*
@@ -78,12 +80,16 @@ macro_rules! impl_sql_common {
         fn accepts(ty: &postgres_types::Type) -> bool {
             use postgres_types::Type;
 
-            *ty == match core::mem::size_of::<$id>() {
-                1 | 2 => Type::INT2,
-                4 => Type::INT4,
-                8 => Type::INT8,
-                _ => return false,
-            }
+            let target = const {
+                match core::mem::size_of::<$id>() {
+                    1 | 2 => Some(Type::INT2),
+                    4 => Some(Type::INT4),
+                    8 => Some(Type::INT8),
+                    _ => None
+                }
+            };
+
+            matches!(target, Some(target) if *ty == target)
         }
     };
 }
@@ -138,6 +144,26 @@ macro_rules! impl_sql_for_bitflags {
                 impl_sql_common!(@ACCEPTS $id);
                 to_sql_checked!();
             }
+
+            #[cfg(feature = "rkyv")]
+            const _: () = {
+                paste::paste! {
+                    // NOTE: Cannot use `Archived<$id>` as it triggers a trait conflict bug in rustc,
+                    // luckily we use the default naming convention for archived types.
+                    impl ToSql for [<Archived $id>] {
+                        #[inline]
+                        fn to_sql(&self, ty: &Type, out: &mut BytesMut) -> Result<IsNull, Box<dyn Error + Sync + Send>>
+                        where
+                            Self: Sized,
+                        {
+                            self.to_native().to_sql(ty, out)
+                        }
+
+                        impl_sql_common!(@ACCEPTS $id);
+                        to_sql_checked!();
+                    }
+                }
+            };
         };
     };
 }

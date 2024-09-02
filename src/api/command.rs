@@ -531,7 +531,7 @@ macro_rules! command {
 
         impl $name {
             #[doc = "Construct new instance from individual fields"]
-            #[allow(deprecated, clippy::too_many_arguments)]
+            #[allow(deprecated, clippy::too_many_arguments, clippy::new_without_default)]
             pub const fn new(
                 $($field_name: $field_ty,)*
                 $( $($header_field: $header_ty,)* )?

@@ -167,9 +167,8 @@ impl Sink<ClientMsg> for GatewayConnection {
     #[inline]
     fn start_send(mut self: Pin<&mut Self>, item: ClientMsg) -> Result<(), GatewayError> {
         match self.socket {
-            Some(ref mut socket) => socket.start_send_unpin(item).map_err(|err| {
+            Some(ref mut socket) => socket.start_send_unpin(item).inspect_err(|_| {
                 self.socket = None; // drop socket
-                err
             }),
             // `start_send` doesn't poll or have a context, so there is no way to initiate the reconnect
             None => Err(GatewayError::Disconnected),

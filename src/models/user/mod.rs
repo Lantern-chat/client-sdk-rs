@@ -245,7 +245,7 @@ mod tests {
 }
 
 enum_codes! {
-    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
     #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     #[derive(enum_primitive_derive::Primitive)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
