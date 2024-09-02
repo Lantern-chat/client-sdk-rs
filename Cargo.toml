@@ -8,33 +8,18 @@ license = "GPL-3.0-only"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [patch.crates-io]
-smol_str = { git = "https://github.com/Lantern-chat/smol_str", branch = "0.2" }
-thin-vec = { git = "https://github.com/Lantern-chat/thin-vec" }
-iso8601-timestamp = { git = "https://github.com/Lantern-chat/iso8601-timestamp" }
+postgres-types = { git = "https://github.com/Lantern-chat/rust-postgres" }
 schemars = { git = "https://github.com/Lantern-chat/schemars" }
-rkyv = { git = "https://github.com/Lantern-chat/rkyv", branch = "0.7" }
-rend = { git = "https://github.com/Lantern-chat/rend", branch = "0.4" }
-
-
-[patch."https://github.com/Lantern-chat/client-sdk-rs"]
-client-sdk-common = { path = "./common" }
-client-sdk = { path = "./" }
-
-[workspace]
-members = ["common", "./"]
-resolver = "2"
 
 [dependencies]
-common = { package = "client-sdk-common", git = "https://github.com/Lantern-chat/client-sdk-rs" }
-embed = { package = "embed-sdk", git = "https://github.com/Lantern-chat/embed-service" }
-
 snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
-timestamp = { package = "iso8601-timestamp", version = "0.2" }
+timestamp = { package = "iso8601-timestamp", version = "0.3.0-beta.1" }
 
-rkyv = { version = "0.7", optional = true, features = ["validation", "smol_str", "thin-vec", "triomphe"] }
-bytecheck = { version = "0.6", optional = true }
+rkyv = { version = "0.8.0-rc.1", optional = true, features = ["bytecheck", "smol_str", "thin-vec", "triomphe"] }
+rkyv_rpc = { git = "https://github.com/Lantern-chat/rkyv_rpc", optional = true }
 
 serde = { version = "1", features = ["derive", "rc"] }
+bitflags_serde_shim = { version = "0.2.5", default-features = false }
 bitflags = "2"
 serde_repr = "0.1"
 enum-primitive-derive = "0.3"
@@ -49,8 +34,9 @@ static_assertions = "1"
 byteorder = "1.4"
 triomphe = "0.1.8"
 
-typed-builder = { version = "0.19", optional = true }
-schemars = { version = "0.8", optional = true, features = ["triomphe"] }
+bon = { version = "2", optional = true }
+typed-builder = { version = "0.20", optional = true }
+schemars = { version = "1.0.0-alpha.14", optional = true, features = ["triomphe01", "smol_str02", "thin-vec02"] }
 okapi = { version = "0.7.0-rc.1", optional = true }
 ahash = { version = "0.8", optional = true }
 
@@ -61,7 +47,7 @@ serde_json = { version = "1", optional = true }
 
 postgres-types = { version = "0.2.1", optional = true }
 bytes = { version = "1", optional = true }
-rusqlite = { version = "0.31.0", optional = true }
+rusqlite = { version = "0.32.0", optional = true }
 
 crc32fast = { version = "1", optional = true }
 ciborium = { version = "0.2", optional = true }
@@ -80,7 +66,7 @@ tokio = { version = "1", optional = true, default-features = false, features = [
 reqwest = { version = "0.12", optional = true, default-features = false, features = ["gzip", "deflate", "http2"] }
 
 tokio-tungstenite = { version = "0.23", optional = true, default-features = false, features = ["connect"] }
-miniz_oxide = { version = "0.7", optional = true }
+miniz_oxide = { version = "0.8", optional = true }
 futures = { version = "0.3", optional = true }
 pin-project-lite = { version = "0.2.8", optional = true }
 async-trait = { version = "0.1", optional = true }
@@ -89,14 +75,13 @@ smallvec = { version = "1.10.0", optional = true }
 [features]
 _internal_common = ["thiserror"]
 
-rkyv = ["dep:rkyv", "common/rkyv", "embed/rkyv", "timestamp/rkyv", "snowflake/rkyv", "bytecheck"]
-strict_rkyv = ["rkyv/strict"]
+rkyv = ["dep:rkyv", "timestamp/rkyv_08", "snowflake/rkyv", "rkyv_rpc"]
 
-schema = ["schemars", "common/schemars", "okapi", "timestamp/schema", "smol_str/schema", "thin-vec/schemars"]
+schema = ["schemars", "okapi", "timestamp/schema"]
 
-pg = ["postgres-types", "bytes", "common/pg", "embed/pg", "timestamp/pg", "thin-vec/postgres", "snowflake/pg"]
-rusqlite = ["dep:rusqlite", "common/rusqlite", "timestamp/rusqlite", "snowflake/rusqlite"]
-api = ["http", "_internal_common", "percent-encoding", "futures"]                                              # http required for Method
+pg = ["postgres-types", "bytes", "timestamp/pg", "snowflake/pg"]
+rusqlite = ["dep:rusqlite", "timestamp/rusqlite", "snowflake/rusqlite"]
+api = ["http", "_internal_common", "percent-encoding", "futures"]       # http required for Method
 
 # Low-level command execution
 driver = ["serde_json", "reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes"]
@@ -121,12 +106,12 @@ native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
 rustls-tls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots", "reqwest/rustls-tls-native-roots"]
 rustls-tls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls-webpki-roots"]
 
-builder = ["typed-builder", "embed/typed-builder"]
-
-default = ["api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor", "builder"]
+default = ["rkyv", "api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
+lipsum = "0.9.0"
+rand = "0.8.5"
 
 [profile.dev]
 debug = 1
