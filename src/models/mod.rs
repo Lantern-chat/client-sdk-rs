@@ -24,26 +24,43 @@ pub use sf::{NicheSnowflake, Snowflake};
 pub mod aliases {
     use super::Snowflake;
 
-    /// Snowflake ID for a Party
-    pub type PartyId = Snowflake;
-    /// Snowflake ID for a User
-    pub type UserId = Snowflake;
-    /// Snowflake ID for a Role
-    pub type RoleId = Snowflake;
-    /// Snowflake ID for a Room
-    pub type RoomId = Snowflake;
-    /// Snowflake ID for a Message
-    pub type MessageId = Snowflake;
-    /// Snowflake ID for a Custom Emote
-    pub type EmoteId = Snowflake;
-    /// Snowflake ID for a File
-    pub type FileId = Snowflake;
-    /// Snowflake ID for an party Invite
-    pub type InviteId = Snowflake;
-    /// Snowflake ID for a message Thread
-    pub type ThreadId = Snowflake;
-    /// Snowflake ID for a Pin Folder
-    pub type FolderId = Snowflake;
+    macro_rules! decl_aliases {
+        ($($(#[$meta:meta])* $name:ident,)*) => {
+            $(
+                $(#[$meta])*
+                pub type $name = Snowflake;
+
+                #[cfg(feature = "rkyv")]
+                paste::paste! {
+                    #[doc = "Archived version of [`" $name "`]"]
+                    pub type [<Archived $name>] = rkyv::Archived<Snowflake>;
+                }
+            )*
+        };
+    }
+
+    decl_aliases! {
+        /// Snowflake ID for a Party
+        PartyId,
+        /// Snowflake ID for a User
+        UserId,
+        /// Snowflake ID for a Role
+        RoleId,
+        /// Snowflake ID for a Room
+        RoomId,
+        /// Snowflake ID for a Message
+        MessageId,
+        /// Snowflake ID for a Custom Emote
+        EmoteId,
+        /// Snowflake ID for a File
+        FileId,
+        /// Snowflake ID for an party Invite
+        InviteId,
+        /// Snowflake ID for a message Thread
+        ThreadId,
+        /// Snowflake ID for a Pin Folder
+        FolderId,
+    }
 }
 
 pub use aliases::*;
