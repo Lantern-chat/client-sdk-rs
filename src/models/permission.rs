@@ -187,7 +187,7 @@ const _: () = {
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "rkyv", archive(check_bytes, compare(PartialEq)))]
 pub struct Overwrite {
-    /// Role or user ID
+    /// Role or User ID
     ///
     /// If it doesn't exist in the role list, then it's a user, simple as that.
     pub id: Snowflake,
@@ -205,19 +205,32 @@ use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, N
 
 impl Overwrite {
     /// Takes the Union of two overwrites, assuming the same ID.
+    ///
+    /// # Panics
+    ///
+    /// With debug assertions enabled, this function will panic if the IDs do not match.
     #[inline]
-    pub fn combine(&self, other: Self) -> Overwrite {
+    pub const fn combine(&self, other: Self) -> Overwrite {
+        //debug_assert_eq!(self.id, other.id);
+        #[cfg(debug_assertions)]
+        if self.id.to_u64() != other.id.to_u64() {
+            panic!("Overwrite IDs do not match");
+        }
+
         Overwrite {
             id: self.id,
-            allow: self.allow | other.allow,
-            deny: self.deny | other.deny,
+            allow: self.allow.union(other.allow),
+            deny: self.deny.union(other.deny),
         }
     }
 
     /// Applies the overwrite to a base set of permissions.
+    ///
+    /// Equivalent to `(base & !deny) | allow`.
     #[inline]
-    pub fn apply(&self, base: Permissions) -> Permissions {
-        (base & !self.deny) | self.allow
+    pub const fn apply(&self, base: Permissions) -> Permissions {
+        // self.allow(base & !self.deny) | self.allow
+        base.difference(self.deny).union(self.allow)
     }
 }
 

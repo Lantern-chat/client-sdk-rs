@@ -90,12 +90,15 @@ command! {
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", bon::builder)]
         struct ChangePasswordForm {
+            /// Current password
             #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub current: SmolStr,
 
+            /// New password
             #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             pub new: SmolStr,
 
+            /// 2FA token, if enabled
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
             pub totp: Option<SmolStr>,
@@ -154,11 +157,11 @@ command! {
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub avatar: Nullable<Snowflake>,
+            pub avatar: Nullable<FileId>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub banner: Nullable<Snowflake>,
+            pub banner: Nullable<FileId>,
 
             #[serde(default, skip_serializing_if = "is_default")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]

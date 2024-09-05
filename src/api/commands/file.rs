@@ -1,7 +1,7 @@
 use super::*;
 
 command! {
-    +struct CreateFile -> One Snowflake: POST("file") {
+    +struct CreateFile -> One FileId: POST("file") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", bon::builder)]

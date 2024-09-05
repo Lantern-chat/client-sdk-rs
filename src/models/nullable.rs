@@ -77,6 +77,25 @@ impl<T> Nullable<T> {
             Nullable::Undefined => Nullable::Undefined,
         }
     }
+
+    /// Converts `Nullable<T>` to `Nullable<&T>`.
+    pub fn as_ref(&self) -> Nullable<&T> {
+        match self {
+            Nullable::Some(value) => Nullable::Some(value),
+            Nullable::Null => Nullable::Null,
+            Nullable::Undefined => Nullable::Undefined,
+        }
+    }
+
+    /// Maps an inner `Some` value to a different value, using `Into`.
+    ///
+    /// Equivalent to `.map(Into::into)`.
+    pub fn map_into<U>(self) -> Nullable<U>
+    where
+        T: Into<U>,
+    {
+        self.map(Into::into)
+    }
 }
 
 mod impl_serde {

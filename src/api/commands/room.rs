@@ -19,7 +19,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub attachments: ThinVec<Snowflake> where ATTACH_FILES if !attachments.is_empty(),
+            pub attachments: ThinVec<FileId> where ATTACH_FILES if !attachments.is_empty(),
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
@@ -49,7 +49,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub attachments: ThinVec<Snowflake>,
+            pub attachments: ThinVec<FileId>,
         }
     }
 
@@ -206,7 +206,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub avatar: Nullable<Snowflake>,
+            pub avatar: Nullable<FileId>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]

@@ -51,11 +51,15 @@ command! {
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub avatar: Nullable<Snowflake>,
+            pub avatar: Nullable<FileId>,
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub banner: Nullable<Snowflake>,
+            pub banner: Nullable<FileId>,
+
+            #[serde(default, skip_serializing_if = "is_default")]
+            #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+            pub banner_align: all::BannerAlign,
         }
     }
 
@@ -109,7 +113,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub avatar: Nullable<Snowflake>,
+            pub avatar: Nullable<FileId>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
