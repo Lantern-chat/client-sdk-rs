@@ -123,8 +123,7 @@ pub enum EmoteOrEmoji {
 const _: () = {
     use super::*;
 
-    use std::fmt;
-    use std::str::FromStr;
+    use core::{fmt, str::FromStr};
 
     use percent_encoding::{percent_decode_str, percent_encode, NON_ALPHANUMERIC};
 

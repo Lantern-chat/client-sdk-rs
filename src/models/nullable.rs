@@ -168,7 +168,7 @@ mod rusqlite_impl {
 mod pg_impl {
     use super::Nullable;
 
-    use std::error::Error;
+    use core::error::Error;
 
     use bytes::BytesMut;
     use postgres_types::{accepts, to_sql_checked, FromSql, IsNull, ToSql, Type};
@@ -242,7 +242,7 @@ mod schema_impl {
 
 #[cfg(feature = "rkyv")]
 mod rkyv_impl {
-    use std::{marker::PhantomData, mem::MaybeUninit};
+    use core::{marker::PhantomData, mem::MaybeUninit};
 
     use super::*;
 

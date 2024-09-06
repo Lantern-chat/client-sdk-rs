@@ -102,7 +102,7 @@ impl<H> InternalEventHandlers<H> {
             // trigger the killswitch to cancel this sleep, avoiding `close()`
             // but if the server does not respond, close will be called
 
-            let mut sleep = std::pin::pin!(tokio::time::sleep(duration));
+            let mut sleep = core::pin::pin!(tokio::time::sleep(duration));
 
             tokio::select! {
                 biased;

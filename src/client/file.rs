@@ -57,7 +57,7 @@ impl Client {
         let mut buffer = BytesMut::new();
         let mut read = 0;
 
-        let mut stream = std::pin::pin!(stream);
+        let mut stream = core::pin::pin!(stream);
 
         loop {
             // keep the buffer topped up at CHUNK_SIZE

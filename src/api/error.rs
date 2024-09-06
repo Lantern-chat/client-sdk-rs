@@ -7,8 +7,11 @@ use http::StatusCode;
 /// Standard API error response, containing an error code and message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct ApiError {
     /// Error code
     pub code: ApiErrorCode,
@@ -39,7 +42,7 @@ impl fmt::Display for ApiError {
     }
 }
 
-impl std::error::Error for ApiError {}
+impl core::error::Error for ApiError {}
 
 macro_rules! error_codes {
     (

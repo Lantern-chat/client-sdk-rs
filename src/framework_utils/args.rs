@@ -1,5 +1,6 @@
+use core::fmt;
+use core::ops::Range;
 use smallvec::SmallVec;
-use std::ops::Range;
 
 pub type ArgumentSplitterOwned = ArgumentSplitter<'static>;
 
@@ -20,7 +21,6 @@ pub struct Argument<'a> {
     outer_end: usize,
 }
 
-use std::fmt;
 impl fmt::Debug for Argument<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.outer_str())

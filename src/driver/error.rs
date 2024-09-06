@@ -6,7 +6,7 @@ pub enum DriverError {
     ReqwestError(#[from] reqwest::Error),
 
     #[error("Format Error")]
-    FormatError(#[from] std::fmt::Error),
+    FormatError(#[from] core::fmt::Error),
 
     #[error("Url Parse Error: {0}")]
     UrlParseError(#[from] url::ParseError),
@@ -37,7 +37,7 @@ pub enum DriverError {
     InvalidHeaderValue(#[from] http::header::InvalidHeaderValue),
 
     #[error("Parse Int Error: {0}")]
-    ParseIntError(#[from] std::num::ParseIntError),
+    ParseIntError(#[from] core::num::ParseIntError),
 
     #[error("Header Parse Error: {0}")]
     HeaderParseError(#[from] http::header::ToStrError),

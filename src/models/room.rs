@@ -1,5 +1,5 @@
 use num_traits::FromPrimitive;
-use std::num::NonZeroU32;
+use core::num::NonZeroU32;
 
 use super::*;
 

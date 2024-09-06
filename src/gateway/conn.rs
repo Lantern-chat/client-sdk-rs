@@ -1,5 +1,5 @@
-use std::num::NonZeroUsize;
-use std::pin::Pin;
+use core::num::NonZeroUsize;
+use core::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::task::{Context, Poll};
@@ -119,12 +119,12 @@ impl GatewayConnection {
                     Poll::Ready(Ok(match self.socket {
                         // just assigned, project
                         Some(ref mut socket) => Pin::new(socket),
-                        None => unsafe { std::hint::unreachable_unchecked() },
+                        None => unsafe { core::hint::unreachable_unchecked() },
                     }))
                 }
             },
             // just checked/assigned, so this path is impossible
-            None => unsafe { std::hint::unreachable_unchecked() },
+            None => unsafe { core::hint::unreachable_unchecked() },
         }
     }
 }

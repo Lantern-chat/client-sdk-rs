@@ -560,7 +560,7 @@ pub mod message {
                 where
                     D: Deserializer<'de>
                 {
-                    use std::fmt;
+                    use core::fmt;
 
                     #[derive(Clone, Copy, Deserialize)]
                     #[serde(rename_all = "lowercase")]
@@ -790,7 +790,7 @@ pub mod message {
 
     #[cfg(test)]
     mod tests {
-        use std::mem::size_of;
+        use core::mem::size_of;
 
         use super::*;
 

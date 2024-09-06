@@ -1,5 +1,4 @@
-use std::fmt;
-use std::str::FromStr;
+use core::{fmt, str::FromStr};
 
 use super::*;
 
@@ -48,7 +47,7 @@ impl fmt::Display for InvalidAuthToken {
     }
 }
 
-impl std::error::Error for InvalidAuthToken {}
+impl core::error::Error for InvalidAuthToken {}
 
 impl AuthToken {
     pub fn raw_header(&self) -> arrayvec::ArrayString<{ MAX_LENGTH }> {
@@ -112,7 +111,7 @@ impl FromStr for AuthToken {
     }
 }
 
-impl std::ops::Deref for AuthToken {
+impl core::ops::Deref for AuthToken {
     type Target = str;
 
     #[inline]
@@ -127,7 +126,7 @@ impl std::ops::Deref for AuthToken {
 mod serde_impl {
     use super::{AuthToken, BearerToken, BotToken};
 
-    use std::fmt;
+    use core::fmt;
 
     use serde::de::{self, Deserialize, Deserializer, Visitor};
 

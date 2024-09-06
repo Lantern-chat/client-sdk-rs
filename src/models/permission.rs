@@ -135,7 +135,7 @@ const _: () = {
             impl<'de> de::Visitor<'de> for PermissionsVisitor {
                 type Value = Permissions;
 
-                fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                     f.write_str("128-bit integer or numeric string")
                 }
 
@@ -201,7 +201,7 @@ pub struct Overwrite {
     pub deny: Permissions,
 }
 
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
+use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
 
 impl Overwrite {
     /// Takes the Union of two overwrites, assuming the same ID.

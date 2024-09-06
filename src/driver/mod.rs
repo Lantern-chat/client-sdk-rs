@@ -175,7 +175,7 @@ impl Driver {
             });
         }
 
-        if body.is_empty() || std::mem::size_of::<CMD::Result>() == 0 {
+        if body.is_empty() || core::mem::size_of::<CMD::Result>() == 0 {
             // if Result is a zero-size type, this is likely optimized away entirely.
             // Otherwise, if the body is empty, try to deserialize an empty object
             return Ok(serde_json::from_slice(b"{}")?);

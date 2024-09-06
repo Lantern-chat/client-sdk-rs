@@ -1,4 +1,4 @@
-use std::{
+use core::{
     future::Future,
     marker::PhantomData,
     pin::Pin,

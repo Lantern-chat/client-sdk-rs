@@ -1,5 +1,5 @@
+use core::fmt;
 use std::collections::HashMap;
-use std::fmt;
 
 use super::*;
 
@@ -156,7 +156,7 @@ pub struct UserPreferences {
 
 impl UserPreferences {
     pub fn clean(&mut self) {
-        use std::ops::Range;
+        use core::ops::Range;
 
         #[inline]
         fn clamp_range<T: PartialOrd>(value: &mut T, range: Range<T>) {

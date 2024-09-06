@@ -1,4 +1,4 @@
-use std::{fmt, time::Duration};
+use core::{fmt, time::Duration};
 
 use http::{HeaderMap, Method};
 
@@ -94,7 +94,7 @@ impl fmt::Display for MissingItemError {
     }
 }
 
-impl std::error::Error for MissingItemError {}
+impl core::error::Error for MissingItemError {}
 
 /// Client Command, tells the client to perform specific requests
 ///
@@ -137,7 +137,7 @@ pub trait Command: sealed::Sealed {
     fn body(&self) -> &Self::Body;
 
     /// Used to collect the [`Result`](Self::Result) from an arbitrary [`Stream`](futures::Stream) of items.
-    fn collect<S, E>(stream: S) -> impl std::future::Future<Output = Result<Self::Result, E>> + Send
+    fn collect<S, E>(stream: S) -> impl ::core::future::Future<Output = Result<Self::Result, E>> + Send
     where
         S: futures::Stream<Item = Result<Self::Item, E>> + Send,
         E: From<MissingItemError>;
@@ -239,7 +239,7 @@ macro_rules! command {
             S: futures::Stream<Item = Result<Self::Item, E>> + Send,
             E: From<MissingItemError>,
         {
-            let mut stream = std::pin::pin!(stream);
+            let mut stream = core::pin::pin!(stream);
 
             use futures::StreamExt;
 
@@ -256,7 +256,7 @@ macro_rules! command {
             S: futures::Stream<Item = Result<Self::Item, E>> + Send,
             E: From<MissingItemError>,
         {
-            let mut stream = std::pin::pin!(stream);
+            let mut stream = core::pin::pin!(stream);
 
             use futures::StreamExt;
 
@@ -343,7 +343,7 @@ macro_rules! command {
             )?
             #[allow(clippy::needless_update)]
             const RATE_LIMIT: RateLimit = RateLimit {
-                $(emission_interval: std::time::Duration::from_millis($emission_interval),
+                $(emission_interval: core::time::Duration::from_millis($emission_interval),
                 $(burst_size: { assert!($burst_size > 0, "Burst Size must be nonzero!"); $burst_size }, )?)?
                 ..RateLimit::DEFAULT
             };
@@ -373,7 +373,7 @@ macro_rules! command {
 
             #[inline]
             #[allow(deprecated)]
-            fn format_path<W: std::fmt::Write>(&self, mut w: W) -> std::fmt::Result {
+            fn format_path<W: core::fmt::Write>(&self, mut w: W) -> core::fmt::Result {
                 format_path!(w, self, [$head] [$(/ $tail)*]);
 
                 Ok(())
@@ -512,7 +512,7 @@ macro_rules! command {
                 $( $(#[$($body_field_meta)*])* $body_field_vis $body_field_name: $body_field_ty ),*
             }
 
-            impl std::ops::Deref for $name {
+            impl ::core::ops::Deref for $name {
                 type Target = $body_name;
 
                 #[inline]
@@ -521,7 +521,7 @@ macro_rules! command {
                 }
             }
 
-            impl std::ops::DerefMut for $name {
+            impl ::core::ops::DerefMut for $name {
                 #[inline]
                 fn deref_mut(&mut self) -> &mut Self::Target {
                     &mut self.body

@@ -118,7 +118,7 @@ macro_rules! impl_sql_for_bitflags {
 
         #[cfg(feature = "pg")]
         const _: () = {
-            use std::error::Error;
+            use core::error::Error;
 
             use bytes::BytesMut;
             use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
@@ -193,8 +193,8 @@ macro_rules! impl_sql_for_enum_primitive {
 
         #[cfg(feature = "pg")]
         const _: () = {
+            use core::error::Error;
             use num_traits::{FromPrimitive, ToPrimitive};
-            use std::error::Error;
 
             use bytes::BytesMut;
             use postgres_types::{accepts, to_sql_checked, FromSql, IsNull, ToSql, Type};
@@ -202,9 +202,9 @@ macro_rules! impl_sql_for_enum_primitive {
             #[derive(Debug, Clone, Copy)]
             struct FromSqlError(i64);
 
-            impl std::fmt::Display for FromSqlError {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    use std::fmt::Write;
+            impl core::fmt::Display for FromSqlError {
+                fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                    use core::fmt::Write;
 
                     write!(
                         f,
@@ -214,7 +214,7 @@ macro_rules! impl_sql_for_enum_primitive {
                 }
             }
 
-            impl std::error::Error for FromSqlError {}
+            impl core::error::Error for FromSqlError {}
 
             impl<'a> FromSql<'a> for $id {
                 #[inline]
@@ -239,7 +239,7 @@ macro_rules! impl_sql_for_enum_primitive {
                 where
                     Self: Sized,
                 {
-                    match std::mem::size_of::<Self>() {
+                    match core::mem::size_of::<Self>() {
                         1 | 2 => self.to_i16().to_sql(ty, out),
                         4 => self.to_i32().to_sql(ty, out),
                         8 => self.to_i64().to_sql(ty, out),
@@ -270,7 +270,7 @@ macro_rules! impl_schema_for_bitflags {
                 }
 
                 fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> Schema {
-                    let size = std::mem::size_of::<Self>();
+                    let size = core::mem::size_of::<Self>();
                     let bignum = size >= 16;
 
                     let mut obj = SchemaObject {
