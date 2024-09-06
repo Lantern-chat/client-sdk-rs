@@ -201,8 +201,6 @@ pub struct Overwrite {
     pub deny: Permissions,
 }
 
-use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not};
-
 impl Overwrite {
     /// Takes the Union of two overwrites, assuming the same ID.
     ///

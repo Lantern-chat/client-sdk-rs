@@ -99,7 +99,7 @@ impl<T> Nullable<T> {
 }
 
 mod impl_serde {
-    use serde::de::{Deserialize, Deserializer, Visitor};
+    use serde::de::{Deserialize, Deserializer};
     use serde::ser::{Serialize, Serializer};
 
     use super::Nullable;
@@ -242,7 +242,7 @@ mod schema_impl {
 
 #[cfg(feature = "rkyv")]
 mod rkyv_impl {
-    use core::{marker::PhantomData, mem::MaybeUninit};
+    use core::marker::PhantomData;
 
     use super::*;
 

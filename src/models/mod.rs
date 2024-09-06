@@ -1,6 +1,7 @@
 //! Object data structures used within Lantern
 
 #![allow(unused_imports, clippy::identity_op)]
+#![deny(unused_imports)]
 //#![cfg_attr(debug_assertions, warn(missing_docs))]
 
 #[cfg(feature = "rkyv")]
@@ -128,8 +129,8 @@ type Hasher = std::collections::hash_map::RandomState;
 type Hasher = ahash::RandomState;
 
 pub use self::{
-    asset::*, auth::*, config::*, embed::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*,
-    permission::*, presence::*, role::*, room::*, session::*, sf::*, stats::*, thread::*, user::*,
+    asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,
+    presence::*, role::*, room::*, session::*, sf::*, stats::*, thread::*, user::*,
 };
 
 /// Directional search query

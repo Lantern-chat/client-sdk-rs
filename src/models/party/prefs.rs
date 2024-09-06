@@ -1,6 +1,3 @@
-use core::fmt;
-use std::collections::HashMap;
-
 use super::*;
 
 use crate::models::Locale;

@@ -153,7 +153,7 @@ const _: () = {
             Ok(match s.as_bytes()[0] {
                 b':' => EmoteOrEmoji::Emote { emote: s[1..].parse()? },
                 _ => EmoteOrEmoji::Emoji {
-                    emoji: percent_encoding::percent_decode_str(s).decode_utf8_lossy().into(),
+                    emoji: percent_decode_str(s).decode_utf8_lossy().into(),
                 },
             })
         }

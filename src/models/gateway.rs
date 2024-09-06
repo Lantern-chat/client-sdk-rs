@@ -636,6 +636,7 @@ pub mod message {
     #[cfg(feature = "framework")]
     use futures::future::{BoxFuture, Future};
 
+    #[allow(unused_imports)]
     use crate::models::{
         aliases::*,
         commands::{Identify, SetPresence},
