@@ -11,11 +11,17 @@ license = "GPL-3.0-only"
 postgres-types = { git = "https://github.com/Lantern-chat/rust-postgres" }
 schemars = { git = "https://github.com/Lantern-chat/schemars" }
 
+rkyv = { git = "https://github.com/Lantern-chat/rkyv" }
+bytecheck = { git = "https://github.com/rkyv/bytecheck" }
+ptr_meta = { git = "https://github.com/rkyv/ptr_meta" }
+rancor = { git = "https://github.com/rkyv/rancor" }
+rend = { git = "https://github.com/rkyv/rend" }
+
 [dependencies]
 snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
 timestamp = { package = "iso8601-timestamp", version = "0.3.0-beta.1" }
 
-rkyv = { version = "0.8.0-rc.1", optional = true, features = ["bytecheck", "smol_str", "thin-vec", "triomphe"] }
+rkyv = { version = "0.8.0-rc.1", optional = true, features = ["bytecheck", "smol_str_03", "thin-vec", "triomphe"] }
 rkyv_rpc = { git = "https://github.com/Lantern-chat/rkyv_rpc", optional = true }
 
 serde = { version = "1", features = ["derive", "rc"] }
@@ -26,19 +32,20 @@ enum-primitive-derive = "0.3"
 num-traits = "0.2"
 itoa = "1"
 time = { version = "0.3", features = ["macros"] }
-smol_str = { version = "0.2", features = ["serde"] }
+smol_str = { version = "0.3", features = ["serde"] }
 thin-vec = { version = "0.2.12", features = ["serde"] }
 arrayvec = { version = "0.7.1", features = ["serde"] }
 paste = "1"
 static_assertions = "1"
 byteorder = "1.4"
 triomphe = "0.1.8"
+rustc-hash = { version = "2.0", default-features = false }
 
 bon = { version = "2", optional = true }
 typed-builder = { version = "0.20", optional = true }
-schemars = { version = "1.0.0-alpha.14", optional = true, features = ["triomphe01", "smol_str02", "thin-vec02"] }
+schemars = { version = "1.0.0-alpha.14", optional = true, features = ["triomphe01", "smol_str03", "thin-vec02"] }
 okapi = { version = "0.7.0-rc.1", optional = true }
-ahash = { version = "0.8", optional = true }
+hashbrown = { version = "0.14", features = ["inline-more", "serde"] }
 
 # Maybe?
 # typescript-definitions = { git = "https://github.com/storyscript/typescript-definitions" }
@@ -75,25 +82,27 @@ smallvec = { version = "1.10.0", optional = true }
 [features]
 _internal_common = ["thiserror"]
 
+std = ["rkyv?/std", "timestamp/std"]
+
 rkyv = ["dep:rkyv", "timestamp/rkyv_08", "snowflake/rkyv", "rkyv_rpc"]
 
-schema = ["schemars", "okapi", "timestamp/schema"]
+schema = ["std", "schemars", "okapi", "timestamp/schema"]
 
-pg = ["postgres-types", "bytes", "timestamp/pg", "snowflake/pg"]
-rusqlite = ["dep:rusqlite", "timestamp/rusqlite", "snowflake/rusqlite"]
-api = ["http", "_internal_common", "percent-encoding", "futures"]       # http required for Method
+pg = ["std", "postgres-types", "bytes", "timestamp/pg", "snowflake/pg"]
+rusqlite = ["std", "dep:rusqlite", "timestamp/rusqlite", "snowflake/rusqlite"]
+api = ["http", "_internal_common", "percent-encoding", "futures"]              # http required for Method
 
 # Low-level command execution
-driver = ["serde_json", "reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes"]
+driver = ["std", "serde_json", "reqwest", "api", "serde_urlencoded", "form_urlencoded", "headers", "mime", "url", "base64", "crc32fast", "bytes"]
 
 # High-level client library
-client = ["driver", "arc-swap", "tokio"]
-fs = ["tokio/fs"]
+client = ["std", "driver", "arc-swap", "tokio"]
+fs = ["std", "tokio/fs"]
 
 brotli = ["reqwest?/brotli"]
 
 # Realtime gateway support
-gateway = ["serde_json", "client", "tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
+gateway = ["std", "serde_json", "client", "tokio-tungstenite", "miniz_oxide", "futures", "pin-project-lite", "_internal_common"]
 
 framework_utils = ["smallvec"]
 framework = ["client", "gateway", "async-trait", "tokio/macros", "framework_utils"]
@@ -106,7 +115,7 @@ native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
 rustls-tls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots", "reqwest/rustls-tls-native-roots"]
 rustls-tls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls-webpki-roots"]
 
-default = ["rkyv", "api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor"]
+default = ["rkyv", "std", "api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor"]
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

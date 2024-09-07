@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
 use super::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Statistics {
-    pub rooms: HashMap<RoomId, RoomStatistics, super::Hasher>,
+    pub rooms: hashbrown::HashMap<RoomId, RoomStatistics, super::Hasher>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

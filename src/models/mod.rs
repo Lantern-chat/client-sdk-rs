@@ -19,7 +19,7 @@ pub mod nullable;
 pub mod sf;
 
 pub use nullable::Nullable;
-pub use sf::{NicheSnowflake, Snowflake};
+pub use sf::Snowflake;
 
 /// Defines Snowflake aliases to easier keep track of what ID is for what.
 pub mod aliases {
@@ -122,11 +122,7 @@ pub mod stats;
 pub mod thread;
 pub mod user;
 
-#[cfg(not(feature = "ahash"))]
-type Hasher = std::collections::hash_map::RandomState;
-
-#[cfg(feature = "ahash")]
-type Hasher = ahash::RandomState;
+pub type Hasher = rustc_hash::FxBuildHasher;
 
 pub use self::{
     asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,

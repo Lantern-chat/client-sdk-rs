@@ -1,5 +1,6 @@
 //! Lantern Chat Client SDK
 
+//#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::bad_bit_mask)]
 
 #[cfg(all(feature = "typed-builder", feature = "bon"))]
