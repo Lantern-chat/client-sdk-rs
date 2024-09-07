@@ -171,7 +171,7 @@ mod pg_impl {
     use core::error::Error;
 
     use bytes::BytesMut;
-    use postgres_types::{accepts, to_sql_checked, FromSql, IsNull, ToSql, Type};
+    use postgres_types::{to_sql_checked, FromSql, IsNull, ToSql, Type};
 
     impl<'a, T: FromSql<'a>> FromSql<'a> for Nullable<T> {
         fn from_sql(ty: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn Error + Sync + Send>> {

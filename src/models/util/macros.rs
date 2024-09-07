@@ -204,8 +204,6 @@ macro_rules! impl_sql_for_enum_primitive {
 
             impl core::fmt::Display for FromSqlError {
                 fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                    use core::fmt::Write;
-
                     write!(
                         f,
                         concat!("Unable to convert {} to type '", stringify!($id), "'"),

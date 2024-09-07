@@ -122,7 +122,39 @@ pub mod stats;
 pub mod thread;
 pub mod user;
 
-pub type Hasher = rustc_hash::FxBuildHasher;
+/// Lightweight randomly-seeded hash builder for [`rustc_hash::FxHasher`],
+/// uses compile-time random seed that increments on each hash-builder creation.
+///
+/// This isn't quite as DOS-resistant as using `thread_local!` seeds generated at runtime,
+/// but it should provide enough obfuscation in practice for regular hashing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct FxRandomState2(usize);
+
+const _: () = {
+    use core::hash::BuildHasher;
+    use rustc_hash::FxHasher;
+
+    impl Default for FxRandomState2 {
+        fn default() -> Self {
+            use std::sync::atomic::{AtomicUsize, Ordering};
+
+            #[allow(clippy::double_parens)] // bug?
+            static COUNTER: AtomicUsize = AtomicUsize::new(const_random::const_random!(usize));
+
+            Self(COUNTER.fetch_add(1, Ordering::Relaxed))
+        }
+    }
+
+    impl BuildHasher for FxRandomState2 {
+        type Hasher = FxHasher;
+
+        #[inline(always)]
+        fn build_hasher(&self) -> Self::Hasher {
+            FxHasher::with_seed(self.0)
+        }
+    }
+};
 
 pub use self::{
     asset::*, auth::*, config::*, embed::*, emote::*, file::*, gateway::*, invite::*, message::*, party::*, permission::*,

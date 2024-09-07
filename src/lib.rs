@@ -12,7 +12,7 @@ extern crate serde;
 #[macro_use]
 extern crate bitflags_serde_shim;
 
-pub use models::Snowflake;
+pub use models::{FxRandomState2, Snowflake};
 
 #[macro_use]
 pub mod models;
