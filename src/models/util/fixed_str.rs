@@ -163,7 +163,7 @@ const _: () = {
         bytecheck::CheckBytes,
         place::Place,
         rancor::{Fallible, ResultExt, Source},
-        traits::NoUndef,
+        traits::{CopyOptimization, NoUndef},
         Archive, Deserialize, Portable, Serialize,
     };
 
@@ -173,6 +173,9 @@ const _: () = {
     impl<const N: usize> Archive for FixedStr<N> {
         type Archived = FixedStr<N>;
         type Resolver = ();
+
+        // SAFETY: We know that FixedStr is a valid type to copy as-is
+        const COPY_OPTIMIZATION: CopyOptimization<Self> = unsafe { CopyOptimization::enable() };
 
         #[inline]
         fn resolve(&self, _resolver: Self::Resolver, out: Place<Self::Archived>) {

@@ -8,8 +8,11 @@ pub type EmbedWithExpire = (timestamp::Timestamp, Embed);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 #[serde(tag = "v")]
 pub enum Embed {
     #[serde(rename = "1")]

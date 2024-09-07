@@ -1,14 +1,17 @@
-//use super::*;
+use super::*;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct ServerConfig {
-    pub hcaptcha_sitekey: String,
+    pub hcaptcha_sitekey: FixedStr<36>,
 
     /// CDN Domain
-    pub cdn: String,
+    pub cdn: SmolStr,
 
     /// Minimum user age (in years)
     pub min_age: u8,
@@ -24,8 +27,11 @@ pub struct ServerConfig {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    archive(check_bytes)
+)]
 pub struct ServerLimits {
     pub max_upload_size: u64,
     pub max_avatar_size: u32,
