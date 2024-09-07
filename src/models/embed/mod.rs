@@ -7,7 +7,7 @@ pub type EmbedWithExpire = (timestamp::Timestamp, Embed);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(
     feature = "rkyv",
     derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),

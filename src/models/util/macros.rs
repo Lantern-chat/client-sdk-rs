@@ -254,7 +254,7 @@ macro_rules! impl_sql_for_enum_primitive {
 
 macro_rules! impl_schema_for_bitflags {
     ($name:ident) => {
-        #[cfg(feature = "schemars")]
+        #[cfg(feature = "schema")]
         const _: () = {
             use schemars::_serde_json::json;
             use schemars::{

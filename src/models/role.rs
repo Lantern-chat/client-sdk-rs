@@ -26,7 +26,7 @@ pub struct Role {
     // TODO: Revist removing this
     pub party_id: PartyId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<SmolStr>,
+    pub avatar: Option<EncryptedSnowflake>,
     pub name: SmolStr,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub desc: Option<SmolStr>,

@@ -66,7 +66,7 @@ pub struct PartialParty {
     pub name: SmolStr,
 
     /// Description of the party, if publicly listed
-    pub description: Option<SmolStr>,
+    pub description: Option<ThinString>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,10 +83,10 @@ pub struct Party {
     pub flags: PartyFlags,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<SmolStr>,
+    pub avatar: Option<EncryptedSnowflake>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
-    pub banner: Nullable<SmolStr>,
+    pub banner: Nullable<EncryptedSnowflake>,
 
     pub default_room: RoomId,
 

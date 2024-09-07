@@ -3,6 +3,8 @@
 //#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::bad_bit_mask)]
 
+extern crate alloc;
+
 #[cfg(all(feature = "typed-builder", feature = "bon"))]
 compile_error!("'typed-builder' and 'bon' features are mutually exclusive");
 

@@ -1,5 +1,7 @@
 use super::*;
 
+pub type HCaptchaSiteKey = FixedStr<36>;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(
@@ -8,7 +10,7 @@ use super::*;
     archive(check_bytes)
 )]
 pub struct ServerConfig {
-    pub hcaptcha_sitekey: FixedStr<36>,
+    pub hcaptcha_sitekey: HCaptchaSiteKey,
 
     /// CDN Domain
     pub cdn: SmolStr,

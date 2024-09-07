@@ -11,7 +11,7 @@ pub use smol_str::SmolStr;
 pub use thin_vec::ThinVec;
 pub use timestamp::Timestamp;
 pub use triomphe::Arc;
-pub use util::fixed_str::FixedStr;
+pub use util::{fixed_str::FixedStr, thin_str::ThinString};
 
 #[macro_use]
 pub mod util;
@@ -20,6 +20,11 @@ pub mod sf;
 
 pub use nullable::Nullable;
 pub use sf::Snowflake;
+
+/// Encrypted Snowflake, used for obfuscating IDs in URLs.
+///
+/// Used for certain asset IDs, such as avatars.
+pub type EncryptedSnowflake = FixedStr<22>;
 
 /// Defines Snowflake aliases to easier keep track of what ID is for what.
 pub mod aliases {

@@ -1,5 +1,5 @@
-use num_traits::FromPrimitive;
 use core::num::NonZeroU32;
+use num_traits::FromPrimitive;
 
 use super::*;
 
@@ -61,7 +61,7 @@ pub struct Room {
 
     pub party_id: PartyId,
 
-    pub avatar: Option<SmolStr>,
+    pub avatar: Option<EncryptedSnowflake>,
 
     pub name: SmolStr,
 

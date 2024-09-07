@@ -9,6 +9,13 @@ pub struct FixedStr<const N: usize> {
     data: [u8; N],
 }
 
+impl<const N: usize> From<FixedStr<N>> for smol_str::SmolStr {
+    #[inline(always)]
+    fn from(fixed: FixedStr<N>) -> Self {
+        Self::new(fixed.as_str())
+    }
+}
+
 impl<const N: usize> AsRef<str> for FixedStr<N> {
     #[inline(always)]
     fn as_ref(&self) -> &str {
@@ -84,6 +91,27 @@ impl<const N: usize> FixedStr<N> {
         }
 
         FixedStr { data }
+    }
+
+    /// Construct a new [FixedStr] from a byte array, assuming valid utf-8.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because in release-mode it does not check if the
+    /// bytes are valid utf-8.
+    ///
+    /// # Panics
+    ///
+    /// * In debug mode, this function will panic if the bytes are not valid utf-8.
+    /// * In release mode, this function will not check the bytes.
+    #[inline]
+    pub const unsafe fn from_bytes(bytes: [u8; N]) -> FixedStr<N> {
+        #[cfg(debug_assertions)]
+        if core::str::from_utf8(&bytes).is_err() {
+            panic!("Invalid utf-8 bytes given");
+        }
+
+        FixedStr { data: bytes }
     }
 
     /// Construct a new [FixedStr] from a [`&str`](str) if the length is correct.
@@ -216,7 +244,7 @@ const _: () = {
     }
 };
 
-#[cfg(feature = "schemars")]
+#[cfg(feature = "schema")]
 const _: () = {
     extern crate alloc;
 

@@ -161,11 +161,11 @@ pub struct UserProfile {
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub avatar: Nullable<SmolStr>,
+    pub avatar: Nullable<EncryptedSnowflake>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub banner: Nullable<SmolStr>,
+    pub banner: Nullable<EncryptedSnowflake>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]

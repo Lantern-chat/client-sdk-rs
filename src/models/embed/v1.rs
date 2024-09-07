@@ -8,7 +8,7 @@ pub type UrlSignature = FixedStr<27>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(
     feature = "rkyv",
     derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
@@ -43,17 +43,32 @@ impl_serde_for_bitflags!(EmbedFlags);
 impl_schema_for_bitflags!(EmbedFlags);
 impl_sql_for_bitflags!(EmbedFlags);
 
-fn is_none_or_empty(value: &Option<SmolStr>) -> bool {
-    match value {
-        Some(ref value) => value.is_empty(),
-        None => true,
+trait IsNoneOrEmpty {
+    fn is_none_or_empty(&self) -> bool;
+}
+
+impl IsNoneOrEmpty for Option<SmolStr> {
+    fn is_none_or_empty(&self) -> bool {
+        match self {
+            Some(ref value) => value.is_empty(),
+            None => true,
+        }
+    }
+}
+
+impl IsNoneOrEmpty for Option<ThinString> {
+    fn is_none_or_empty(&self) -> bool {
+        match self {
+            Some(ref value) => value.is_empty(),
+            None => true,
+        }
     }
 }
 
 /// An embed is metadata taken from a given URL by loading said URL, parsing any meta tags, and fetching
 /// extra information from oEmbed sources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", bon::builder)]
 #[cfg_attr(
@@ -80,23 +95,43 @@ pub struct EmbedV1 {
     pub flags: EmbedFlags,
 
     /// URL fetched
-    #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "u",
+        alias = "url",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub url: Option<SmolStr>,
+    pub url: Option<ThinString>,
 
     /// Canonical URL
-    #[serde(rename = "c", alias = "canonical", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "c",
+        alias = "canonical",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub canonical: Option<SmolStr>,
+    pub canonical: Option<ThinString>,
 
-    #[serde(rename = "t", alias = "title", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "t",
+        alias = "title",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub title: Option<SmolStr>,
+    pub title: Option<ThinString>,
 
     /// Description, usually from the Open-Graph API
-    #[serde(rename = "d", alias = "description", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "d",
+        alias = "description",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub description: Option<SmolStr>,
+    pub description: Option<ThinString>,
 
     /// Accent Color
     #[serde(rename = "ac", default, skip_serializing_if = "Option::is_none", alias = "color")]
@@ -157,7 +192,7 @@ impl EmbedV1 {
     pub fn is_plain_link(&self) -> bool {
         if self.ty != EmbedType::Link
             || self.url.is_none()
-            || !is_none_or_empty(&self.description)
+            || !IsNoneOrEmpty::is_none_or_empty(&self.description)
             || self.color.is_some()
             || !EmbedAuthor::is_none(&self.author)
             || self.has_fullsize_media()
@@ -171,38 +206,40 @@ impl EmbedV1 {
         true
     }
 
-    pub fn visit_text_mut<F>(&mut self, mut f: F)
-    where
-        F: FnMut(&mut SmolStr),
-    {
-        fn visit_text_opt_mut<F>(text: &mut Option<SmolStr>, mut f: F)
-        where
-            F: FnMut(&mut SmolStr),
-        {
-            if let Some(ref mut value) = *text {
-                f(value);
-            }
-        }
+    // TODO: Reimplement this to work with SmolStr and ThinString
+    //
+    // pub fn visit_text_mut<F>(&mut self, mut f: F)
+    // where
+    //     F: FnMut(&mut SmolStr),
+    // {
+    //     fn visit_text_opt_mut<F>(text: &mut Option<SmolStr>, mut f: F)
+    //     where
+    //         F: FnMut(&mut SmolStr),
+    //     {
+    //         if let Some(ref mut value) = *text {
+    //             f(value);
+    //         }
+    //     }
 
-        visit_text_opt_mut(&mut self.title, &mut f);
-        visit_text_opt_mut(&mut self.description, &mut f);
-        visit_text_opt_mut(&mut self.provider.name, &mut f);
+    //     visit_text_opt_mut(&mut self.title, &mut f);
+    //     visit_text_opt_mut(&mut self.description, &mut f);
+    //     visit_text_opt_mut(&mut self.provider.name, &mut f);
 
-        if let Some(ref mut author) = self.author {
-            f(&mut author.name);
-        }
+    //     if let Some(ref mut author) = self.author {
+    //         f(&mut author.name);
+    //     }
 
-        self.visit_media(|media| visit_text_opt_mut(&mut media.description, &mut f));
+    //     self.visit_media(|media| visit_text_opt_mut(&mut media.description, &mut f));
 
-        for field in &mut self.fields {
-            f(&mut field.name);
-            f(&mut field.value);
-        }
+    //     for field in &mut self.fields {
+    //         f(&mut field.name);
+    //         f(&mut field.value);
+    //     }
 
-        if let Some(ref mut footer) = self.footer {
-            f(&mut footer.text);
-        }
-    }
+    //     if let Some(ref mut footer) = self.footer {
+    //         f(&mut footer.text);
+    //     }
+    // }
 
     pub fn visit_full_media<F>(&mut self, mut f: F)
     where
@@ -251,7 +288,7 @@ impl VisitMedia for EmbedV1 {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", bon::builder)]
 #[cfg_attr(
@@ -262,7 +299,7 @@ impl VisitMedia for EmbedV1 {
 pub struct EmbedFooter {
     #[serde(rename = "t", alias = "text")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
-    pub text: SmolStr,
+    pub text: ThinString,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
@@ -272,10 +309,10 @@ pub struct EmbedFooter {
 
 pub trait BoxedEmbedMediaExt {
     fn read(self) -> EmbedMedia;
-    fn with_url(self, url: impl Into<SmolStr>) -> Self;
+    fn with_url(self, url: impl Into<ThinString>) -> Self;
     fn with_dims(self, width: i32, height: i32) -> Self;
     fn with_mime(self, mime: impl Into<SmolStr>) -> Self;
-    fn with_description(self, description: impl Into<SmolStr>) -> Self;
+    fn with_description(self, description: impl Into<ThinString>) -> Self;
 }
 
 impl BoxedEmbedMediaExt for Box<EmbedMedia> {
@@ -285,7 +322,7 @@ impl BoxedEmbedMediaExt for Box<EmbedMedia> {
     }
 
     #[inline]
-    fn with_url(mut self, url: impl Into<SmolStr>) -> Self {
+    fn with_url(mut self, url: impl Into<ThinString>) -> Self {
         self.url = url.into();
         self
     }
@@ -304,7 +341,7 @@ impl BoxedEmbedMediaExt for Box<EmbedMedia> {
     }
 
     #[inline]
-    fn with_description(mut self, description: impl Into<SmolStr>) -> Self {
+    fn with_description(mut self, description: impl Into<ThinString>) -> Self {
         self.description = Some(description.into());
         self
     }
@@ -349,7 +386,7 @@ impl VisitMedia for Box<EmbedMedia> {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", bon::builder)]
 #[cfg_attr(
@@ -418,7 +455,7 @@ impl Deref for ArchivedEmbedMedia {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", bon::builder)]
 #[cfg_attr(
@@ -428,12 +465,17 @@ impl Deref for ArchivedEmbedMedia {
 )]
 pub struct BasicEmbedMedia {
     #[serde(rename = "u", alias = "url")]
-    pub url: SmolStr,
+    pub url: ThinString,
 
     /// Non-visible description of the embedded media
-    #[serde(rename = "d", alias = "description", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "d",
+        alias = "description",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub description: Option<SmolStr>,
+    pub description: Option<ThinString>,
 
     /// Cryptographic signature for use with the proxy server
     #[serde(rename = "s", alias = "signature", default, skip_serializing_if = "Option::is_none")]
@@ -450,7 +492,12 @@ pub struct BasicEmbedMedia {
     #[cfg_attr(feature = "typed-builder", builder(default))]
     pub width: Option<i32>,
 
-    #[serde(rename = "m", alias = "mime", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "m",
+        alias = "mime",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     pub mime: Option<SmolStr>,
 }
@@ -491,7 +538,7 @@ impl EmbedMedia {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", bon::builder)]
 #[cfg_attr(
@@ -500,13 +547,23 @@ impl EmbedMedia {
     archive(check_bytes)
 )]
 pub struct EmbedProvider {
-    #[serde(rename = "n", alias = "name", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "n",
+        alias = "name",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     pub name: Option<SmolStr>,
 
-    #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "u",
+        alias = "url",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub url: Option<SmolStr>,
+    pub url: Option<ThinString>,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
@@ -516,21 +573,23 @@ pub struct EmbedProvider {
 
 impl EmbedProvider {
     pub fn is_none(&self) -> bool {
-        is_none_or_empty(&self.name) && is_none_or_empty(&self.url) && EmbedMedia::is_empty(&self.icon)
+        is_none_or_empty(&self.name) && IsNoneOrEmpty::is_none_or_empty(&self.url) && EmbedMedia::is_empty(&self.icon)
     }
 }
 
 impl EmbedAuthor {
     pub fn is_none(this: &Option<Self>) -> bool {
         match this {
-            Some(ref this) => this.name.is_empty() && is_none_or_empty(&this.url) && EmbedMedia::is_empty(&this.icon),
+            Some(ref this) => {
+                this.name.is_empty() && IsNoneOrEmpty::is_none_or_empty(&this.url) && EmbedMedia::is_empty(&this.icon)
+            }
             None => true,
         }
     }
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", bon::builder)]
 #[cfg_attr(
@@ -543,9 +602,14 @@ pub struct EmbedAuthor {
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
     pub name: SmolStr,
 
-    #[serde(rename = "u", alias = "url", default, skip_serializing_if = "is_none_or_empty")]
+    #[serde(
+        rename = "u",
+        alias = "url",
+        default,
+        skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub url: Option<SmolStr>,
+    pub url: Option<ThinString>,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
@@ -554,7 +618,7 @@ pub struct EmbedAuthor {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", bon::builder)]
 #[cfg_attr(

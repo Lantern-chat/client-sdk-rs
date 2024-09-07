@@ -8,6 +8,7 @@ use super::*;
     archive(check_bytes)
 )]
 pub struct Invite {
+    /// Invite code, which is either an encrypted Snowflake or a custom vanity code.
     pub code: SmolStr,
 
     pub party: PartialParty,

@@ -21,7 +21,7 @@ rend = { git = "https://github.com/rkyv/rend" }
 snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
 timestamp = { package = "iso8601-timestamp", version = "0.3.0-beta.1" }
 
-rkyv = { version = "0.8.0-rc.1", optional = true, features = ["bytecheck", "smol_str_03", "thin-vec", "triomphe"] }
+rkyv = { version = "0.8.0-rc.1", optional = true, features = ["bytecheck", "smol_str-0_3", "thin-vec-0_2", "triomphe-0_1"] }
 rkyv_rpc = { git = "https://github.com/Lantern-chat/rkyv_rpc", optional = true }
 
 serde = { version = "1", features = ["derive", "rc"] }

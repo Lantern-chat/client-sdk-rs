@@ -16,7 +16,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-            pub description: Option<SmolStr>,
+            pub description: Option<ThinString>,
 
             #[serde(default)]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]

@@ -1,5 +1,9 @@
 use super::*;
 
+pub struct FileUpload {
+    pub upload_url: ThinString,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(
@@ -20,7 +24,7 @@ pub struct File {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub height: Option<i32>,
 
-    /// Base-85 encoded blurhash, basically guaranteed to be larger than 22 bytes so just use a regular String
+    /// Base-85 encoded blurhash, basically guaranteed to be larger than 22 bytes so we can't use SmolStr
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub preview: Option<String>,
+    pub preview: Option<ThinString>,
 }
