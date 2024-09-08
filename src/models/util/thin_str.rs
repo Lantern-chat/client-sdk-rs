@@ -125,6 +125,53 @@ impl From<&str> for ThinString {
     }
 }
 
+impl From<&mut str> for ThinString {
+    #[inline(always)]
+    fn from(s: &mut str) -> Self {
+        Self(ThinVec::from(s.as_bytes()))
+    }
+}
+
+impl<'a> From<Cow<'a, str>> for ThinString {
+    #[inline(always)]
+    fn from(s: Cow<'a, str>) -> Self {
+        match s {
+            Cow::Borrowed(s) => ThinString::from(s),
+            Cow::Owned(s) => ThinString::from(s),
+        }
+    }
+}
+
+impl From<String> for ThinString {
+    #[inline(always)]
+    fn from(s: String) -> Self {
+        Self(ThinVec::from(s.into_bytes()))
+    }
+}
+
+impl From<&String> for ThinString {
+    #[inline(always)]
+    fn from(s: &String) -> Self {
+        ThinString::from(s.as_str())
+    }
+}
+
+impl From<Box<str>> for ThinString {
+    #[inline(always)]
+    fn from(s: Box<str>) -> Self {
+        Self(ThinVec::from(<Box<[u8]>>::from(s)))
+    }
+}
+
+impl From<char> for ThinString {
+    #[inline(always)]
+    fn from(c: char) -> Self {
+        let mut thin_string = ThinString::new();
+        thin_string.push(c);
+        thin_string
+    }
+}
+
 impl ops::Deref for ThinString {
     type Target = str;
 
