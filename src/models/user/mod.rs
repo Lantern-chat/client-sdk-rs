@@ -141,38 +141,41 @@ impl_sql_for_bitflags!(ExtraUserProfileBits);
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct UserProfile {
     #[cfg_attr(feature = "typed-builder", builder(default))]
+    #[cfg_attr(feature = "bon", builder(default))]
     pub bits: UserProfileBits,
 
     #[serde(default, skip_serializing_if = "ExtraUserProfileBits::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default))]
+    #[cfg_attr(feature = "bon", builder(default))]
     pub extra: ExtraUserProfileBits,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(default, into))]
     pub nick: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(default, into))]
     pub avatar: Nullable<EncryptedSnowflake>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(default, into))]
     pub banner: Nullable<EncryptedSnowflake>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(default, into))]
     pub status: Nullable<SmolStr>,
 
     #[serde(default, skip_serializing_if = "Nullable::is_undefined")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(default, into))]
     pub bio: Nullable<SmolStr>,
 }
 
@@ -192,11 +195,7 @@ impl UserProfile {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct User {
     pub id: UserId,
     pub username: SmolStr,
@@ -296,7 +295,6 @@ BlockedDangerous    None                UserA has blocked UserB and reported the
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive(check_bytes))]
 pub struct Relationship {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<SmolStr>,

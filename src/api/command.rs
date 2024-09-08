@@ -489,8 +489,8 @@ macro_rules! command {
 
         #[derive(Debug)]
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-        #[cfg_attr(feature = "bon", bon::builder)]
-        #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
+        #[cfg_attr(feature = "bon", derive(bon::Builder))]
+        #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
         $(#[$($meta)*])*
         pub struct $name {
             $($(#[$($field_meta)*])* $field_vis $field_name: $field_ty, )*
@@ -506,7 +506,7 @@ macro_rules! command {
         $(
             #[derive(Debug, Serialize, Deserialize)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
             $(#[$body_meta])*
             pub struct $body_name {
                 $( $(#[$($body_field_meta)*])* $body_field_vis $body_field_name: $body_field_ty ),*

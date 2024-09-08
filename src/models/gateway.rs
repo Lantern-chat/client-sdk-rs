@@ -92,11 +92,7 @@ pub mod commands {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct Identify {
         pub auth: AuthToken,
         pub intent: Intent,
@@ -104,11 +100,7 @@ pub mod commands {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct SetPresence {
         #[serde(flatten)]
         pub presence: UserPresence,
@@ -120,11 +112,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct Hello {
         /// Number of milliseconds between heartbeats
         pub heartbeat_interval: u32,
@@ -140,11 +128,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct ReadyParty {
         pub party: Party,
 
@@ -177,11 +161,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct Ready {
         pub user: User,
 
@@ -197,11 +177,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct TypingStart {
         pub room_id: RoomId,
         pub party_id: PartyId,
@@ -215,11 +191,7 @@ pub mod events {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct PartyPositionUpdate {
         pub id: PartyId,
         pub position: i16,
@@ -227,11 +199,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct UserPresenceEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<PartyId>,
@@ -241,11 +209,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct MessageDeleteEvent {
         pub id: MessageId,
         pub room_id: RoomId,
@@ -254,11 +218,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct RoleDeleteEvent {
         pub id: RoleId,
         pub party_id: PartyId,
@@ -266,26 +226,18 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct RoomDeleteEvent {
         pub id: RoomId,
 
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
+        #[cfg_attr(feature = "rkyv", rkyv(with = NicheSnowflake))]
         pub party_id: Option<PartyId>,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct PartyMemberEvent {
         pub party_id: PartyId,
 
@@ -295,11 +247,7 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     #[serde(untagged)]
     pub enum PartyUpdateEvent {
         Position(PartyPositionUpdate),
@@ -308,29 +256,21 @@ pub mod events {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct UserReactionEvent {
         pub user_id: UserId,
         pub room_id: RoomId,
         pub party_id: PartyId,
         pub msg_id: MessageId,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+        #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
         pub member: Option<Box<PartyMember>>,
         pub emote: EmoteOrEmoji,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-    #[cfg_attr(
-        feature = "rkyv",
-        derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-        archive(check_bytes)
-    )]
+    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
     pub struct ProfileUpdateEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<PartyId>,
@@ -389,7 +329,7 @@ pub mod message {
                     #[doc = "Payload struct for [`" $name "::" $opcode "`]"]
                     #[derive(Debug, Serialize, Deserialize)]
                     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-                    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
+                    #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
                     $(#[derive($Default, PartialEq, Eq)])?
                     pub struct [<$opcode Payload>] {
                         $($(#[$field_meta])* pub $field : $ty,)*
@@ -532,7 +472,7 @@ pub mod message {
             $(#[$meta])*
             #[derive(Debug)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
             #[repr(u8)]
             pub enum $name {
                 $(

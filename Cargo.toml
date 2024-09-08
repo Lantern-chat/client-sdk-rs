@@ -11,7 +11,7 @@ license = "GPL-3.0-only"
 postgres-types = { git = "https://github.com/Lantern-chat/rust-postgres" }
 schemars = { git = "https://github.com/Lantern-chat/schemars" }
 
-rkyv = { git = "https://github.com/Lantern-chat/rkyv" }
+rkyv = { git = "https://github.com/rkyv/rkyv" }
 bytecheck = { git = "https://github.com/rkyv/bytecheck" }
 ptr_meta = { git = "https://github.com/rkyv/ptr_meta" }
 rancor = { git = "https://github.com/rkyv/rancor" }

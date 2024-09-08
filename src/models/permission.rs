@@ -187,7 +187,7 @@ const _: () = {
 #[cfg_attr(
     feature = "rkyv",
     derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes, compare(PartialEq))
+    rkyv(compare(PartialEq))
 )]
 pub struct Overwrite {
     /// Role or User ID

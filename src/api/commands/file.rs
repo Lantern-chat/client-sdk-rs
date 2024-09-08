@@ -4,14 +4,17 @@ command! {
     +struct CreateFile -> One FileId: POST("file") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-        #[cfg_attr(feature = "bon", bon::builder)]
+        #[cfg_attr(feature = "bon", derive(bon::Builder))]
         struct CreateFileBody {
+            #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
+            #[cfg_attr(feature = "bon", builder(into))]
             pub filename: SmolStr,
 
             pub size: i32,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into, strip_option)))]
+            #[cfg_attr(feature = "bon", builder(into))]
             pub mime: Option<SmolStr>,
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -24,6 +27,7 @@ command! {
 
             #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+            #[cfg_attr(feature = "bon", builder(into))]
             pub preview: Option<String>,
         }
     }
@@ -37,11 +41,7 @@ command! {
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct FilesystemStatus {
     pub quota_used: i64,
     pub quota_total: i64,
@@ -49,11 +49,7 @@ pub struct FilesystemStatus {
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct FileStatus {
     pub complete: u32,
     pub upload_offset: u64,

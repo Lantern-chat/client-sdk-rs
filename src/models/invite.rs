@@ -2,11 +2,7 @@ use super::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Invite {
     /// Invite code, which is either an encrypted Snowflake or a custom vanity code.
     pub code: SmolStr,
@@ -14,7 +10,7 @@ pub struct Invite {
     pub party: PartialParty,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = NicheSnowflake))]
     pub inviter: Option<UserId>,
 
     #[serde(default, skip_serializing_if = "is_none_or_empty")]

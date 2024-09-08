@@ -4,11 +4,7 @@ use num_traits::FromPrimitive;
 use super::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, enum_primitive_derive::Primitive)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[repr(u8)]
 pub enum RoomKind {
     Text = 0,
@@ -49,11 +45,7 @@ impl From<RoomKind> for RoomFlags {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Room {
     pub id: RoomId,
 
@@ -73,12 +65,12 @@ pub struct Room {
 
     /// Slow-mode rate limit, in seconds
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(Niche))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = Niche))]
     pub rate_limit_per_user: Option<NonZeroU32>,
 
     /// Parent room ID for categories
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "rkyv", with(NicheSnowflake))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = NicheSnowflake))]
     pub parent_id: Option<RoomId>,
 
     /// Permission overwrites for this room
@@ -91,11 +83,7 @@ pub struct Room {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct FullRoom {
     #[serde(flatten)]
     pub room: Room,

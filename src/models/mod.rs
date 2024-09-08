@@ -76,7 +76,7 @@ macro_rules! decl_newtype_prefs {
         $(
             $(#[$meta])*
             #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
-            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize), archive(check_bytes))]
+            #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
             #[repr(transparent)]
             pub struct $name(pub $ty);
 
@@ -169,11 +169,7 @@ pub use self::{
 /// Directional search query
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[serde(rename_all = "lowercase")]
 pub enum Cursor {
     Exact(Snowflake),

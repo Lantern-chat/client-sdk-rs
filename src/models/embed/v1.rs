@@ -9,11 +9,7 @@ pub type UrlSignature = FixedStr<27>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub enum EmbedType {
     #[serde(alias = "image")]
     Img,
@@ -70,15 +66,12 @@ impl IsNoneOrEmpty for Option<ThinString> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct EmbedV1 {
     /// Timestamp when the embed was retreived
     #[cfg_attr(feature = "typed-builder", builder(default = Timestamp::now_utc()))]
+    #[cfg_attr(feature = "bon", builder(default = Timestamp::now_utc()))]
     pub ts: Timestamp,
 
     /// Embed type
@@ -92,6 +85,7 @@ pub struct EmbedV1 {
         skip_serializing_if = "EmbedFlags::is_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default = EmbedFlags::empty()))]
+    #[cfg_attr(feature = "bon", builder(default = EmbedFlags::empty()))]
     pub flags: EmbedFlags,
 
     /// URL fetched
@@ -102,6 +96,7 @@ pub struct EmbedV1 {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub url: Option<ThinString>,
 
     /// Canonical URL
@@ -112,6 +107,7 @@ pub struct EmbedV1 {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub canonical: Option<ThinString>,
 
     #[serde(
@@ -121,6 +117,7 @@ pub struct EmbedV1 {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub title: Option<ThinString>,
 
     /// Description, usually from the Open-Graph API
@@ -131,6 +128,7 @@ pub struct EmbedV1 {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub description: Option<ThinString>,
 
     /// Accent Color
@@ -152,23 +150,28 @@ pub struct EmbedV1 {
     /// See: <https://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/>
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub obj: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub img: Option<Box<EmbedMedia>>,
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub audio: Option<Box<EmbedMedia>>,
     #[serde(rename = "vid", alias = "video", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub video: Option<Box<EmbedMedia>>,
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub thumb: Option<Box<EmbedMedia>>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -290,20 +293,18 @@ impl VisitMedia for EmbedV1 {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct EmbedFooter {
     #[serde(rename = "t", alias = "text")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub text: ThinString,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub icon: Option<Box<EmbedMedia>>,
 }
 
@@ -388,12 +389,8 @@ impl VisitMedia for Box<EmbedMedia> {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct EmbedMedia {
     #[serde(flatten)]
     pub media: BasicEmbedMedia,
@@ -408,6 +405,7 @@ pub struct EmbedMedia {
         deserialize_with = "de::de_one_or_many"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub alts: Vec<BasicEmbedMedia>,
 }
 
@@ -457,14 +455,12 @@ impl Deref for ArchivedEmbedMedia {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct BasicEmbedMedia {
     #[serde(rename = "u", alias = "url")]
+    #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub url: ThinString,
 
     /// Non-visible description of the embedded media
@@ -475,11 +471,13 @@ pub struct BasicEmbedMedia {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub description: Option<ThinString>,
 
     /// Cryptographic signature for use with the proxy server
     #[serde(rename = "s", alias = "signature", default, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "typed-builder", builder(default))]
+    #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub signature: Option<UrlSignature>,
 
     /// height
@@ -499,6 +497,7 @@ pub struct BasicEmbedMedia {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub mime: Option<SmolStr>,
 }
 
@@ -540,12 +539,8 @@ impl EmbedMedia {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct EmbedProvider {
     #[serde(
         rename = "n",
@@ -554,6 +549,7 @@ pub struct EmbedProvider {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub name: Option<SmolStr>,
 
     #[serde(
@@ -563,11 +559,13 @@ pub struct EmbedProvider {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub url: Option<ThinString>,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub icon: Option<Box<EmbedMedia>>,
 }
 
@@ -591,15 +589,12 @@ impl EmbedAuthor {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct EmbedAuthor {
     #[serde(rename = "n", alias = "name")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub name: SmolStr,
 
     #[serde(
@@ -609,39 +604,42 @@ pub struct EmbedAuthor {
         skip_serializing_if = "IsNoneOrEmpty::is_none_or_empty"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub url: Option<ThinString>,
 
     #[serde(rename = "i", alias = "icon", default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub icon: Option<Box<EmbedMedia>>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
-#[cfg_attr(feature = "bon", bon::builder)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
-    archive(check_bytes)
-)]
+#[cfg_attr(feature = "bon", derive(bon::Builder))]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct EmbedField {
     #[serde(rename = "n", alias = "name", default, skip_serializing_if = "SmolStr::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub name: SmolStr,
+
     #[serde(rename = "v", alias = "value", default, skip_serializing_if = "SmolStr::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
+    #[cfg_attr(feature = "bon", builder(into))]
     pub value: SmolStr,
 
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    #[cfg_attr(feature = "rkyv", with(rkyv::with::Niche))]
+    #[cfg_attr(feature = "bon", builder(into))]
+    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub img: Option<Box<EmbedMedia>>,
 
     /// Should use block-formatting
     #[serde(rename = "b", alias = "block", default, skip_serializing_if = "is_false")]
     #[cfg_attr(feature = "typed-builder", builder(default))]
+    #[cfg_attr(feature = "bon", builder(default))]
     pub block: bool,
 }
 
