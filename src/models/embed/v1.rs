@@ -184,6 +184,7 @@ pub struct EmbedV1 {
 }
 
 impl EmbedV1 {
+    #[must_use]
     pub fn has_fullsize_media(&self) -> bool {
         !EmbedMedia::is_empty(&self.obj)
             || !EmbedMedia::is_empty(&self.img)
@@ -192,6 +193,7 @@ impl EmbedV1 {
     }
 
     // NOTE: Provider, canonical, and title can be skipped here, as by themselves it's a very boring embed
+    #[must_use]
     pub fn is_plain_link(&self) -> bool {
         if self.ty != EmbedType::Link
             || self.url.is_none()
@@ -528,6 +530,7 @@ impl EmbedMedia {
         }
     }
 
+    #[must_use]
     pub fn is_empty(this: &Option<Box<EmbedMedia>>) -> bool {
         match this {
             Some(ref e) => e.url.is_empty(),
@@ -570,12 +573,14 @@ pub struct EmbedProvider {
 }
 
 impl EmbedProvider {
+    #[must_use]
     pub fn is_none(&self) -> bool {
         is_none_or_empty(&self.name) && IsNoneOrEmpty::is_none_or_empty(&self.url) && EmbedMedia::is_empty(&self.icon)
     }
 }
 
 impl EmbedAuthor {
+    #[must_use]
     pub fn is_none(this: &Option<Self>) -> bool {
         match this {
             Some(ref this) => {
@@ -644,6 +649,7 @@ pub struct EmbedField {
 }
 
 impl EmbedField {
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         (self.name.is_empty() || self.value.is_empty()) && EmbedMedia::is_empty(&self.img)
     }

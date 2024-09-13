@@ -5,6 +5,7 @@
 ///
 /// Similarly, not all gateway events provide all information in objects. Again, user profiles
 /// are notable in that biographies are typically excluded in events to save on bandwidth.
+#[must_use = "This enum is used to represent nullable values, and should be used as such"]
 #[derive(Default, Debug, Clone, Copy, Hash)]
 #[repr(u8)]
 pub enum Nullable<T> {
@@ -79,7 +80,18 @@ impl<T> Nullable<T> {
     }
 
     /// Converts `Nullable<T>` to `Nullable<&T>`.
+    #[inline]
     pub fn as_ref(&self) -> Nullable<&T> {
+        match self {
+            Nullable::Some(value) => Nullable::Some(value),
+            Nullable::Null => Nullable::Null,
+            Nullable::Undefined => Nullable::Undefined,
+        }
+    }
+
+    /// Converts `Nullable<T>` to `Nullable<&mut T>`.
+    #[inline]
+    pub fn as_mut(&mut self) -> Nullable<&mut T> {
         match self {
             Nullable::Some(value) => Nullable::Some(value),
             Nullable::Null => Nullable::Null,
@@ -90,7 +102,7 @@ impl<T> Nullable<T> {
     /// Maps an inner `Some` value to a different value, using `Into`.
     ///
     /// Equivalent to `.map(Into::into)`.
-    pub fn map_into<U>(self) -> Nullable<U>
+    pub fn convert<U>(self) -> Nullable<U>
     where
         T: Into<U>,
     {

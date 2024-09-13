@@ -85,10 +85,12 @@ pub enum ElevationLevel {
 
 impl UserFlags {
     #[inline]
+    #[must_use]
     pub const fn from_bits_truncate_public(bits: i32) -> Self {
         Self::from_bits_truncate(bits).difference(Self::PRIVATE_FLAGS)
     }
 
+    #[must_use]
     pub fn elevation(self) -> ElevationLevel {
         match (self & Self::ELEVATION).bits() >> 6 {
             1 => ElevationLevel::Bot,
@@ -98,14 +100,17 @@ impl UserFlags {
         }
     }
 
+    #[must_use]
     pub const fn with_elevation(self, ev: ElevationLevel) -> Self {
         self.difference(Self::ELEVATION).union(Self::from_bits_truncate(((ev as u8) as i32) << 6))
     }
 
+    #[must_use]
     pub fn premium_level(self) -> u8 {
         ((self & Self::PREMIUM).bits() >> 9) as u8
     }
 
+    #[must_use]
     pub fn extra_storage_tier(self) -> u8 {
         ((self & Self::EXTRA_STORAGE).bits() >> 13) as u8
     }
@@ -180,14 +185,20 @@ pub struct UserProfile {
 }
 
 impl UserProfile {
+    #[inline]
+    #[must_use]
     pub fn roundedness(&self) -> f32 {
         (self.bits & UserProfileBits::AVATAR_ROUNDNESS).bits() as f32 / 127.0
     }
 
+    #[inline]
+    #[must_use]
     pub fn override_color(&self) -> bool {
         self.bits.contains(UserProfileBits::OVERRIDE_COLOR)
     }
 
+    #[inline]
+    #[must_use]
     pub fn color(&self) -> u32 {
         self.bits.bits() as u32 >> 8
     }

@@ -44,6 +44,7 @@ pub enum DriverError {
 }
 
 impl DriverError {
+    #[must_use]
     pub fn is_not_found(&self) -> bool {
         match self {
             DriverError::ApiError(err) => err.code == ApiErrorCode::NotFound,

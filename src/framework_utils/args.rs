@@ -42,30 +42,37 @@ impl<'a> Argument<'a> {
         }
     }
 
+    #[must_use]
     pub fn orig(&self) -> &'a str {
         self.buf
     }
 
+    #[must_use]
     pub fn inner_str(&self) -> &'a str {
         &self.buf[self.inner()]
     }
 
+    #[must_use]
     pub fn outer_str(&self) -> &'a str {
         &self.buf[self.outer()]
     }
 
+    #[must_use]
     pub fn inner(&self) -> Range<usize> {
         self.inner_start..self.inner_end
     }
 
+    #[must_use]
     pub fn outer(&self) -> Range<usize> {
         self.outer_start..self.outer_end
     }
 
+    #[must_use]
     pub fn is_quoted(&self) -> bool {
         self.inner() != self.outer()
     }
 
+    #[must_use]
     pub fn is_quoted_with(&self, (start, end): (char, char)) -> bool {
         let outer = self.outer_str();
 
@@ -74,10 +81,12 @@ impl<'a> Argument<'a> {
 }
 
 impl<'a> ArgumentSplitter<'a> {
+    #[must_use]
     pub fn orig(&self) -> &'a str {
         self.buf
     }
 
+    #[must_use]
     pub fn arguments(&self) -> &[Argument<'a>] {
         &self.arguments
     }
@@ -89,10 +98,12 @@ impl<'a> ArgumentSplitter<'a> {
         self.arguments.iter().map(|r| r.inner_str())
     }
 
+    #[must_use]
     pub fn split(args: &'a str) -> Self {
         Self::split_delimiters(args, &[('`', '`'), ('"', '"'), ('\u{201C}', '\u{201D}')])
     }
 
+    #[must_use]
     pub fn split_delimiters(args: &'a str, delmiters: &[(char, char)]) -> Self {
         let buf = args;
         let mut arguments = SmallVec::new();

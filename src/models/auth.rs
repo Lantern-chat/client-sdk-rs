@@ -49,6 +49,7 @@ impl fmt::Display for InvalidAuthToken {
 impl core::error::Error for InvalidAuthToken {}
 
 impl AuthToken {
+    #[must_use]
     pub fn raw_header(&self) -> arrayvec::ArrayString<{ MAX_LENGTH }> {
         let (prefix, value) = match self {
             AuthToken::Bearer(ref token) => (BEARER_PREFIX, token.as_ref()),

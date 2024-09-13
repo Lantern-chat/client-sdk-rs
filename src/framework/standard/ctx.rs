@@ -45,6 +45,7 @@ impl StandardContext {
         self.client().driver()
     }
 
+    #[must_use]
     pub fn close(&self) -> bool {
         self.inner().tx.send(StandardResponse::Close).is_ok()
     }

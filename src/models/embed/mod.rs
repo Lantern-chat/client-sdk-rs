@@ -19,6 +19,7 @@ pub mod v1;
 pub use v1::*;
 
 impl Embed {
+    #[must_use]
     pub fn url(&self) -> Option<&str> {
         match self {
             Embed::V1(embed) => embed.url.as_ref().map(|x| x as _),

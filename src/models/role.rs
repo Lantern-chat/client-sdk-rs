@@ -33,10 +33,12 @@ pub struct Role {
 }
 
 impl Role {
+    #[must_use]
     pub fn is_mentionable(&self) -> bool {
         self.flags.contains(RoleFlags::MENTIONABLE)
     }
 
+    #[must_use]
     pub fn is_admin(&self) -> bool {
         self.permissions.contains(Permissions::ADMINISTRATOR)
     }

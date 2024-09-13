@@ -30,6 +30,7 @@ impl_schema_for_bitflags!(RoomFlags);
 impl_sql_for_bitflags!(RoomFlags);
 
 impl RoomFlags {
+    #[must_use]
     pub fn kind(self) -> RoomKind {
         // all rooms derive from the text room, so basic queries
         // will still function if the SDK is not updated as it should

@@ -54,6 +54,7 @@ impl GatewayConnectionControl {
 }
 
 impl GatewayConnection {
+    #[must_use]
     pub fn new(client: Client) -> GatewayConnection {
         GatewayConnection {
             client,

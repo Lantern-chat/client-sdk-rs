@@ -32,6 +32,7 @@ impl_sql_for_bitflags!(MessageFlags);
 
 impl MessageFlags {
     #[inline]
+    #[must_use]
     pub const fn from_bits_truncate_public(bits: i32) -> Self {
         Self::from_bits_truncate(bits).difference(Self::LANGUAGE)
     }

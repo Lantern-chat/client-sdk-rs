@@ -18,6 +18,7 @@ impl_serde_for_bitflags!(UserPresenceFlags);
 impl_schema_for_bitflags!(UserPresenceFlags);
 
 impl UserPresenceFlags {
+    #[must_use]
     pub const fn from_bits_truncate_public(bits: i16) -> Self {
         Self::from_bits_truncate(bits).difference(Self::INVISIBLE)
     }
@@ -43,6 +44,7 @@ pub struct UserPresence {
 }
 
 impl UserPresence {
+    #[must_use]
     pub const fn new(flags: UserPresenceFlags) -> Self {
         UserPresence {
             flags,
@@ -52,6 +54,7 @@ impl UserPresence {
         }
     }
 
+    #[must_use]
     pub fn with_activty(mut self, activity: Option<AnyActivity>) -> Self {
         self.activity = activity;
         self

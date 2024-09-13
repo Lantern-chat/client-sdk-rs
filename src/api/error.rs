@@ -21,6 +21,7 @@ pub struct ApiError {
 impl ArchivedApiError {
     /// Get the error code for this error.
     #[inline]
+    #[must_use]
     pub const fn code(&self) -> ApiErrorCode {
         self.code.get()
     }
@@ -58,6 +59,7 @@ macro_rules! error_codes {
 
         impl $name {
             /// Get the HTTP status code for this error code.
+            #[must_use]
             pub fn http_status(self) -> StatusCode {
                 match self {
                     $(Self::$variant => $status,)*

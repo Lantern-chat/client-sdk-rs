@@ -61,6 +61,7 @@ impl_sql_for_bitflags!(AssetFlags);
 
 impl AssetFlags {
     /// Sets the quality of the asset, clamping to `[0-128)`
+    #[must_use]
     pub const fn with_quality(self, q: u8) -> Self {
         self.intersection(Self::QUALITY.complement()).union(if q < 128 {
             AssetFlags::from_bits_truncate(q as i16)
@@ -70,6 +71,7 @@ impl AssetFlags {
     }
 
     /// Sets the alpha channel flag
+    #[must_use]
     pub const fn with_alpha(&self, has_alpha: bool) -> Self {
         if has_alpha {
             self.union(Self::HAS_ALPHA)
@@ -79,11 +81,13 @@ impl AssetFlags {
     }
 
     /// Gets the quality value from the asset flags
+    #[must_use]
     pub const fn quality(&self) -> u8 {
         self.intersection(Self::QUALITY).bits() as u8
     }
 
     /// Constructs a new `AssetFlags` from the given extension
+    #[must_use]
     pub fn from_ext(ext: &str) -> Self {
         static FORMAT_EXTS: &[(AssetFlags, &str)] = &[
             (AssetFlags::FORMAT_PNG, "png"),

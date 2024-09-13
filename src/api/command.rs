@@ -491,6 +491,7 @@ macro_rules! command {
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
         #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+        #[must_use = "Commands do nothing unless executed via a `Driver`."]
         $(#[$($meta)*])*
         pub struct $name {
             $($(#[$($field_meta)*])* $field_vis $field_name: $field_ty, )*

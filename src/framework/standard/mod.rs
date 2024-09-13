@@ -44,6 +44,7 @@ pub struct Standard<H, E: StandardErrorExt = StandardError> {
 }
 
 impl<E: StandardErrorExt> Standard<StandardDynamicHandler<(), E>, E> {
+    #[must_use]
     pub fn new(client: Client) -> Self {
         Self::new_with_state(client, ())
     }

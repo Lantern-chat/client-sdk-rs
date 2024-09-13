@@ -6,6 +6,7 @@ use core::{error, fmt, ops};
 use thin_vec::ThinVec;
 
 #[derive(Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[must_use = "Not using the ThinString is wasteful"]
 #[repr(transparent)]
 pub struct ThinString(ThinVec<u8>);
 
@@ -16,14 +17,17 @@ pub struct FromUtf8Error {
 }
 
 impl FromUtf8Error {
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
 
+    #[must_use]
     pub fn into_bytes(self) -> ThinVec<u8> {
         self.bytes
     }
 
+    #[must_use]
     pub fn utf8_error(&self) -> &core::str::Utf8Error {
         &self.error
     }
@@ -66,10 +70,12 @@ impl ThinString {
     }
 
     #[inline(always)]
+    #[must_use]
     pub fn as_str(&self) -> &str {
         unsafe { core::str::from_utf8_unchecked(&self.0) }
     }
 
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
@@ -101,6 +107,7 @@ impl ThinString {
         self.0.shrink_to_fit();
     }
 
+    #[must_use]
     pub fn into_bytes(self) -> ThinVec<u8> {
         self.0
     }
@@ -109,10 +116,12 @@ impl ThinString {
         &mut self.0
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }

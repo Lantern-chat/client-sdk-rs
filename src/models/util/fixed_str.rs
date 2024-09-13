@@ -4,6 +4,7 @@ use core::fmt;
 
 /// Fixed-size String that can *only* be a given length, no more or less, exactly N bytes
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[must_use = "Not using the FixedStr is wasteful"]
 #[repr(transparent)]
 pub struct FixedStr<const N: usize> {
     data: [u8; N],
@@ -116,6 +117,7 @@ impl<const N: usize> FixedStr<N> {
 
     /// Construct a new [FixedStr] from a [`&str`](str) if the length is correct.
     #[inline]
+    #[must_use]
     pub const fn try_from(s: &str) -> Option<FixedStr<N>> {
         if s.len() != N {
             return None;
@@ -125,6 +127,7 @@ impl<const N: usize> FixedStr<N> {
     }
 
     #[inline(always)]
+    #[must_use]
     pub fn as_str(&self) -> &str {
         self.as_ref()
     }

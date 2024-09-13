@@ -19,6 +19,7 @@ struct ClientInner {
     preferred_encoding: ArcSwap<Encoding>,
 }
 
+#[must_use = "Client does nothing on its own."]
 #[derive(Clone)]
 pub struct Client(Arc<ClientInner>);
 
@@ -63,6 +64,7 @@ impl Client {
         Ok(())
     }
 
+    #[must_use]
     pub fn auth(&self) -> Option<AuthToken> {
         self.0.auth.load().as_ref().map(|auth| auth.0)
     }

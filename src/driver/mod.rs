@@ -23,6 +23,7 @@ pub enum Encoding {
     CBOR,
 }
 
+#[must_use = "This struct does nothing on its own. Use `Driver::execute` to send a request."]
 #[derive(Clone)]
 pub struct Driver {
     pub(crate) inner: reqwest::Client,

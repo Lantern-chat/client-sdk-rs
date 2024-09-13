@@ -211,6 +211,7 @@ impl Overwrite {
     ///
     /// With debug assertions enabled, this function will panic if the IDs do not match.
     #[inline]
+    #[must_use]
     pub const fn combine(&self, other: Self) -> Overwrite {
         //debug_assert_eq!(self.id, other.id);
         #[cfg(debug_assertions)]
@@ -229,6 +230,7 @@ impl Overwrite {
     ///
     /// Equivalent to `(base & !deny) | allow`.
     #[inline]
+    #[must_use]
     pub const fn apply(&self, base: Permissions) -> Permissions {
         // self.allow(base & !self.deny) | self.allow
         base.difference(self.deny).union(self.allow)
@@ -238,12 +240,14 @@ impl Overwrite {
 impl Permissions {
     /// Constructs a new `Permissions` from two `i64` values.
     #[inline(always)]
+    #[must_use]
     pub const fn from_i64(low: i64, high: i64) -> Self {
         Permissions::from_bits_truncate(low as u64 as u128 | ((high as u64 as u128) << 64))
     }
 
     /// Constructs a new `Permissions` from two `Option<i64>` values, defaulting to `0` if `None` on either.
     #[inline(always)]
+    #[must_use]
     pub const fn from_i64_opt(low: Option<i64>, high: Option<i64>) -> Self {
         // TODO: Replace with `.unwrap_or(0)` when that's const-stable
         Permissions::from_i64(
@@ -260,6 +264,7 @@ impl Permissions {
 
     /// Converts the `Permissions` into two `i64` values.
     #[inline(always)]
+    #[must_use]
     pub const fn to_i64(self) -> [i64; 2] {
         let bits = self.bits();
         let low = bits as u64 as i64;
@@ -268,11 +273,14 @@ impl Permissions {
     }
 
     /// Returns `true` if the permissions contain the `ADMINISTRATOR` permission.
+    #[inline(always)]
+    #[must_use]
     pub const fn is_admin(self) -> bool {
         self.contains(Permissions::ADMINISTRATOR)
     }
 
     /// Takes cerrtain flags into account and normalizes the permissions to obey them.
+    #[must_use]
     pub const fn normalize(self) -> Self {
         if self.contains(Permissions::DEFAULT_ONLY) {
             return Permissions::DEFAULT;
@@ -286,6 +294,7 @@ impl Permissions {
     }
 
     /// Computes the final permissions for a user in a room given the overwrites and roles.
+    #[must_use]
     pub fn compute_overwrites(mut self, overwrites: &[Overwrite], user_roles: &[RoleId], user_id: UserId) -> Permissions {
         if self.contains(Permissions::ADMINISTRATOR) {
             return Permissions::all();

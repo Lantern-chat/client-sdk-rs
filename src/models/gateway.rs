@@ -405,7 +405,7 @@ pub mod message {
                     }
                 }
 
-                #[inline(always)]
+                #[inline(always)] #[must_use]
                 pub fn state(&self) -> &S {
                     &self.state
                 }
@@ -486,6 +486,7 @@ pub mod message {
 
             impl $name {
                 /// Returns the discrete opcode for the message
+                #[must_use]
                 pub const fn opcode(&self) -> [<$name Opcode>] {
                     match self {
                         $($name::$opcode(_) => [<$name Opcode>]::$opcode,)*
@@ -505,7 +506,7 @@ pub mod message {
                     #[doc = "Create new [`" $opcode "`](" $name "::" $opcode ") message from payload fields."]
                     #[doc = ""]
                     $(#[$variant_meta])*
-                    #[inline]
+                    #[inline] #[must_use]
                     pub fn [<new_ $opcode:snake>]($($field: impl Into<$ty>),*) -> Self {
                         $name::$opcode([<$name:snake _payloads>]::[<$opcode Payload>] {
                             $($field: $field.into()),*
@@ -695,7 +696,7 @@ pub mod message {
     }
 
     impl ServerMsg {
-        #[rustfmt::skip]
+        #[rustfmt::skip] #[must_use]
         pub fn matching_intent(&self) -> Option<Intent> {
             Some(match *self {
                 | ServerMsg::PartyCreate { .. }
@@ -753,6 +754,7 @@ pub mod message {
         }
 
         /// If the event originated from a specific user, get their ID
+        #[must_use]
         pub fn user_id(&self) -> Option<UserId> {
             Some(match self {
                 ServerMsg::MemberAdd(e) => e.member.user.id,

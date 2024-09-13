@@ -1,6 +1,7 @@
 //! Lantern Chat Client SDK
 
 //#![cfg_attr(not(feature = "std"), no_std)]
+#![warn(clippy::perf, clippy::must_use_candidate, clippy::complexity, clippy::suspicious)]
 #![allow(clippy::bad_bit_mask)]
 
 extern crate alloc;
