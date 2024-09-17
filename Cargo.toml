@@ -15,6 +15,8 @@ schemars = { git = "https://github.com/Lantern-chat/schemars" }
 snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
 timestamp = { package = "iso8601-timestamp", version = "0.3.0-rc.1" }
 
+ftl = { git = "https://github.com/Lantern-chat/ftl2", optional = true }
+
 rkyv = { version = "0.8.0", optional = true, features = ["bytecheck", "smol_str-0_3", "thin-vec-0_2", "triomphe-0_1"] }
 rkyv_rpc = { git = "https://github.com/Lantern-chat/rkyv_rpc", optional = true }
 
@@ -67,7 +69,7 @@ base64 = { version = "0.22.0", optional = true }
 tokio = { version = "1", optional = true, default-features = false, features = ["io-util"] }
 reqwest = { version = "0.12", optional = true, default-features = false, features = ["gzip", "deflate", "http2"] }
 
-tokio-tungstenite = { version = "0.23", optional = true, default-features = false, features = ["connect"] }
+tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["connect"] }
 miniz_oxide = { version = "0.8", optional = true }
 futures = { version = "0.3", optional = true }
 pin-project-lite = { version = "0.2.8", optional = true }

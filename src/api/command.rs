@@ -130,6 +130,9 @@ pub trait Command: sealed::Sealed {
     /// on the request.
     const RATE_LIMIT: RateLimit;
 
+    /// Path pattern for the command (without query) when used with matchit 0.8 or higher.
+    const ROUTE_PATTERN: &'static str;
+
     /// Serialize/format the REST path (without query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
 
@@ -160,9 +163,8 @@ pub trait Command: sealed::Sealed {
     fn schema(gen: &mut schemars::gen::SchemaGenerator) -> (String, okapi::openapi3::PathItem);
 }
 
-// Takes an expression like:
-//  "a" / value / "b" / value2
-// and converts it into a sequence of `Write` writes
+/// Takes an expression like: "a" / value / "b" / value2
+/// and converts it into a sequence of `Write` writes
 macro_rules! format_path {
     ($w:expr, $this:expr, [$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
         format_path!($w, $this, [$($value,)+ $next] [$(/ $tail)*]);
@@ -182,23 +184,23 @@ macro_rules! format_path {
     ($w:expr, $this:expr, [$value:ident] []) => { write!($w, "/{}", $this.$value)?; };
 }
 
-// Similar to the above, but concatenates the path together for usage in schemas
-#[cfg(feature = "schema")]
-macro_rules! schema_path {
+/// Takes a path pattern like: "a" / value / "b" / value2
+/// and converts it into a static string for use in matchit 0.8 or higher
+macro_rules! static_path_pattern {
     ([$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
-        schema_path!([$($value,)+ $next] [$(/ $tail)*])
+        static_path_pattern!([$($value,)+ $next] [$(/ $tail)*])
     };
 
     ([$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
-        concat!($("/", $value,)+ schema_path!([$next] [$(/ $tail)*]))
+        concat![$("/", $value,)+ static_path_pattern!([$next] [$(/ $tail)*])]
     };
 
     ([$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
-        concat!("/{", stringify!($value), "}", schema_path!([$next] [$(/ $tail)*]))
+        concat!["/{", stringify!($value), "}", static_path_pattern!([$next] [$(/ $tail)*])]
     };
 
-    ([$($value:literal),*] []) => { concat!($("/", $value),*) };
-    ([$value:ident] []) => { concat!("/{", stringify!($value), "}") };
+    ([$($value:literal),*] []) => { concat![$("/", $value),*] };
+    ([$value:ident] []) => { concat!["/{", stringify!($value), "}"] };
 }
 
 // Macro to autogenerate most Command trait implementations.
@@ -371,6 +373,8 @@ macro_rules! command {
                 base
             }
 
+            const ROUTE_PATTERN: &'static str = static_path_pattern!(["api", "v1", $head] [$(/ $tail)*]);
+
             #[inline]
             #[allow(deprecated)]
             fn format_path<W: core::fmt::Write>(&self, mut w: W) -> core::fmt::Result {
@@ -483,7 +487,8 @@ macro_rules! command {
                     })
                 },)*];
 
-                (schema_path!([$head] [$(/ $tail)*]).to_owned(), path_item)
+                // TODO: Self::ROUTE_PATTERN.to_owned() instead?
+                (static_path_pattern!([$head] [$(/ $tail)*]).to_owned(), path_item)
             }
         }
 
@@ -547,6 +552,47 @@ macro_rules! command {
                 }
             }
         }
+
+        #[cfg(feature = "ftl")]
+        const _: () = {
+            use ftl::{Request, Response, IntoResponse};
+            use ftl::extract::{FromRequest, FromRequestParts, path::Path};
+
+            mod segments {
+                ftl::path_segment! {
+                    $(pub [<$field_name:camel>]: super::[<$field_ty>],)*
+                }
+            }
+
+            impl<S> FromRequest<S> for $name
+                where S: Send + Sync,
+            {
+                type Rejection = Response;
+
+                #[allow(unused_variables, non_snake_case)]
+                fn from_request(req: Request, state: &S) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
+                    async move {
+                        let (mut parts, body) = req.into_parts();
+
+                        let Path(($($field_name,)*)) = Path::<($(segments::[<$field_name:camel>],)*)>::from_request_parts(&mut parts, state)
+                            .await.map_err(IntoResponse::into_response)?;
+
+                    $(
+                        use ftl::extract::one_of::{OneOfAny, OneOf};
+
+                        let OneOf($body_name) = OneOfAny::from_request(Request::from_parts(parts, body), state)
+                            .await.map_err(IntoResponse::into_response)?;
+                    )?
+
+                        Ok($name {
+                            $($field_name,)*
+
+                            $( body: $body_name, )?
+                        })
+                    }
+                }
+            }
+        };
     )*}};
 }
 
