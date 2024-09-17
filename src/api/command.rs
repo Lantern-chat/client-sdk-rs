@@ -569,7 +569,7 @@ macro_rules! command {
             {
                 type Rejection = Response;
 
-                #[allow(unused_variables, non_snake_case)]
+                #[allow(unused_variables)]
                 fn from_request(req: Request, state: &S) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
                     async move {
                         let (mut parts, body) = req.into_parts();
@@ -577,17 +577,11 @@ macro_rules! command {
                         let Path(($($field_name,)*)) = Path::<($(segments::[<$field_name:camel>],)*)>::from_request_parts(&mut parts, state)
                             .await.map_err(IntoResponse::into_response)?;
 
-                    $(
-                        use ftl::extract::one_of::{OneOfAny, OneOf};
-
-                        let OneOf($body_name) = OneOfAny::from_request(Request::from_parts(parts, body), state)
-                            .await.map_err(IntoResponse::into_response)?;
-                    )?
-
                         Ok($name {
                             $($field_name,)*
 
-                            $( body: $body_name, )?
+                            $(body: ftl::extract::one_of::OneOfAny::<$body_name>::from_request(Request::from_parts(parts, body), state)
+                                        .await.map_err(IntoResponse::into_response)?.0)?
                         })
                     }
                 }
