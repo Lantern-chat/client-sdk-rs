@@ -582,6 +582,10 @@ macro_rules! command {
                     async move {
                         let (mut parts, body) = req.into_parts();
 
+                        if parts.method != <Self as $crate::api::Command>::HTTP_METHOD {
+                            return Err(http::StatusCode::METHOD_NOT_ALLOWED.into_response());
+                        }
+
                         let Path(($($field_name,)*)) = Path::<($(segments::[<$field_name:camel>],)*)>::from_request_parts(&mut parts, state)
                             .await.map_err(IntoResponse::into_response)?;
 
