@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use reqwest::{
     header::{HeaderName, HeaderValue},
-    Method, Request, Url,
+    Request, Url,
 };
 
 mod error;
@@ -113,49 +113,45 @@ impl Driver {
 
         // if there is a body to serialize
         if CMD::FLAGS.contains(CommandFlags::HAS_BODY) && body_size_hint > 0 {
-            match CMD::HTTP_METHOD {
-                // for methods without bodies, the "body" is treated as query parameters
-                Method::GET | Method::OPTIONS | Method::HEAD | Method::CONNECT | Method::TRACE => {
-                    let url = req.url_mut();
+            // for methods without bodies, the "body" is treated as query parameters
+            if CMD::IS_QUERY {
+                let url = req.url_mut();
 
-                    {
-                        use serde::Serialize;
+                {
+                    use serde::Serialize;
 
-                        let mut pairs = url.query_pairs_mut();
-                        cmd.body().serialize(serde_urlencoded::Serializer::new(&mut pairs))?;
+                    let mut pairs = url.query_pairs_mut();
+                    cmd.body().serialize(serde_urlencoded::Serializer::new(&mut pairs))?;
+                }
+
+                if let Some("") = url.query() {
+                    url.set_query(None);
+                }
+            } else {
+                let mut body = Vec::with_capacity(body_size_hint.max(128));
+
+                match self.encoding {
+                    Encoding::JSON => {
+                        serde_json::to_writer(&mut body, cmd.body())?;
+
+                        req.headers_mut().insert(
+                            HeaderName::from_static("content-type"),
+                            HeaderValue::from_static("application/json"),
+                        );
                     }
 
-                    if let Some("") = url.query() {
-                        url.set_query(None);
+                    #[cfg(feature = "cbor")]
+                    Encoding::CBOR => {
+                        ciborium::ser::into_writer(cmd.body(), &mut body)?;
+
+                        req.headers_mut().insert(
+                            HeaderName::from_static("content-type"),
+                            HeaderValue::from_static("application/cbor"),
+                        );
                     }
                 }
-                _ => {
-                    let mut body = Vec::with_capacity(body_size_hint.max(128));
 
-                    // TODO: Fix when reqwest updates
-                    match self.encoding {
-                        Encoding::JSON => {
-                            serde_json::to_writer(&mut body, cmd.body())?;
-
-                            req.headers_mut().insert(
-                                HeaderName::from_static("content-type"),
-                                HeaderValue::from_static("application/json"),
-                            );
-                        }
-
-                        #[cfg(feature = "cbor")]
-                        Encoding::CBOR => {
-                            ciborium::ser::into_writer(cmd.body(), &mut body)?;
-
-                            req.headers_mut().insert(
-                                HeaderName::from_static("content-type"),
-                                HeaderValue::from_static("application/cbor"),
-                            );
-                        }
-                    }
-
-                    *req.body_mut() = Some(body.into());
-                }
+                *req.body_mut() = Some(body.into());
             }
         }
 

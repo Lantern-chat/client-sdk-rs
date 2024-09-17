@@ -240,6 +240,13 @@ impl<T> IsEmpty for ThinVec<T> {
     }
 }
 
+impl IsEmpty for ThinString {
+    #[inline]
+    fn _is_empty(&self) -> bool {
+        self.is_empty()
+    }
+}
+
 impl IsEmpty for SmolStr {
     #[inline]
     fn _is_empty(&self) -> bool {

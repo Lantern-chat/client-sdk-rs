@@ -108,6 +108,9 @@ pub trait Command: sealed::Sealed {
     /// Whether the command returns one or many items
     const STREAM: bool;
 
+    /// Whether the command has a query string or sends a body
+    const IS_QUERY: bool;
+
     /// The underlying type of each returned item, be it one or many.
     type Item: CommandResult;
 
@@ -324,6 +327,11 @@ macro_rules! command {
         impl $crate::api::command::sealed::Sealed for $name {}
         impl $crate::api::command::Command for $name {
             const STREAM: bool = command!(@IS_STREAM $count);
+
+            const IS_QUERY: bool = matches!(
+                http::Method::$method,
+                http::Method::GET | http::Method::OPTIONS | http::Method::HEAD | http::Method::CONNECT | http::Method::TRACE
+            );
 
             command!(@COLLECT $count);
 
@@ -580,8 +588,13 @@ macro_rules! command {
                         Ok($name {
                             $($field_name,)*
 
-                            $(body: ftl::extract::one_of::OneOfAny::<$body_name>::from_request(Request::from_parts(parts, body), state)
-                                        .await.map_err(IntoResponse::into_response)?.0)?
+                            $(body: if <Self as $crate::api::Command>::IS_QUERY {
+                                ftl::extract::query::Query::<$body_name>::from_request_parts(&mut parts, state)
+                                    .await.map_err(IntoResponse::into_response)?.0
+                            } else {
+                                ftl::extract::one_of::OneOfAny::<$body_name>::from_request(Request::from_parts(parts, body), state)
+                                    .await.map_err(IntoResponse::into_response)?.0
+                            })?
                         })
                     }
                 }
