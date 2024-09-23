@@ -577,7 +577,7 @@ macro_rules! command {
             {
                 type Rejection = Response;
 
-                #[allow(unused_variables)]
+                #[allow(unused_variables, clippy::manual_async_fn)]
                 fn from_request(req: Request, state: &S) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
                     async move {
                         let (mut parts, body) = req.into_parts();
@@ -585,6 +585,14 @@ macro_rules! command {
                         if parts.method != <Self as $crate::api::Command>::HTTP_METHOD {
                             return Err(http::StatusCode::METHOD_NOT_ALLOWED.into_response());
                         }
+
+                        $(
+                            _ = stringify!($auth_struct);
+
+                            if parts.extensions.get::<crate::api::AuthMarker>().is_none() {
+                                return Err(http::StatusCode::UNAUTHORIZED.into_response());
+                            }
+                        )?
 
                         let Path(($($field_name,)*)) = Path::<($(segments::[<$field_name:camel>],)*)>::from_request_parts(&mut parts, state)
                             .await.map_err(IntoResponse::into_response)?;
