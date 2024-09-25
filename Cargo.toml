@@ -10,12 +10,13 @@ license = "GPL-3.0-only"
 [patch.crates-io]
 postgres-types = { git = "https://github.com/Lantern-chat/rust-postgres" }
 schemars = { git = "https://github.com/Lantern-chat/schemars" }
+# rkyv = { git = "https://github.com/rkyv/rkyv" }
 
 [dependencies]
 snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
 timestamp = { package = "iso8601-timestamp", version = "0.3.0-rc.1" }
 
-ftl = { git = "https://github.com/Lantern-chat/ftl2", optional = true }
+ftl = { git = "https://github.com/Lantern-chat/ftl2", optional = true, default-features = false }
 
 rkyv = { version = "0.8.0", optional = true, features = ["bytecheck", "smol_str-0_3", "thin-vec-0_2", "triomphe-0_1"] }
 rkyv_rpc = { git = "https://github.com/Lantern-chat/rkyv_rpc", optional = true }
