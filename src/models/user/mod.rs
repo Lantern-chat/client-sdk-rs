@@ -91,8 +91,8 @@ impl UserFlags {
     }
 
     #[must_use]
-    pub fn elevation(self) -> ElevationLevel {
-        match (self & Self::ELEVATION).bits() >> 6 {
+    pub const fn elevation(self) -> ElevationLevel {
+        match self.intersection(Self::ELEVATION).bits() >> 6 {
             1 => ElevationLevel::Bot,
             3 => ElevationLevel::Staff,
             4 => ElevationLevel::System,
@@ -106,13 +106,13 @@ impl UserFlags {
     }
 
     #[must_use]
-    pub fn premium_level(self) -> u8 {
-        ((self & Self::PREMIUM).bits() >> 9) as u8
+    pub const fn premium_level(self) -> u8 {
+        (self.intersection(Self::PREMIUM).bits() >> 9) as u8
     }
 
     #[must_use]
-    pub fn extra_storage_tier(self) -> u8 {
-        ((self & Self::EXTRA_STORAGE).bits() >> 13) as u8
+    pub const fn extra_storage_tier(self) -> u8 {
+        (self.intersection(Self::EXTRA_STORAGE).bits() >> 13) as u8
     }
 
     pub const SYSTEM_USER: UserFlags = UserFlags::empty().with_elevation(ElevationLevel::System).union(UserFlags::VERIFIED);
