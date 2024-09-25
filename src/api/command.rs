@@ -1,4 +1,5 @@
 use core::{fmt, time::Duration};
+use std::num::NonZeroU64;
 
 use http::{HeaderMap, Method};
 
@@ -28,7 +29,7 @@ pub struct RateLimit {
     pub emission_interval: Duration,
 
     /// Maximum number of requests that can be made in a burst, before rate-limiting kicks in.
-    pub burst_size: u64,
+    pub burst_size: NonZeroU64,
 }
 
 impl RateLimit {
@@ -45,7 +46,7 @@ impl RateLimit {
     /// but the client must wait for them to replenish before another burst.
     pub const DEFAULT: RateLimit = RateLimit {
         emission_interval: Duration::from_millis(50),
-        burst_size: 5,
+        burst_size: unsafe { NonZeroU64::new_unchecked(5) },
     };
 }
 
@@ -354,7 +355,10 @@ macro_rules! command {
             #[allow(clippy::needless_update)]
             const RATE_LIMIT: RateLimit = RateLimit {
                 $(emission_interval: core::time::Duration::from_millis($emission_interval),
-                $(burst_size: { assert!($burst_size > 0, "Burst Size must be nonzero!"); $burst_size }, )?)?
+                $(burst_size: {
+                    assert!($burst_size > 0, "Burst Size must be nonzero!");
+                    unsafe { ::core::num::NonZeroU64::new_unchecked($burst_size) }
+                }, )?)?
                 ..RateLimit::DEFAULT
             };
 
