@@ -1,7 +1,7 @@
 use super::*;
 
 command! {
-    -struct UserRegister -> One Session: POST[1000 ms, 1]("user") {
+    -struct UserRegister(U) -> One Session: POST[1000 ms, 1]("user") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
@@ -29,7 +29,7 @@ command! {
         }
     }
 
-    -struct UserLogin -> One Session: POST[1000 ms, 1]("user" / "@me") {
+    -struct UserLogin(U) -> One Session: POST[1000 ms, 1]("user" / "@me") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
@@ -52,9 +52,9 @@ command! {
         }
     }
 
-    +struct UserLogout -> One (): DELETE[1000 ms, 1]("user" / "@me") {}
+    +struct UserLogout(U) -> One (): DELETE[1000 ms, 1]("user" / "@me") {}
 
-    +struct Enable2FA -> One Added2FA: POST[2000 ms, 1]("user" / "@me" / "2fa") {
+    +struct Enable2FA(U) -> One Added2FA: POST[2000 ms, 1]("user" / "@me" / "2fa") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
@@ -70,7 +70,7 @@ command! {
         }
     }
 
-    +struct Confirm2FA -> One (): PATCH[2000 ms, 1]("user" / "@me" / "2fa") {
+    +struct Confirm2FA(U) -> One (): PATCH[2000 ms, 1]("user" / "@me" / "2fa") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
@@ -85,7 +85,7 @@ command! {
         }
     }
 
-    +struct Remove2FA -> One (): DELETE[2000 ms, 1]("user" / "@me" / "2fa") {
+    +struct Remove2FA(U) -> One (): DELETE[2000 ms, 1]("user" / "@me" / "2fa") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
@@ -100,7 +100,7 @@ command! {
         }
     }
 
-    +struct ChangePassword -> One (): PATCH[2000 ms, 1]("user" / "@me" / "password") {
+    +struct ChangePassword(U) -> One (): PATCH[2000 ms, 1]("user" / "@me" / "password") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
@@ -123,10 +123,10 @@ command! {
         }
     }
 
-    +struct GetSessions -> Many AnonymousSession: GET[500 ms, 1]("user" / "@me" / "sessions") {}
+    +struct GetSessions(U) -> Many AnonymousSession: GET[500 ms, 1]("user" / "@me" / "sessions") {}
 
     /// Clears all **other** sessions
-    +struct ClearSessions -> One (): DELETE[5000 ms, 1]("user" / "@me" / "sessions") {
+    +struct ClearSessions(U) -> One (): DELETE[5000 ms, 1]("user" / "@me" / "sessions") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
@@ -138,9 +138,9 @@ command! {
         }
     }
 
-    +struct GetRelationships -> Many Relationship: GET("user" / "@me" / "relationships") {}
+    +struct GetRelationships(U) -> Many Relationship: GET("user" / "@me" / "relationships") {}
 
-    +struct PatchRelationship -> One Relationship: PATCH[1000 ms, 1]("user" / "@me" / "relationships" / user_id) {
+    +struct PatchRelationship(U) -> One Relationship: PATCH[1000 ms, 1]("user" / "@me" / "relationships" / user_id) {
         pub user_id: UserId,
 
         ;
@@ -210,7 +210,7 @@ command! {
         pub user_id: UserId,
     }
 
-    +struct UpdateUserPrefs -> One (): PATCH[200 ms]("user" / "@me" / "prefs") {
+    +struct UpdateUserPrefs(U) -> One (): PATCH[200 ms]("user" / "@me" / "prefs") {
         ; struct UpdateUserPrefsBody {
             #[serde(flatten)]
             pub inner: UserPreferences,
@@ -235,10 +235,7 @@ decl_enum! {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "rkyv",
-    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
-)]
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 pub struct Added2FA {
     /// URL to be display as a QR code and added to an authenticator app
     pub url: String,

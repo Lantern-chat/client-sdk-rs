@@ -70,12 +70,12 @@ command! {
         }
     }
 
-    +struct DeleteParty -> One (): DELETE("party" / party_id) {
+    +struct DeleteParty(U) -> One (): DELETE("party" / party_id) {
         pub party_id: PartyId,
     }
 
     // TODO: Use same command for accepting?
-    +struct TransferOwnership -> One (): PUT("party" / party_id / "owner" / user_id) {
+    +struct TransferOwnership(U) -> One (): PUT("party" / party_id / "owner" / user_id) {
         pub party_id: PartyId,
         pub user_id: UserId,
     }

@@ -17,7 +17,19 @@ bitflags::bitflags! {
         const AUTHORIZED    = 1 << 0;
         /// Command has a body.
         const HAS_BODY      = 1 << 1;
+
+        const BOTS_ONLY     = 1 << 2;
+        const USERS_ONLY    = 1 << 3;
+        const ADMIN_ONLY    = 1 << 4;
     }
+}
+
+#[allow(unused)]
+impl CommandFlags {
+    // easier to declare in the macro
+    pub(crate) const B: Self = Self::BOTS_ONLY;
+    pub(crate) const U: Self = Self::USERS_ONLY;
+    pub(crate) const A: Self = Self::ADMIN_ONLY;
 }
 
 impl_rkyv_for_bitflags!(pub CommandFlags: u8);
@@ -284,7 +296,7 @@ macro_rules! command {
         $(+$auth_struct:ident)? $(-$noauth_struct:ident)?
 
         // name, result and HTTP method
-        $name:ident -> $count:ident $result:ty: $method:ident$([$emission_interval:literal ms $(, $burst_size:literal)?])?(
+        $name:ident $(($($flag:ident)|*))? -> $count:ident $result:ty: $method:ident$([$emission_interval:literal ms $(, $burst_size:literal)?])?(
             $head:tt $(/ $tail:tt)*
         )
         // permissions
@@ -345,6 +357,7 @@ macro_rules! command {
             const FLAGS: CommandFlags = CommandFlags::empty()
                 $(.union((stringify!($body_name), CommandFlags::HAS_BODY).1))?
                 $(.union((stringify!($auth_struct), CommandFlags::AUTHORIZED).1))?
+                $( $(.union(CommandFlags::$flag))* )?
             ;
 
             $(
