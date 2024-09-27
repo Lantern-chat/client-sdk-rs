@@ -580,8 +580,7 @@ macro_rules! command {
 
         #[cfg(feature = "ftl")]
         const _: () = {
-            use ftl::{Request, Response, IntoResponse};
-            use ftl::extract::{FromRequest, FromRequestParts, path::Path};
+            use ftl::{Request, extract::{FromRequest, FromRequestParts, path::Path}};
 
             mod segments {
                 ftl::path_segment! {
@@ -592,7 +591,7 @@ macro_rules! command {
             impl<S> FromRequest<S> for $name
                 where S: Send + Sync,
             {
-                type Rejection = Response;
+                type Rejection = ftl::Error;
 
                 #[allow(unused_variables, clippy::manual_async_fn)]
                 fn from_request(req: Request, state: &S) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
@@ -600,29 +599,26 @@ macro_rules! command {
                         let (mut parts, body) = req.into_parts();
 
                         if parts.method != <Self as $crate::api::Command>::HTTP_METHOD {
-                            return Err(http::StatusCode::METHOD_NOT_ALLOWED.into_response());
+                            return Err(ftl::Error::MethodNotAllowed);
                         }
 
                         $(
                             _ = stringify!($auth_struct);
 
                             if parts.extensions.get::<crate::api::AuthMarker>().is_none() {
-                                return Err(http::StatusCode::UNAUTHORIZED.into_response());
+                                return Err(ftl::Error::Unauthorized);
                             }
                         )?
 
-                        let Path(($($field_name,)*)) = Path::<($(segments::[<$field_name:camel>],)*)>::from_request_parts(&mut parts, state)
-                            .await.map_err(IntoResponse::into_response)?;
+                        let Path(($($field_name,)*)) = Path::<($(segments::[<$field_name:camel>],)*)>::from_request_parts(&mut parts, state).await.map_err(ftl::Error::from)?;
 
                         Ok($name {
                             $($field_name,)*
 
                             $(body: if <Self as $crate::api::Command>::IS_QUERY {
-                                ftl::extract::query::Query::<$body_name>::from_request_parts(&mut parts, state)
-                                    .await.map_err(IntoResponse::into_response)?.0
+                                ftl::extract::query::Query::<$body_name>::from_request_parts(&mut parts, state).await.map_err(ftl::Error::from)?.0
                             } else {
-                                ftl::extract::one_of::OneOfAny::<$body_name>::from_request(Request::from_parts(parts, body), state)
-                                    .await.map_err(IntoResponse::into_response)?.0
+                                ftl::extract::one_of::OneOfAny::<$body_name>::from_request(Request::from_parts(parts, body), state).await.map_err(ftl::Error::from)?.0
                             })?
                         })
                     }
