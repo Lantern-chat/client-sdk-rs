@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ArchivedServerConfig","ArchivedServerLimits","ServerConfig","ServerConfigResolver","ServerLimits","ServerLimitsResolver"],"type":["HCaptchaSiteKey"]};

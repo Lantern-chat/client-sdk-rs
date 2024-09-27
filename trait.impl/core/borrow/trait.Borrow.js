@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"client_sdk":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.81.0/core/borrow/trait.Borrow.html\" title=\"trait core::borrow::Borrow\">Borrow</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.81.0/std/primitive.str.html\">str</a>&gt; for <a class=\"struct\" href=\"client_sdk/models/util/thin_str/struct.ThinString.html\" title=\"struct client_sdk::models::util::thin_str::ThinString\">ThinString</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ArchivedGetServerConfig","GetServerConfig","GetServerConfigResolver"]};
