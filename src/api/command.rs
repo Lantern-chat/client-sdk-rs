@@ -534,6 +534,12 @@ macro_rules! command {
             )?
         }
 
+        #[cfg(feature = "rkyv")]
+        const _: () = {
+            const fn assert_archive<T: rkyv::Archive>() {}
+            assert_archive::<$name>();
+        };
+
         $(
             #[derive(Debug, Serialize, Deserialize)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
