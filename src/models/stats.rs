@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Statistics {
-    pub rooms: hashbrown::HashMap<RoomId, RoomStatistics, super::FxRandomState2>,
+    pub rooms: hashbrown::HashMap<RoomId, RoomStatistics, FxRandomState2>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

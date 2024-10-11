@@ -147,7 +147,10 @@ const _: () = {
             #[allow(clippy::double_parens)] // bug?
             static COUNTER: AtomicUsize = AtomicUsize::new(const_random::const_random!(usize));
 
-            Self(COUNTER.fetch_add(1, Ordering::Relaxed))
+            // some high-entropy digits of PI made odd to increase period,
+            // worth noting `fetch_add` always wraps around
+            // https://gist.github.com/retrohacker/e5fff72b7b75ee058924
+            Self(COUNTER.fetch_add(0x13198A2E03707344 | 1, Ordering::Relaxed))
         }
     }
 
