@@ -130,14 +130,16 @@ error_codes! {
         40034 = Blocked                  = StatusCode::FORBIDDEN,
         40035 = Banned                   = StatusCode::FORBIDDEN,
         40036 = SearchError              = StatusCode::BAD_REQUEST,
+        40047 = IncorrectRpcEndpoint     = StatusCode::BAD_REQUEST,
 
         // Generic HTTP-like error codes
         40400 = BadRequest               = StatusCode::BAD_REQUEST,
         40401 = Unauthorized             = StatusCode::UNAUTHORIZED,
         40404 = NotFound                 = StatusCode::NOT_FOUND,
         40405 = MethodNotAllowed         = StatusCode::METHOD_NOT_ALLOWED,
+        40408 = RequestTimeout           = StatusCode::REQUEST_TIMEOUT,
         40409 = Conflict                 = StatusCode::CONFLICT,
-        40413 = RequestEntityTooLarge    = unsafe { StatusCode::from_u16(413).unwrap_unchecked() }, // 413 Request Entity Too Large
+        40413 = RequestEntityTooLarge    = StatusCode::PAYLOAD_TOO_LARGE, // 413 Request Entity Too Large
         40415 = UnsupportedMediaType     = StatusCode::UNSUPPORTED_MEDIA_TYPE,
         40460 = ChecksumMismatch         = unsafe { StatusCode::from_u16(460).unwrap_unchecked() }, // 460 Checksum Mismatch
 

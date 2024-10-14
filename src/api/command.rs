@@ -146,6 +146,9 @@ pub trait Command: sealed::Sealed {
     /// on the request.
     const RATE_LIMIT: RateLimit;
 
+    /// On the server side, how long to wait before timing out the request.
+    const SERVER_TIMEOUT: Duration;
+
     /// Path pattern for the command (without query) when used with matchit 0.8 or higher.
     const ROUTE_PATTERN: &'static str;
 
@@ -374,6 +377,8 @@ macro_rules! command {
                 }, )?)?
                 ..RateLimit::DEFAULT
             };
+
+            const SERVER_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 
             #[allow(unused_mut, unused_variables, deprecated)]
             fn perms(&self) -> Permissions {
