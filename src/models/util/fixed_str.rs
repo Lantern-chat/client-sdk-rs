@@ -165,7 +165,7 @@ const _: () = {
         fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
             struct FixedStrVisitor<const N: usize>(PhantomData<[(); N]>);
 
-            impl<'de, const N: usize> Visitor<'de> for FixedStrVisitor<N> {
+            impl<const N: usize> Visitor<'_> for FixedStrVisitor<N> {
                 type Value = FixedStr<N>;
 
                 fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -249,8 +249,6 @@ const _: () = {
 
 #[cfg(feature = "schema")]
 const _: () = {
-    extern crate alloc;
-
     use alloc::{borrow::ToOwned, boxed::Box, string::String};
 
     use schemars::{

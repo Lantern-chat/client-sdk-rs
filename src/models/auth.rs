@@ -134,7 +134,7 @@ mod serde_impl {
         fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
             struct AuthTokenVisitor;
 
-            impl<'de> Visitor<'de> for AuthTokenVisitor {
+            impl Visitor<'_> for AuthTokenVisitor {
                 type Value = AuthToken;
 
                 fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

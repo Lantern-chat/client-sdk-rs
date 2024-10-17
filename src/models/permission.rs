@@ -132,7 +132,7 @@ const _: () = {
 
             struct PermissionsVisitor;
 
-            impl<'de> de::Visitor<'de> for PermissionsVisitor {
+            impl de::Visitor<'_> for PermissionsVisitor {
                 type Value = Permissions;
 
                 fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {

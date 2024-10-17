@@ -1,9 +1,12 @@
 use super::*;
 
+// TODO: no_std map of some kind
+use std::collections::HashMap;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Statistics {
-    pub rooms: hashbrown::HashMap<RoomId, RoomStatistics, FxRandomState2>,
+    pub rooms: HashMap<RoomId, RoomStatistics, FxRandomState2>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

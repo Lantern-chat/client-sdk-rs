@@ -251,7 +251,7 @@ const _: () = {
         {
             struct ThinStringVisitor;
 
-            impl<'de> de::Visitor<'de> for ThinStringVisitor {
+            impl de::Visitor<'_> for ThinStringVisitor {
                 type Value = ThinString;
 
                 fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
