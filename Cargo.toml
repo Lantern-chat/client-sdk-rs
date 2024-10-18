@@ -14,7 +14,7 @@ schemars = { git = "https://github.com/Lantern-chat/schemars" }
 
 [dependencies]
 snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
-timestamp = { package = "iso8601-timestamp", version = "0.3.0-rc.1" }
+timestamp = { package = "iso8601-timestamp", version = "0.3.0" }
 
 ftl = { git = "https://github.com/Lantern-chat/ftl2", optional = true, default-features = false }
 
