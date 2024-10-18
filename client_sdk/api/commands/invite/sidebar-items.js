@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ArchivedGetInvite","ArchivedRedeemInvite","ArchivedRedeemInviteBody","ArchivedRevokeInvite","GetInvite","GetInviteResolver","RedeemInvite","RedeemInviteBody","RedeemInviteBodyResolver","RedeemInviteResolver","RevokeInvite","RevokeInviteResolver"]};

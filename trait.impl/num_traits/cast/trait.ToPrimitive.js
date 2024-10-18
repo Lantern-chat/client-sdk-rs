@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["client_sdk",[["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.ToPrimitive.html\" title=\"trait num_traits::cast::ToPrimitive\">ToPrimitive</a> for <a class=\"enum\" href=\"client_sdk/api/error/enum.ApiErrorCode.html\" title=\"enum client_sdk::api::error::ApiErrorCode\">ApiErrorCode</a>"],["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.ToPrimitive.html\" title=\"trait num_traits::cast::ToPrimitive\">ToPrimitive</a> for <a class=\"enum\" href=\"client_sdk/gateway/enum.GatewayErrorCode.html\" title=\"enum client_sdk::gateway::GatewayErrorCode\">GatewayErrorCode</a>"],["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.ToPrimitive.html\" title=\"trait num_traits::cast::ToPrimitive\">ToPrimitive</a> for <a class=\"enum\" href=\"client_sdk/models/message/enum.MessageKind.html\" title=\"enum client_sdk::models::message::MessageKind\">MessageKind</a>"],["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.ToPrimitive.html\" title=\"trait num_traits::cast::ToPrimitive\">ToPrimitive</a> for <a class=\"enum\" href=\"client_sdk/models/room/enum.RoomKind.html\" title=\"enum client_sdk::models::room::RoomKind\">RoomKind</a>"],["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.ToPrimitive.html\" title=\"trait num_traits::cast::ToPrimitive\">ToPrimitive</a> for <a class=\"enum\" href=\"client_sdk/models/user/enum.UserRelationship.html\" title=\"enum client_sdk::models::user::UserRelationship\">UserRelationship</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[1603]}
