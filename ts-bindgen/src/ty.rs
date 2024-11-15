@@ -21,29 +21,29 @@ impl fmt::Display for Discriminator {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TypeScriptType {
-    Ref(Rc<TypeScriptType>),
     Null,
     Undefined,
     Number(Option<f64>),
     String(Option<Rc<str>>),
     Boolean(Option<bool>),
 
-    Array(Rc<TypeScriptType>, Option<usize>),
+    Array(Box<TypeScriptType>, Option<usize>),
 
     Interface {
         members: Vec<(String, TypeScriptType)>,
-        extends: IndexSet<String>,
+        extends: Vec<TypeScriptType>,
     },
 
     Union(Vec<TypeScriptType>),
     Intersection(Vec<TypeScriptType>),
     Enum(Vec<(String, Option<Discriminator>)>),
     Tuple(Vec<TypeScriptType>),
+    Partial(Box<TypeScriptType>),
 
     /// [key: K]: T
-    Map(Rc<TypeScriptType>, Rc<TypeScriptType>),
+    Map(Box<TypeScriptType>, Box<TypeScriptType>),
 
     /// `export const enum`
     ConstEnum(Vec<(String, Option<Discriminator>)>),
@@ -53,6 +53,63 @@ pub enum TypeScriptType {
 
     /// Type that's been registered with the type registry under the given name.
     Named(&'static str),
+}
+
+impl TypeScriptType {
+    /// Performs simply cleanup of nested unions and intersections.
+    pub fn unify(&mut self) {
+        match self {
+            TypeScriptType::Union(types) => {
+                while types.iter().any(|ty| matches!(ty, TypeScriptType::Union(_))) {
+                    let mut new_types = Vec::new();
+
+                    for mut ty in types.drain(..) {
+                        ty.unify();
+
+                        match ty {
+                            TypeScriptType::Union(mut inner_types) => new_types.append(&mut inner_types),
+                            ty => new_types.push(ty),
+                        }
+                    }
+
+                    *types = new_types;
+                }
+            }
+            TypeScriptType::Intersection(types) => {
+                while types.iter().any(|ty| matches!(ty, TypeScriptType::Intersection(_))) {
+                    let mut new_types = Vec::new();
+
+                    for mut ty in types.drain(..) {
+                        ty.unify();
+
+                        match ty {
+                            TypeScriptType::Intersection(mut inner_types) => new_types.append(&mut inner_types),
+                            ty => new_types.push(ty),
+                        }
+                    }
+
+                    *types = new_types;
+                }
+            }
+            TypeScriptType::Array(ty, _) => ty.unify(),
+            TypeScriptType::Map(key, value) => {
+                key.unify();
+                value.unify();
+            }
+            TypeScriptType::Tuple(types) => {
+                for ty in types {
+                    ty.unify();
+                }
+            }
+            TypeScriptType::Interface { members, .. } => members.iter_mut().for_each(|(_, ty)| ty.unify()),
+
+            TypeScriptType::Partial(ty) => {
+                // Partial<T> should also remove the `undefined` type from T if union
+                ty.unify()
+            }
+            _ => {}
+        }
+    }
 }
 
 impl TypeScriptType {
@@ -80,11 +137,8 @@ impl TypeScriptType {
 }
 
 impl TypeScriptType {
-    fn into_rc(self) -> Rc<TypeScriptType> {
-        match self {
-            TypeScriptType::Ref(rc) => rc,
-            _ => Rc::new(self),
-        }
+    fn boxed(self) -> Box<TypeScriptType> {
+        Box::new(self)
     }
 }
 
@@ -92,7 +146,7 @@ impl TypeScriptType {
     pub fn interface(members: Vec<(String, TypeScriptType)>, extend_hint: usize) -> TypeScriptType {
         TypeScriptType::Interface {
             members,
-            extends: IndexSet::with_capacity(extend_hint),
+            extends: Vec::with_capacity(extend_hint),
         }
     }
 
@@ -126,10 +180,6 @@ impl TypeScriptType {
 
     pub fn string_value(value: impl Into<Rc<str>>) -> TypeScriptType {
         TypeScriptType::String(Some(value.into()))
-    }
-
-    pub fn into_ref(self) -> TypeScriptType {
-        TypeScriptType::Ref(self.into_rc())
     }
 
     pub fn into_nullable(self) -> TypeScriptType {
@@ -178,11 +228,11 @@ impl TypeScriptType {
     }
 
     pub fn into_array(self) -> TypeScriptType {
-        TypeScriptType::Array(self.into_rc(), None)
+        TypeScriptType::Array(self.boxed(), None)
     }
 
     pub fn into_sized_array(self, size: usize) -> TypeScriptType {
-        TypeScriptType::Array(Rc::new(self), Some(size))
+        TypeScriptType::Array(self.boxed(), Some(size))
     }
 
     pub fn union(self, other: TypeScriptType) -> TypeScriptType {
@@ -232,7 +282,7 @@ impl TypeScriptType {
                 TypeScriptType::Union(vec![TypeScriptType::Named(a), TypeScriptType::Named(b)])
             }
             (TypeScriptType::Interface { members, mut extends }, TypeScriptType::Named(name)) => {
-                extends.insert(name.to_owned());
+                extends.push(TypeScriptType::Named(name));
 
                 TypeScriptType::Interface { members, extends }
             }
@@ -255,6 +305,17 @@ impl TypeScriptType {
                 }
             }
             (a @ TypeScriptType::Interface { .. }, TypeScriptType::Null | TypeScriptType::Undefined) => a,
+
+            // #[serde(flatten, default, skip_serializing_if = "...")]
+            (TypeScriptType::Interface { members, extends }, TypeScriptType::Union(types))
+                if matches!(&types[..], &[TypeScriptType::Named(_), TypeScriptType::Undefined]) =>
+            {
+                let mut extends = extends.clone();
+                extends.push(TypeScriptType::Partial(types[0].clone().boxed()));
+
+                TypeScriptType::Interface { members, extends }
+            }
+
             (s, f) => unreachable!("flatten called with invalid types: {s:?}, {f:?}"),
         }
     }

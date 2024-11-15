@@ -1,6 +1,7 @@
 use super::*;
 
-command! {
+command! { File;
+
     +struct CreateFile -> One FileId: POST("file") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]

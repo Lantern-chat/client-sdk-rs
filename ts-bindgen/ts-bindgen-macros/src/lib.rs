@@ -240,6 +240,9 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                     variants.push((stringify!(#variant_ident).to_owned(), Some(ts_bindgen::Discriminator::String(#variant_name))));
                 });
             }
+
+            // use a real enum for enums with string values
+            out.extend(quote! { let ty = ts_bindgen::TypeScriptType::Enum(variants); });
         } else {
             for (variant, ..) in variants {
                 let name = variant.ident;
@@ -253,10 +256,11 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                     variants.push((stringify!(#name).to_owned(), #discriminant));
                 });
             }
+
+            out.extend(quote! { let ty = ts_bindgen::TypeScriptType::ConstEnum(variants); });
         }
 
         out.extend(quote! {
-            let ty = ts_bindgen::TypeScriptType::ConstEnum(variants);
             registry.insert(stringify!(#name), ty);
 
             ts_bindgen::TypeScriptType::Named(stringify!(#name))

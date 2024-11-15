@@ -1,6 +1,6 @@
 use super::*;
 
-command! {
+command! { Room;
     /// Create message command
     +struct CreateMessage -> One Message: POST[100 ms, 2]("room" / room_id / "messages") where SEND_MESSAGES {
         pub room_id: RoomId,
@@ -78,7 +78,7 @@ command! {
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
         #[derive(Default)] struct StartTypingBody {
             /// Will only show within the parent context if set
-            #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
+            #[serde(default, skip_serializing_if = "Option::is_none")]
             #[cfg_attr(feature = "typed-builder", builder(default))]
             pub parent: Option<MessageId>,
         }

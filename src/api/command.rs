@@ -292,7 +292,7 @@ macro_rules! command {
     };
 
     // entry point
-    ($(
+    ($group_name:ident; $(
         // meta
         $(#[$($meta:tt)*])*
 
@@ -337,7 +337,17 @@ macro_rules! command {
                 }
             )?
         }
-    )*) => {paste::paste!{$(
+    )*) => {paste::paste!{
+
+    #[cfg(feature = "ts")]
+    #[allow(unused_variables)]
+    pub fn [<register_ $group_name:snake _routes>](registry: &mut ts_bindgen::TypeRegistry) {
+        $(
+            $( <$body_name as ts_bindgen::TypeScriptDef>::register(registry); )?
+        )*
+    }
+
+    $(
         // verify presence of exactly one `struct` without prefix
         command!(@STRUCT $($auth_struct)? $($noauth_struct)?);
 
@@ -647,6 +657,13 @@ macro_rules! command_module {
 
         pub mod all {
             $($vis use super::$mod::*;)*
+        }
+
+        #[cfg(feature = "ts")]
+        pub fn register_routes(registry: &mut ts_bindgen::TypeRegistry) {
+            $(
+                paste::paste! { $mod::[<register_ $mod _routes>](registry); }
+            )*
         }
 
         // TODO: Collect schemas from each object

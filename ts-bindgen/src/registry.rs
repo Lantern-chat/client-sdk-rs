@@ -9,7 +9,9 @@ pub struct TypeRegistry {
 }
 
 impl TypeRegistry {
-    pub fn insert(&mut self, name: &'static str, ty: TypeScriptType) {
+    pub fn insert(&mut self, name: &'static str, mut ty: TypeScriptType) {
+        ty.unify();
+
         self.types.insert(name, ty);
     }
 
@@ -25,15 +27,8 @@ impl TypeRegistry {
 use core::fmt::{Display, Error as FmtError, Write};
 
 impl TypeScriptType {
-    fn inner(&self) -> &TypeScriptType {
-        match self {
-            TypeScriptType::Ref(rc) => rc.inner(),
-            _ => self,
-        }
-    }
-
     fn is_extendible(&self, registry: &TypeRegistry) -> bool {
-        match self.inner() {
+        match self {
             TypeScriptType::Interface { .. } => true,
             TypeScriptType::Named(name) => match registry.get(name) {
                 Some(ty) => ty.is_extendible(registry),
@@ -55,8 +50,6 @@ impl TypeRegistry {
         let mut first = true;
 
         for (name, ty) in &self.types {
-            let ty = ty.inner();
-
             if !first {
                 out.write_str("\n\n")?;
             }
@@ -81,6 +74,7 @@ impl TypeRegistry {
                 | TypeScriptType::Undefined
                 | TypeScriptType::Tuple(_)
                 | TypeScriptType::Array(_, _)
+                | TypeScriptType::Partial(_)
                 | TypeScriptType::Named(_) => {
                     writeln!(out, "export type {name} = {ty};")?;
                 }
@@ -95,8 +89,6 @@ impl TypeRegistry {
                 TypeScriptType::Map(key, value) => {
                     writeln!(out, "export type {name} = {{ [key: {key}]: {value} }};")?;
                 }
-
-                TypeScriptType::Ref(_) => unreachable!(),
 
                 TypeScriptType::Enum(vec) | TypeScriptType::ConstEnum(vec) => {
                     let is_const = match ty {
@@ -119,6 +111,14 @@ impl TypeRegistry {
                     let mut do_extend = true;
 
                     for extend in extends {
+                        let extend = match extend {
+                            TypeScriptType::Named(name) => name,
+                            _ => {
+                                do_extend = false;
+                                break;
+                            }
+                        };
+
                         do_extend &= match self.types.get(&**extend) {
                             Some(ty) => ty.is_extendible(self),
                             None => false,
@@ -135,7 +135,7 @@ impl TypeRegistry {
                                 if i != 0 {
                                     out.write_str(", ")?;
                                 }
-                                out.write_str(extend)?;
+                                write!(out, "{extend}")?;
                             }
                         }
                     } else {
@@ -143,7 +143,7 @@ impl TypeRegistry {
                         write!(out, "export type {name} = ")?;
 
                         for extend in extends {
-                            write!(out, "{extend} & ")?;
+                            write!(out, "{extend} &")?;
                         }
                     }
 
@@ -161,6 +161,10 @@ impl TypeRegistry {
                         out.write_str(",\n")?;
                     }
                     out.write_str("}")?;
+
+                    if !do_extend {
+                        out.write_str(";")?;
+                    }
                 }
             }
         }
@@ -173,13 +177,13 @@ impl TypeScriptType {
     fn fmt_depth<W: Write>(&self, depth: usize, f: &mut W) -> std::fmt::Result {
         match self {
             TypeScriptType::Named(name) => f.write_str(name),
-            TypeScriptType::Ref(rc) => rc.fmt_depth(depth, f),
             TypeScriptType::Null => f.write_str("null"),
             TypeScriptType::Undefined => f.write_str("undefined"),
 
             TypeScriptType::EnumValue(e, v) => write!(f, "{e}.{v}"),
 
             TypeScriptType::Array(inner, _) => write!(f, "Array<{inner}>"),
+            TypeScriptType::Partial(inner) => write!(f, "Partial<{inner}>"),
             TypeScriptType::Boolean(value) => match value {
                 Some(value) => write!(f, "{value}"),
                 None => f.write_str("boolean"),

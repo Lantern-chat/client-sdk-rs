@@ -1,6 +1,7 @@
 use super::*;
 
-command! {
+command! { Party;
+
     +struct GetParty -> One Party: GET("party" / party_id) {
         pub party_id: PartyId,
     }
@@ -252,7 +253,7 @@ command! {
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
         #[cfg_attr(feature = "bon", derive(bon::Builder))]
         struct SearchQuery {
-            #[serde(flatten)]
+            #[serde(alias = "q")]
             #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
             #[cfg_attr(feature = "bon", builder(into))]
             pub query: ThinString,

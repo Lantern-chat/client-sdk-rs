@@ -1,6 +1,6 @@
 use super::*;
 
-command! {
+command! { User;
     -struct UserRegister(U) -> One Session: POST[1000 ms, 1]("user") {
         ;
         #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]

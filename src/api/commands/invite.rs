@@ -1,6 +1,7 @@
 use super::*;
 
-command! {
+command! { Invite;
+
     +struct GetInvite -> One Invite: GET("invite" / code) {
         pub code: SmolStr,
     }
