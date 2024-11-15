@@ -27,6 +27,7 @@ impl UserPresenceFlags {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct UserPresence {
     pub flags: UserPresenceFlags,
 
@@ -64,6 +65,7 @@ impl UserPresence {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[serde(untagged)]
 pub enum AnyActivity {
     Typed(Activity),
@@ -74,4 +76,5 @@ pub enum AnyActivity {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct Activity {}

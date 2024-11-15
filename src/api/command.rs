@@ -33,6 +33,7 @@ impl CommandFlags {
 }
 
 impl_rkyv_for_bitflags!(pub CommandFlags: u8);
+impl_schema_for_bitflags!(CommandFlags);
 
 /// Rate-limiting configuration for a command
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -549,6 +550,7 @@ macro_rules! command {
             #[derive(Debug, Serialize, Deserialize)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
             #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
             $(#[$body_meta])*
             pub struct $body_name {
                 $( $(#[$($body_field_meta)*])* $body_field_vis $body_field_name: $body_field_ty ),*

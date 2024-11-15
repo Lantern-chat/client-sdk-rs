@@ -18,6 +18,7 @@ impl_sql_for_bitflags!(EmoteFlags);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct CustomEmote {
     pub id: EmoteId,
     pub party_id: PartyId,
@@ -30,6 +31,7 @@ pub struct CustomEmote {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[serde(untagged)]
 pub enum Emote {
     Emoji { emoji: SmolStr },

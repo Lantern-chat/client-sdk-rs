@@ -15,6 +15,7 @@ macro_rules! enum_codes {
     ) => {
         rkyv_rpc::enum_codes! {
             $(#[$meta])*
+            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
             $vis enum $name: $archived_vis $repr $(= $unknown)? {
                 $($(#[$variant_meta])* $code = $variant,)*
             }
@@ -31,6 +32,7 @@ macro_rules! enum_codes {
         }
     ) => {
         $(#[$meta])*
+        #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
         #[repr($repr)]
         $vis enum $name {
             $($(#[$variant_meta])* $variant = $code,)*
@@ -50,6 +52,7 @@ macro_rules! decl_enum {
     ) => {
         rkyv_rpc::unit_enum! {
             $(#[$meta])*
+            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
             $vis enum $name: $repr {
                 $($(#[$variant_meta])* $code = $variant,)*
             }
@@ -68,6 +71,7 @@ macro_rules! decl_enum {
         $(#[$meta])*
         #[repr($repr)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
         $vis enum $name {
             $($(#[$variant_meta])* $variant = $code,)*
         }
@@ -254,6 +258,62 @@ macro_rules! impl_sql_for_enum_primitive {
 
 macro_rules! impl_schema_for_bitflags {
     ($name:ident) => {
+        #[cfg(feature = "ts")]
+        const _: () = {
+            use ts_bindgen::{Discriminator, TypeScriptDef, TypeScriptType};
+
+            impl TypeScriptDef for $name {
+                fn register(registry: &mut ts_bindgen::TypeRegistry) -> TypeScriptType {
+                    // for bitflags with 16 or more bits, we decompose the bitflags
+                    // values into bit positions, (1 << 20) becomes 20,
+                    // at the cost of excluding combinations of flags
+                    if size_of::<Self>() >= 16 {
+                        let name = concat!(stringify!($name), "Bit");
+                        let ty = TypeScriptType::Named(name);
+
+                        if registry.contains(name) {
+                            return ty;
+                        }
+
+                        eprintln!("Note: Generating TypeScript for {} as bit positions", stringify!($name));
+
+                        let mut members = Vec::new();
+                        for (name, value) in Self::all().iter_names() {
+                            let value = value.bits();
+
+                            // if not a power of 2, skip
+                            if (value & (value - 1)) != 0 {
+                                continue;
+                            }
+
+                            members.push((name.to_owned(), Some(Discriminator::Simple(value.ilog2() as _))));
+                        }
+
+                        registry.insert(name, TypeScriptType::ConstEnum(members));
+
+                        return ty;
+                    }
+
+                    // regular enum
+                    let name = stringify!($name);
+                    let ty = TypeScriptType::Named(name);
+
+                    if registry.contains(name) {
+                        return ty;
+                    }
+
+                    let mut members = Vec::new();
+                    for (name, value) in Self::all().iter_names() {
+                        members.push((name.to_owned(), Some(Discriminator::BinaryHex(value.bits() as _))));
+                    }
+
+                    registry.insert(name, TypeScriptType::ConstEnum(members));
+
+                    ty
+                }
+            }
+        };
+
         #[cfg(feature = "schema")]
         const _: () = {
             use schemars::_serde_json::json;

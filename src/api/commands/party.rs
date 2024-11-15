@@ -274,6 +274,7 @@ decl_enum! {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct PartySettings {
     pub flags: PartyFlags,
     pub prefs: PartyPreferences,

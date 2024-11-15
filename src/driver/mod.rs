@@ -14,6 +14,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[serde(rename_all = "lowercase")]
 pub enum Encoding {
     #[default]

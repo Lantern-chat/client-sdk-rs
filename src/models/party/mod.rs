@@ -55,6 +55,7 @@ impl_sql_for_bitflags!(PartyFlags);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct PartialParty {
     pub id: PartyId,
 
@@ -68,6 +69,7 @@ pub struct PartialParty {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct Party {
     #[serde(flatten)]
     pub partial: PartialParty,
@@ -136,6 +138,7 @@ impl_sql_for_bitflags!(PartyMemberFlags);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct PartyMember {
     pub user: User,
 
@@ -173,6 +176,7 @@ impl_sql_for_bitflags!(PinFolderFlags);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct PinFolder {
     pub id: FolderId,
     pub name: SmolStr,

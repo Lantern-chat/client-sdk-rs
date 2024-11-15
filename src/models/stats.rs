@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct Statistics {
     pub rooms: HashMap<RoomId, RoomStatistics, FxRandomState2>,
 }
@@ -12,6 +13,7 @@ pub struct Statistics {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct RoomStatistics {
     pub messages: u64,
 

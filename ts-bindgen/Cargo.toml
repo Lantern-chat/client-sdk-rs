@@ -1,0 +1,15 @@
+[package]
+name = "ts-bindgen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+indexmap = "2"
+ts-bindgen-macros = { path = "./ts-bindgen-macros" }
+
+smol_str = "0.3"
+thin-vec = "0.2.12"
+arrayvec = "0.7.1"
+triomphe = "0.1.8"
+snowflake.workspace = true
+timestamp.workspace = true

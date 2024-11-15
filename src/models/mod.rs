@@ -77,6 +77,7 @@ macro_rules! decl_newtype_prefs {
             $(#[$meta])*
             #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
             #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
             #[repr(transparent)]
             pub struct $name(pub $ty);
 
@@ -173,6 +174,7 @@ pub use self::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[serde(rename_all = "lowercase")]
 pub enum Cursor {
     Exact(Snowflake),

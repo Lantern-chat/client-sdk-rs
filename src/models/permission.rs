@@ -1,6 +1,6 @@
 use super::*;
 
-/// Constructions a `Permissions` set from a list of permissions by name.
+/// Constructs a `Permissions` set from a list of permissions by name.
 ///
 /// Can be used in `const` contexts.
 ///
@@ -184,6 +184,7 @@ const _: () = {
 /// Permissions Overwrite for a role or user in a room.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[cfg_attr(
     feature = "rkyv",
     derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),

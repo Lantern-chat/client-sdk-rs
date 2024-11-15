@@ -146,6 +146,17 @@ impl<const N: usize> fmt::Display for FixedStr<N> {
     }
 }
 
+#[cfg(feature = "ts")]
+const _: () = {
+    use ts_bindgen::{TypeRegistry, TypeScriptDef, TypeScriptType};
+
+    impl<const N: usize> TypeScriptDef for FixedStr<N> {
+        fn register(_: &mut TypeRegistry) -> TypeScriptType {
+            TypeScriptType::String(None)
+        }
+    }
+};
+
 //#[cfg(feature = "serde")]
 const _: () = {
     use core::fmt;

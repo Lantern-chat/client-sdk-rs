@@ -6,6 +6,7 @@ const fn default_compress() -> bool {
 
 /// Query parameters for the gateway, used to configure the connection.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[serde(default)]
 pub struct GatewayQueryParams {
     /// Encoding method for each individual websocket message

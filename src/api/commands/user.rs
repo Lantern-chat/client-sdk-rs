@@ -236,6 +236,7 @@ decl_enum! {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct Added2FA {
     /// URL to be display as a QR code and added to an authenticator app
     pub url: String,

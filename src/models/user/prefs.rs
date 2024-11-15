@@ -103,6 +103,7 @@ bitflags::bitflags! {
 impl_rkyv_for_bitflags!(pub UserPrefsFlags: i32);
 impl_serde_for_bitflags!(UserPrefsFlags);
 impl_sql_for_bitflags!(UserPrefsFlags);
+impl_schema_for_bitflags!(UserPrefsFlags);
 
 impl From<u64> for UserPrefsFlags {
     fn from(value: u64) -> Self {
@@ -127,6 +128,7 @@ pub mod preferences {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct UserPreferences {
     #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
     pub l: Locale,

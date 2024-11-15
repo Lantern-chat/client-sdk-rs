@@ -7,14 +7,21 @@ license = "GPL-3.0-only"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+members = ["./ts-bindgen", "./ts-bindgen/ts-bindgen-macros"]
+
 [patch.crates-io]
 postgres-types = { git = "https://github.com/Lantern-chat/rust-postgres" }
 schemars = { git = "https://github.com/Lantern-chat/schemars" }
 # rkyv = { git = "https://github.com/rkyv/rkyv" }
 
-[dependencies]
+[workspace.dependencies]
 snowflake = { git = "https://github.com/Lantern-chat/snowflake", features = ["timestamp"] }
 timestamp = { package = "iso8601-timestamp", version = "0.3.0" }
+
+[dependencies]
+snowflake.workspace = true
+timestamp.workspace = true
 
 ftl = { git = "https://github.com/Lantern-chat/ftl2", optional = true, default-features = false }
 
@@ -57,7 +64,7 @@ crc32fast = { version = "1", optional = true }
 ciborium = { version = "0.2", optional = true }
 
 url = { version = "2", optional = true }
-thiserror = { version = "1", optional = true }
+thiserror = { version = "2", optional = true, default-features = false }
 mime = { version = "0.3", optional = true }
 headers = { version = "0.4", optional = true }
 http = { version = "1", optional = true }
@@ -76,10 +83,12 @@ pin-project-lite = { version = "0.2.8", optional = true }
 async-trait = { version = "0.1", optional = true }
 smallvec = { version = "1.10.0", optional = true }
 
+ts-bindgen = { path = "./ts-bindgen", optional = true }
+
 [features]
 _internal_common = ["thiserror"]
 
-std = ["rkyv?/std", "timestamp/std"]
+std = ["rkyv?/std", "timestamp/std", "thiserror/std"]
 
 rkyv = ["dep:rkyv", "timestamp/rkyv_08", "snowflake/rkyv", "rkyv_rpc"]
 
@@ -111,6 +120,8 @@ cbor = ["ciborium"]
 native-tls = ["tokio-tungstenite/native-tls", "reqwest/native-tls"]
 rustls-tls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots", "reqwest/rustls-tls-native-roots"]
 rustls-tls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots", "reqwest/rustls-tls-webpki-roots"]
+
+ts = ["ts-bindgen"]
 
 default = ["rkyv", "std", "api", "driver", "client", "gateway", "fs", "rustls-tls-native-roots", "framework", "cbor"]
 

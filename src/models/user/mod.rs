@@ -72,6 +72,7 @@ impl_serde_for_bitflags!(UserFlags);
 impl_schema_for_bitflags!(UserFlags);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[repr(u8)]
 pub enum ElevationLevel {
     None = 0,
@@ -148,6 +149,7 @@ impl_sql_for_bitflags!(ExtraUserProfileBits);
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct UserProfile {
     #[cfg_attr(feature = "typed-builder", builder(default))]
     #[cfg_attr(feature = "bon", builder(default))]
@@ -207,6 +209,7 @@ impl UserProfile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct User {
     pub id: UserId,
     pub username: SmolStr,
@@ -306,6 +309,7 @@ BlockedDangerous    None                UserA has blocked UserB and reported the
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct Relationship {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<SmolStr>,

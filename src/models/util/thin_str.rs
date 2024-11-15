@@ -271,6 +271,17 @@ const _: () = {
     }
 };
 
+#[cfg(feature = "ts")]
+const _: () = {
+    use ts_bindgen::{TypeRegistry, TypeScriptDef, TypeScriptType};
+
+    impl TypeScriptDef for ThinString {
+        fn register(_: &mut TypeRegistry) -> TypeScriptType {
+            TypeScriptType::String(None)
+        }
+    }
+};
+
 #[cfg(feature = "rkyv")]
 const _: () = {
     use rkyv::{

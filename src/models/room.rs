@@ -5,6 +5,7 @@ use super::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, enum_primitive_derive::Primitive)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[repr(u8)]
 pub enum RoomKind {
     Text = 0,
@@ -47,6 +48,7 @@ impl From<RoomKind> for RoomFlags {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct Room {
     pub id: RoomId,
 
@@ -85,6 +87,7 @@ pub struct Room {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct FullRoom {
     #[serde(flatten)]
     pub room: Room,

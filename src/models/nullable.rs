@@ -110,6 +110,21 @@ impl<T> Nullable<T> {
     }
 }
 
+#[cfg(feature = "ts")]
+impl<T> ts_bindgen::TypeScriptDef for Nullable<T>
+where
+    T: ts_bindgen::TypeScriptDef,
+{
+    fn register(registry: &mut ts_bindgen::TypeRegistry) -> ts_bindgen::TypeScriptType {
+        use ts_bindgen::TypeScriptType;
+
+        let inner = T::register(registry);
+
+        // Nullable<T> is represented as `T | null | undefined` in TypeScript, or `field?: T | null` for fields.
+        TypeScriptType::Union(vec![inner, TypeScriptType::Null, TypeScriptType::Undefined])
+    }
+}
+
 mod impl_serde {
     use serde::de::{Deserialize, Deserializer};
     use serde::ser::{Serialize, Serializer};

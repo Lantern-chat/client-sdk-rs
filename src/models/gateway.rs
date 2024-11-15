@@ -93,6 +93,7 @@ pub mod commands {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct Identify {
         pub auth: AuthToken,
         pub intent: Intent,
@@ -101,6 +102,7 @@ pub mod commands {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct SetPresence {
         #[serde(flatten)]
         pub presence: UserPresence,
@@ -113,6 +115,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct Hello {
         /// Number of milliseconds between heartbeats
         pub heartbeat_interval: u32,
@@ -129,6 +132,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct ReadyParty {
         pub party: Party,
 
@@ -162,6 +166,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct Ready {
         pub user: User,
 
@@ -178,6 +183,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct TypingStart {
         pub room_id: RoomId,
         pub party_id: PartyId,
@@ -192,6 +198,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct PartyPositionUpdate {
         pub id: PartyId,
         pub position: i16,
@@ -200,6 +207,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct UserPresenceEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<PartyId>,
@@ -210,6 +218,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct MessageDeleteEvent {
         pub id: MessageId,
         pub room_id: RoomId,
@@ -219,6 +228,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct RoleDeleteEvent {
         pub id: RoleId,
         pub party_id: PartyId,
@@ -227,6 +237,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct RoomDeleteEvent {
         pub id: RoomId,
 
@@ -238,6 +249,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct PartyMemberEvent {
         pub party_id: PartyId,
 
@@ -248,6 +260,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     #[serde(untagged)]
     pub enum PartyUpdateEvent {
         Position(PartyPositionUpdate),
@@ -257,6 +270,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct UserReactionEvent {
         pub user_id: UserId,
         pub room_id: RoomId,
@@ -271,6 +285,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub struct ProfileUpdateEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<PartyId>,
@@ -315,6 +330,7 @@ pub mod message {
             #[doc = "OpCodes for [`" $name "`]"]
             #[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema_repr))]
+            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
             #[repr(u8)]
             pub enum [<$name Opcode>] {
                 $($opcode = $code,)*
@@ -330,6 +346,7 @@ pub mod message {
                     #[derive(Debug, Serialize, Deserialize)]
                     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
                     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+                    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
                     $(#[derive($Default, PartialEq, Eq)])?
                     pub struct [<$opcode Payload>] {
                         $($(#[$field_meta])* pub $field : $ty,)*
@@ -514,6 +531,41 @@ pub mod message {
                     }
                 )*
             }
+
+            #[cfg(feature = "ts")]
+            const _: () = {
+                use ts_bindgen::{TypeScriptDef, TypeScriptType, TypeRegistry};
+
+                impl TypeScriptDef for $name {
+                    #[allow(clippy::vec_init_then_push)]
+                    fn register(registry: &mut TypeRegistry) -> TypeScriptType {
+                        if registry.contains(stringify!($name)) {
+                            return TypeScriptType::Named(stringify!($name));
+                        }
+
+                        [<$name Opcode>]::register(registry);
+
+                        let mut variants = Vec::new();
+
+                        $(
+                            variants.push({
+                                let mut members = Vec::new();
+
+                                // o: Opcode.$opcode
+                                members.push(( "o".to_owned(), TypeScriptType::EnumValue(stringify!([<$name Opcode>]), stringify!($opcode)) ));
+                                // p: Payload
+                                members.push(( "p".to_owned(), <[<$name:snake _payloads>]::[<$opcode Payload>]>::register(registry) ));
+
+                                TypeScriptType::interface(members, 0)
+                            });
+                        )*
+
+                        registry.insert(stringify!($name), TypeScriptType::Union(variants));
+
+                        TypeScriptType::Named(stringify!($name))
+                    }
+                }
+            };
 
             impl Serialize for $name {
                 fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -784,6 +836,18 @@ pub mod message {
         #[test]
         fn test_client_msg_size() {
             assert_eq!(16, size_of::<ClientMsg>());
+        }
+
+        #[cfg(feature = "ts")]
+        #[test]
+        fn test_server_msg_ts() {
+            use ts_bindgen::{TypeRegistry, TypeScriptDef};
+
+            let mut registry = TypeRegistry::default();
+
+            ServerMsg::register(&mut registry);
+
+            println!("{}", registry.fmt_to_string().unwrap());
         }
     }
 }

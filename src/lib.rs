@@ -2,7 +2,7 @@
 
 //#![cfg_attr(not(feature = "std"), no_std)]
 #![warn(clippy::perf, clippy::must_use_candidate, clippy::complexity, clippy::suspicious)]
-#![allow(clippy::bad_bit_mask)]
+#![allow(clippy::bad_bit_mask, non_local_definitions)]
 
 extern crate alloc;
 

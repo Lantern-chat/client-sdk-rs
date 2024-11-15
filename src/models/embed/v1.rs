@@ -10,6 +10,7 @@ pub type UrlSignature = FixedStr<27>;
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub enum EmbedType {
     #[serde(alias = "image")]
     Img,
@@ -68,6 +69,7 @@ impl IsNoneOrEmpty for Option<ThinString> {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct EmbedV1 {
     /// Timestamp when the embed was retreived
     #[cfg_attr(feature = "typed-builder", builder(default = Timestamp::now_utc()))]
@@ -297,6 +299,7 @@ impl VisitMedia for EmbedV1 {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct EmbedFooter {
     #[serde(rename = "t", alias = "text")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
@@ -393,6 +396,7 @@ impl VisitMedia for Box<EmbedMedia> {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct EmbedMedia {
     #[serde(flatten)]
     pub media: BasicEmbedMedia,
@@ -459,6 +463,7 @@ impl Deref for ArchivedEmbedMedia {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct BasicEmbedMedia {
     #[serde(rename = "u", alias = "url")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
@@ -544,6 +549,7 @@ impl EmbedMedia {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct EmbedProvider {
     #[serde(
         rename = "n",
@@ -596,6 +602,7 @@ impl EmbedAuthor {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct EmbedAuthor {
     #[serde(rename = "n", alias = "name")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
@@ -624,6 +631,7 @@ pub struct EmbedAuthor {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct EmbedField {
     #[serde(rename = "n", alias = "name", default, skip_serializing_if = "SmolStr::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(setter(into)))]
