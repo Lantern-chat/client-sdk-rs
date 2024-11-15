@@ -1,22 +1,24 @@
 use indexmap::IndexMap;
 
+use std::borrow::Cow;
+
 use crate::TypeScriptType;
 
 #[derive(Debug, Clone, Default)]
 pub struct TypeRegistry {
     // use IndexMap to preserve the insertion order
-    types: IndexMap<&'static str, TypeScriptType>,
+    types: IndexMap<&'static str, (TypeScriptType, Cow<'static, str>)>,
 }
 
 impl TypeRegistry {
-    pub fn insert(&mut self, name: &'static str, mut ty: TypeScriptType) {
+    pub fn insert(&mut self, name: &'static str, mut ty: TypeScriptType, comment: impl Into<Cow<'static, str>>) {
         ty.unify();
 
-        self.types.insert(name, ty);
+        self.types.insert(name, (ty, comment.into()));
     }
 
     pub fn get(&self, name: &'static str) -> Option<&TypeScriptType> {
-        self.types.get(name)
+        self.types.get(name).map(|(ty, _)| ty)
     }
 
     pub fn contains(&self, name: &'static str) -> bool {
@@ -49,12 +51,14 @@ impl TypeRegistry {
     pub fn fmt<W: Write>(&self, mut out: W) -> core::fmt::Result {
         let mut first = true;
 
-        for (name, ty) in &self.types {
+        for (name, (ty, item_comment)) in &self.types {
             if !first {
                 out.write_str("\n\n")?;
             }
 
             first = false;
+
+            fmt_comment(item_comment, &mut out)?;
 
             match ty {
                 // values are just exported as constants
@@ -98,7 +102,9 @@ impl TypeRegistry {
                     };
 
                     writeln!(out, "export{is_const} enum {name} {{")?;
-                    for (name, value) in vec {
+                    for (name, value, comment) in vec {
+                        fmt_comment(comment, &mut out)?;
+
                         match value {
                             Some(value) => writeln!(out, "    {name} = {value},")?,
                             None => writeln!(out, "    {name},")?,
@@ -119,7 +125,7 @@ impl TypeRegistry {
                             }
                         };
 
-                        do_extend &= match self.types.get(&**extend) {
+                        do_extend &= match self.get(extend) {
                             Some(ty) => ty.is_extendible(self),
                             None => false,
                         };
@@ -148,13 +154,15 @@ impl TypeRegistry {
                     }
 
                     out.write_str(" {\n")?;
-                    for (name, ty) in members {
+                    for (name, ty, member_comment) in members {
                         let ty = ty.take_optional();
 
                         let (opt, ty) = match ty {
                             Ok(ref ty) => ("?", ty),
                             Err(ty) => ("", ty),
                         };
+
+                        fmt_comment(member_comment, &mut out)?;
 
                         write!(out, "    {name}{opt}: ")?;
                         ty.fmt_depth(0, &mut out)?;
@@ -234,10 +242,13 @@ impl TypeScriptType {
 
             TypeScriptType::Tuple(vec) => {
                 f.write_str("[")?;
-                for (i, ty) in vec.iter().enumerate() {
+                for (i, (ty, element_comment)) in vec.iter().enumerate() {
                     if i != 0 {
                         f.write_str(", ")?;
                     }
+
+                    fmt_comment(element_comment, f)?;
+
                     ty.fmt_depth(depth + 1, f)?;
                 }
                 f.write_str("]")
@@ -249,13 +260,15 @@ impl TypeScriptType {
 
             TypeScriptType::Interface { members, extends } => {
                 f.write_str("{ ")?;
-                for (name, ty) in members.iter() {
+                for (name, ty, member_comment) in members.iter() {
                     let ty = ty.take_optional();
 
                     let (opt, ty) = match ty {
                         Ok(ref ty) => ("?", ty),
                         Err(ty) => ("", ty),
                     };
+
+                    fmt_comment(member_comment, f)?;
 
                     write!(f, "{name}{opt}: ")?;
                     ty.fmt_depth(0, f)?;
@@ -278,4 +291,22 @@ impl Display for TypeScriptType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.fmt_depth(1, f)
     }
+}
+
+fn fmt_comment<W: Write>(comment: &str, out: &mut W) -> std::fmt::Result {
+    if comment.is_empty() {
+        return Ok(());
+    }
+
+    if !comment.contains('\n') {
+        return writeln!(out, "/** {} */", comment.trim());
+    }
+
+    out.write_str("/**\n")?;
+
+    for line in comment.lines() {
+        writeln!(out, " * {}", line.trim())?;
+    }
+
+    out.write_str(" */\n")
 }

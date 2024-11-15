@@ -1,8 +1,9 @@
-use std::rc::Rc;
-
-use indexmap::IndexSet;
+use std::borrow::Cow;
 
 use core::fmt;
+
+type Comment = Cow<'static, str>;
+type Name = Cow<'static, str>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Discriminator {
@@ -26,27 +27,27 @@ pub enum TypeScriptType {
     Null,
     Undefined,
     Number(Option<f64>),
-    String(Option<Rc<str>>),
+    String(Option<Cow<'static, str>>),
     Boolean(Option<bool>),
 
     Array(Box<TypeScriptType>, Option<usize>),
 
     Interface {
-        members: Vec<(String, TypeScriptType)>,
+        members: Vec<(Name, TypeScriptType, Comment)>,
         extends: Vec<TypeScriptType>,
     },
 
     Union(Vec<TypeScriptType>),
     Intersection(Vec<TypeScriptType>),
-    Enum(Vec<(String, Option<Discriminator>)>),
-    Tuple(Vec<TypeScriptType>),
+    Enum(Vec<(Name, Option<Discriminator>, Comment)>),
+    Tuple(Vec<(TypeScriptType, Comment)>),
     Partial(Box<TypeScriptType>),
 
     /// [key: K]: T
     Map(Box<TypeScriptType>, Box<TypeScriptType>),
 
     /// `export const enum`
-    ConstEnum(Vec<(String, Option<Discriminator>)>),
+    ConstEnum(Vec<(Name, Option<Discriminator>, Comment)>),
 
     /// Field of an enum: ty.value
     EnumValue(&'static str, &'static str),
@@ -56,52 +57,70 @@ pub enum TypeScriptType {
 }
 
 impl TypeScriptType {
-    /// Performs simply cleanup of nested unions and intersections.
+    /// Performs simple cleanup of nested unions and intersections and removes duplicates.
     pub fn unify(&mut self) {
         match self {
-            TypeScriptType::Union(types) => {
-                while types.iter().any(|ty| matches!(ty, TypeScriptType::Union(_))) {
-                    let mut new_types = Vec::new();
+            TypeScriptType::Union(types) => loop {
+                let mut new_types = Vec::new();
 
-                    for mut ty in types.drain(..) {
-                        ty.unify();
+                for mut ty in types.drain(..) {
+                    ty.unify();
 
-                        match ty {
-                            TypeScriptType::Union(mut inner_types) => new_types.append(&mut inner_types),
-                            ty => new_types.push(ty),
+                    match ty {
+                        TypeScriptType::Union(inner_types) => {
+                            for ty in inner_types {
+                                if !new_types.contains(&ty) {
+                                    new_types.push(ty);
+                                }
+                            }
                         }
+                        ty if !new_types.contains(&ty) => new_types.push(ty),
+                        _ => {}
                     }
-
-                    *types = new_types;
                 }
-            }
-            TypeScriptType::Intersection(types) => {
-                while types.iter().any(|ty| matches!(ty, TypeScriptType::Intersection(_))) {
-                    let mut new_types = Vec::new();
 
-                    for mut ty in types.drain(..) {
-                        ty.unify();
+                *types = new_types;
 
-                        match ty {
-                            TypeScriptType::Intersection(mut inner_types) => new_types.append(&mut inner_types),
-                            ty => new_types.push(ty),
+                if !types.iter().any(|ty| matches!(ty, TypeScriptType::Union(_))) {
+                    break;
+                }
+            },
+            TypeScriptType::Intersection(types) => loop {
+                let mut new_types = Vec::new();
+
+                for mut ty in types.drain(..) {
+                    ty.unify();
+
+                    match ty {
+                        TypeScriptType::Intersection(inner_types) => {
+                            for ty in inner_types {
+                                if !new_types.contains(&ty) {
+                                    new_types.push(ty);
+                                }
+                            }
                         }
+                        ty if !new_types.contains(&ty) => new_types.push(ty),
+                        _ => {}
                     }
-
-                    *types = new_types;
                 }
-            }
+
+                *types = new_types;
+
+                if !types.iter().any(|ty| matches!(ty, TypeScriptType::Intersection(_))) {
+                    break;
+                }
+            },
             TypeScriptType::Array(ty, _) => ty.unify(),
             TypeScriptType::Map(key, value) => {
                 key.unify();
                 value.unify();
             }
             TypeScriptType::Tuple(types) => {
-                for ty in types {
+                for (ty, _) in types {
                     ty.unify();
                 }
             }
-            TypeScriptType::Interface { members, .. } => members.iter_mut().for_each(|(_, ty)| ty.unify()),
+            TypeScriptType::Interface { members, .. } => members.iter_mut().for_each(|(_, ty, _)| ty.unify()),
 
             TypeScriptType::Partial(ty) => {
                 // Partial<T> should also remove the `undefined` type from T if union
@@ -143,7 +162,7 @@ impl TypeScriptType {
 }
 
 impl TypeScriptType {
-    pub fn interface(members: Vec<(String, TypeScriptType)>, extend_hint: usize) -> TypeScriptType {
+    pub fn interface(members: Vec<(Name, TypeScriptType, Comment)>, extend_hint: usize) -> TypeScriptType {
         TypeScriptType::Interface {
             members,
             extends: Vec::with_capacity(extend_hint),
@@ -178,7 +197,7 @@ impl TypeScriptType {
         TypeScriptType::String(None)
     }
 
-    pub fn string_value(value: impl Into<Rc<str>>) -> TypeScriptType {
+    pub fn string_value(value: impl Into<Cow<'static, str>>) -> TypeScriptType {
         TypeScriptType::String(Some(value.into()))
     }
 

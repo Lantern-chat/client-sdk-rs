@@ -286,10 +286,14 @@ macro_rules! impl_schema_for_bitflags {
                                 continue;
                             }
 
-                            members.push((name.to_owned(), Some(Discriminator::Simple(value.ilog2() as _))));
+                            members.push((name.into(), Some(Discriminator::Simple(value.ilog2() as _)), "".into()));
                         }
 
-                        registry.insert(name, TypeScriptType::ConstEnum(members));
+                        registry.insert(
+                            name,
+                            TypeScriptType::ConstEnum(members),
+                            concat!("Bit positions for ", stringify!($name)),
+                        );
 
                         return ty;
                     }
@@ -304,10 +308,18 @@ macro_rules! impl_schema_for_bitflags {
 
                     let mut members = Vec::new();
                     for (name, value) in Self::all().iter_names() {
-                        members.push((name.to_owned(), Some(Discriminator::BinaryHex(value.bits() as _))));
+                        members.push((
+                            name.into(),
+                            Some(Discriminator::BinaryHex(value.bits() as _)),
+                            "".into(),
+                        ));
                     }
 
-                    registry.insert(name, TypeScriptType::ConstEnum(members));
+                    registry.insert(
+                        name,
+                        TypeScriptType::ConstEnum(members),
+                        concat!("Bitflags for ", stringify!($name)),
+                    );
 
                     ty
                 }

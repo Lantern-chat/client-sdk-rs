@@ -3,7 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use syn::{Data, Expr, Fields, Ident, Meta, Variant};
+use syn::{Data, Expr, Fields, Ident, Lit, Meta, Variant};
 
 use serde_derive_internals::attr::{
     Container as SerdeContainer, Field as SerdeField, RenameAllRules, RenameRule, TagType, Variant as SerdeVariant,
@@ -18,6 +18,7 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
     let mut attrs = ItemAttributes {
         serde: SerdeContainer::from_ast(&ctxt, &input),
         inline: false,
+        comment: extract_doc_comments(&input.attrs),
     };
 
     if let Err(e) = ctxt.check() {
@@ -50,6 +51,8 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
 struct ItemAttributes {
     serde: SerdeContainer,
 
+    comment: String,
+
     /// Put interface definitions directly in unions, rather than as a named type.
     inline: bool,
 }
@@ -68,13 +71,15 @@ impl ItemAttributes {
 fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> TokenStream {
     let mut out = TokenStream::new();
 
+    let struct_comment = &attrs.comment;
+
     // unit types are just null
     if let Fields::Unit = input.fields {
         out.extend(if attrs.inline {
             quote! { ts_bindgen::TypeScriptType::Null }
         } else {
             quote! {
-                registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Null);
+                registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Null, #struct_comment);
                 ts_bindgen::TypeScriptType::Named(stringify!(#name))
             }
         });
@@ -95,6 +100,8 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
         for (idx, field) in fields.unnamed.into_iter().enumerate() {
             let field_attrs = SerdeField::from_ast(&ctxt, idx, &field, None, attrs.serde.default());
 
+            let field_comment = extract_doc_comments(&field.attrs);
+
             // NOTE: flatten/rename is not supported for tuple structs
 
             let field_ty = field.ty;
@@ -114,7 +121,7 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
                 ty = quote! { #ty._into_optional_internal(<#field_ty as ts_bindgen::TypeScriptDef>::_IS_OPTION) };
             }
 
-            out.extend(quote! { fields.push(#ty); });
+            out.extend(quote! { fields.push((#ty, #field_comment)); });
         }
 
         if num_fields == 1 {
@@ -126,13 +133,26 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
                 quote! { ty }
             } else {
                 quote! {
-                    registry.insert(stringify!(#name), ty);
+                    // special case, concat comments
+                    registry.insert(stringify!(#name), ty.0, {
+                        let mut cmt = #struct_comment.to_owned();
+
+                        // add a newline if there is a comment
+                        if !cmt.is_empty() && !ty.1.is_empty() {
+                            cmt.push('\n');
+                        }
+
+                        cmt.push_str(ty.1);
+
+                        cmt
+                    });
+
                     ts_bindgen::TypeScriptType::Named(stringify!(#name))
                 }
             });
         } else {
             out.extend(quote! {
-                registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Tuple(fields));
+                registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Tuple(fields), #struct_comment);
                 ts_bindgen::TypeScriptType::Named(stringify!(#name))
             });
         }
@@ -147,6 +167,8 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
 
         for (idx, field) in fields.named.into_iter().enumerate() {
             let mut field_attrs = SerdeField::from_ast(&ctxt, idx, &field, None, attrs.serde.default());
+
+            let field_comment = extract_doc_comments(&field.attrs);
 
             let field_ty = field.ty;
             let mut ty = quote! { <#field_ty as ts_bindgen::TypeScriptDef>::register(registry) };
@@ -176,7 +198,7 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
             let name = field_attrs.name().serialize_name();
 
             out.extend(quote! {
-                members.push((#name.to_owned(), #ty));
+                members.push((#name.into(), #ty, #field_comment.into()));
             });
         }
 
@@ -185,7 +207,7 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
         out.extend(quote! {
             let ty = ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*;
 
-            registry.insert(stringify!(#name), ty);
+            registry.insert(stringify!(#name), ty, #struct_comment);
 
             ts_bindgen::TypeScriptType::Named(stringify!(#name))
         });
@@ -215,10 +237,11 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
         let interface = format!("{}{}", name, variant.ident);
 
         actual_enum &= matches!(variant.fields, Fields::Unit);
-
         num_discriminants += variant.discriminant.is_some() as usize;
 
-        (variant, variant_attrs, interface)
+        let variant_comment = extract_doc_comments(&variant.attrs);
+
+        (variant, variant_attrs, interface, variant_comment)
     }));
 
     out.extend(quote! {
@@ -226,25 +249,33 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
         let mut variants = Vec::new();
     });
 
+    let enum_comment = &attrs.comment;
+
     if actual_enum {
         if let Err(e) = ctxt.check() {
             return e.into_compile_error();
         }
 
         if num_discriminants == 0 {
-            for (variant, variant_attrs, ..) in variants {
+            // enum with no fields or discriminants, so it should be a regular enum with string values
+            for (variant, variant_attrs, _, variant_comment) in variants {
                 let variant_ident = variant.ident;
                 let variant_name = variant_attrs.name().serialize_name();
 
                 out.extend(quote! {
-                    variants.push((stringify!(#variant_ident).to_owned(), Some(ts_bindgen::Discriminator::String(#variant_name))));
+                    variants.push((
+                        stringify!(#variant_ident).into(),
+                        Some(ts_bindgen::Discriminator::String(#variant_name)),
+                        #variant_comment.into(),
+                    ));
                 });
             }
 
             // use a real enum for enums with string values
             out.extend(quote! { let ty = ts_bindgen::TypeScriptType::Enum(variants); });
         } else {
-            for (variant, ..) in variants {
+            // explicit discriminants, so it should be a const enum
+            for (variant, _, _, variant_comment) in variants {
                 let name = variant.ident;
 
                 let discriminant = match variant.discriminant {
@@ -253,7 +284,11 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                 };
 
                 out.extend(quote! {
-                    variants.push((stringify!(#name).to_owned(), #discriminant));
+                    variants.push((
+                        stringify!(#name).into(),
+                        #discriminant,
+                        #variant_comment.into(),
+                    ));
                 });
             }
 
@@ -261,7 +296,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
         }
 
         out.extend(quote! {
-            registry.insert(stringify!(#name), ty);
+            registry.insert(stringify!(#name), ty, #enum_comment);
 
             ts_bindgen::TypeScriptType::Named(stringify!(#name))
         });
@@ -269,7 +304,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
         return out;
     }
 
-    for (variant, variant_attrs, interface_name) in variants {
+    for (variant, variant_attrs, interface_name, variant_comment) in variants {
         let variant_name = variant_attrs.name().serialize_name();
 
         match variant.fields {
@@ -278,7 +313,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                 // { "variant_a": null } | { "variant_b": null } | ...
                 TagType::External => quote! {
                     let mut members = Vec::new();
-                    members.push((#variant_name.to_owned(), ts_bindgen::TypeScriptType::Null));
+                    members.push((#variant_name.into(), ts_bindgen::TypeScriptType::Null));
 
                     variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                 },
@@ -286,7 +321,11 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                 // { tag: "variant_a" } | { tag: "variant_b" } | ...
                 TagType::Internal { tag } => quote! {
                     let mut members = Vec::new();
-                    members.push((#tag.to_owned(), ts_bindgen::TypeScriptType::string_value(#variant_name)));
+                    members.push((
+                        #tag.into(),
+                        ts_bindgen::TypeScriptType::string_value(#variant_name),
+                        #variant_comment.into(),
+                    ));
 
                     variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                 },
@@ -294,8 +333,8 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                 // { tag: "variant_a", content: null } | { tag: "variant_b", content: null } | ...
                 TagType::Adjacent { tag, content } => quote! {
                     let mut members = Vec::new();
-                    members.push((#tag.to_owned(), ts_bindgen::TypeScriptType::string_value(#variant_name)));
-                    members.push((#content.to_owned(), ts_bindgen::TypeScriptType::Null));
+                    members.push((#tag.into(), ts_bindgen::TypeScriptType::string_value(#variant_name), #variant_comment.into()));
+                    members.push((#content.into(), ts_bindgen::TypeScriptType::Null, "".into()));
 
                     variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                 },
@@ -313,6 +352,8 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
 
                 for (idx, field) in fields.named.into_iter().enumerate() {
                     let mut field_attrs = SerdeField::from_ast(&ctxt, idx, &field, None, attrs.serde.default());
+
+                    let field_comment = extract_doc_comments(&field.attrs);
 
                     let field_ty = field.ty;
                     let mut ty = quote! { <#field_ty as ts_bindgen::TypeScriptDef>::register(registry) };
@@ -337,7 +378,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                     let name = field_attrs.name().serialize_name();
 
                     out.extend(quote! {
-                        members.push((#name.to_owned(), #ty));
+                        members.push((#name.into(), #ty, #field_comment.into()));
                     });
                 }
 
@@ -348,28 +389,28 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                     // { "variant_a": variant_a } | { "variant_b": variant_b } | ...
                     TagType::External => quote! {
                         let ty = ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*;
-                        registry.insert(#interface_name, ty);
+                        registry.insert(#interface_name, ty, #variant_comment);
 
                         let mut members = Vec::new();
-                        members.push((#variant_name.to_owned(), ts_bindgen::TypeScriptType::Named(#interface_name)));
+                        members.push((#variant_name.into(), ts_bindgen::TypeScriptType::Named(#interface_name), #variant_comment.into()));
 
                         variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                     },
 
                     // { tag: "variant_a", ...variant_a } | { tag: "variant_b", ...variant_b } | ...
                     TagType::Internal { tag } => quote! {
-                        members.push((#tag.to_owned(), ts_bindgen::TypeScriptType::string_value(#variant_name)));
+                        members.push((#tag.into(), ts_bindgen::TypeScriptType::string_value(#variant_name), #variant_comment.into()));
                     },
 
                     // { tag: "variant_a", content: variant_a } |
                     // { tag: "variant_b", content: variant_b } | ...
                     TagType::Adjacent { tag, content } => quote! {
                         let ty = ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*;
-                        registry.insert(#interface_name, ty);
+                        registry.insert(#interface_name, ty, #variant_comment);
 
                         let mut members = Vec::new();
-                        members.push((#tag.to_owned(), ts_bindgen::TypeScriptType::string_value(#variant_name)));
-                        members.push((#content.to_owned(), ts_bindgen::TypeScriptType::Named(#interface_name)));
+                        members.push((#tag.into(), ts_bindgen::TypeScriptType::string_value(#variant_name), "".into()));
+                        members.push((#content.into(), ts_bindgen::TypeScriptType::Named(#interface_name), "".into()));
 
                         variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                     },
@@ -377,7 +418,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                     // variant_a | variant_b | ...
                     TagType::None => quote! {
                         let ty = ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*;
-                        registry.insert(#interface_name, ty);
+                        registry.insert(#interface_name, ty, #variant_comment);
 
                         variants.push(ts_bindgen::TypeScriptType::Named(#interface_name));
                     },
@@ -394,6 +435,8 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                 for (idx, field) in fields_unnamed.unnamed.into_iter().enumerate() {
                     let field_attrs = SerdeField::from_ast(&ctxt, idx, &field, None, attrs.serde.default());
 
+                    let field_comment = extract_doc_comments(&field.attrs);
+
                     let field_ty = field.ty;
                     let mut ty = quote! { <#field_ty as ts_bindgen::TypeScriptDef>::register(registry) };
 
@@ -407,7 +450,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                         ty = quote! { #ty._into_optional_internal(<#field_ty as ts_bindgen::TypeScriptDef>::_IS_OPTION) };
                     }
 
-                    out.extend(quote! { fields.push(#ty); });
+                    out.extend(quote! { fields.push((#ty, #field_comment)); });
                 }
 
                 // unwrap single field tuple variants
@@ -421,7 +464,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                         // { "variant_a": variant_a } | { "variant_b": variant_b } | ...
                         TagType::External => quote! {
                             let mut members = Vec::new();
-                            members.push((#variant_name.to_owned(), field));
+                            members.push((#variant_name.into(), field.0, field.1.into()));
 
                             variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                         },
@@ -429,24 +472,24 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                         // { tag: "variant_a", ...variant_a } | { tag: "variant_b", ...variant_b } | ...
                         TagType::Internal { tag } => quote! {
                             let mut members = Vec::new();
-                            members.push((#tag.to_owned(), ts_bindgen::TypeScriptType::string_value(#variant_name)));
+                            members.push((#tag.into(), ts_bindgen::TypeScriptType::string_value(#variant_name), field.1.into()));
 
                             // NOTE: This will fail at runtime if the field is not a composite type
-                            variants.push(ts_bindgen::TypeScriptType::interface(members, 1).flatten(field));
+                            variants.push(ts_bindgen::TypeScriptType::interface(members, 1).flatten(field.0));
                         },
 
                         // { tag: "variant_a", content: variant_a } |
                         // { tag: "variant_b", content: variant_b } | ...
                         TagType::Adjacent { tag, content } => quote! {
                             let mut members = Vec::new();
-                            members.push((#tag.to_owned(), ts_bindgen::TypeScriptType::string_value(#variant_name)));
-                            members.push((#content.to_owned(), field));
+                            members.push((#tag.into(), ts_bindgen::TypeScriptType::string_value(#variant_name), "".into()));
+                            members.push((#content.into(), field.0, field.1.into()));
 
                             variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                         },
 
                         // variant_a | variant_b | ...
-                        TagType::None => quote! { variants.push(field); },
+                        TagType::None => quote! { variants.push(field.0); },
                     });
 
                     continue;
@@ -459,7 +502,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                         registry.insert(#interface_name, ts_bindgen::TypeScriptType::Tuple(fields));
 
                         let mut members = Vec::new();
-                        members.push((#variant_name.to_owned(), ts_bindgen::TypeScriptType::Named(#interface_name)));
+                        members.push((#variant_name.into(), ts_bindgen::TypeScriptType::Named(#interface_name), #variant_comment.into()));
 
                         variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                     },
@@ -472,18 +515,18 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                     // { tag: "variant_a", content: variant_a } |
                     // { tag: "variant_b", content: variant_b } | ...
                     TagType::Adjacent { tag, content } => quote! {
-                        registry.insert(#interface_name, ts_bindgen::TypeScriptType::Tuple(fields));
+                        registry.insert(#interface_name, ts_bindgen::TypeScriptType::Tuple(fields), #variant_comment);
 
                         let mut members = Vec::new();
-                        members.push((#tag.to_owned(), ts_bindgen::TypeScriptType::string_value(#variant_name)));
-                        members.push((#content.to_owned(), ts_bindgen::TypeScriptType::Named(#interface_name)));
+                        members.push((#tag.into(), ts_bindgen::TypeScriptType::string_value(#variant_name), "".into()));
+                        members.push((#content.into(), ts_bindgen::TypeScriptType::Named(#interface_name), "".into()));
 
                         variants.push(ts_bindgen::TypeScriptType::interface(members, 0));
                     },
 
                     // variant_a | variant_b | ...
                     TagType::None => quote! {
-                        registry.insert(#interface_name, ts_bindgen::TypeScriptType::Tuple(fields));
+                        registry.insert(#interface_name, ts_bindgen::TypeScriptType::Tuple(fields), #variant_comment);
 
                         variants.push(ts_bindgen::TypeScriptType::Named(#interface_name));
                     },
@@ -498,7 +541,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
 
     out.extend(quote! {
         let ty = ts_bindgen::TypeScriptType::Union(variants);
-        registry.insert(stringify!(#name), ty);
+        registry.insert(stringify!(#name), ty, #enum_comment);
 
         ts_bindgen::TypeScriptType::Named(stringify!(#name))
     });
@@ -508,4 +551,26 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
 
 fn compile_error_str(msg: &str) -> TokenStream {
     quote! { ::core::compile_error!(#msg) }
+}
+
+fn extract_doc_comments(attrs: &[syn::Attribute]) -> String {
+    let mut comment = String::new();
+
+    for attr in attrs {
+        let Meta::NameValue(ref nv) = attr.meta else { continue };
+
+        if nv.path.is_ident("doc") {
+            if let Expr::Lit(syn::ExprLit {
+                lit: Lit::Str(ref lit), ..
+            }) = nv.value
+            {
+                if !comment.is_empty() {
+                    comment.push('\n');
+                }
+                comment.push_str(&lit.value());
+            }
+        }
+    }
+
+    comment
 }

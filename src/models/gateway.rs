@@ -552,15 +552,15 @@ pub mod message {
                                 let mut members = Vec::new();
 
                                 // o: Opcode.$opcode
-                                members.push(( "o".to_owned(), TypeScriptType::EnumValue(stringify!([<$name Opcode>]), stringify!($opcode)) ));
+                                members.push(( "o".into(), TypeScriptType::EnumValue(stringify!([<$name Opcode>]), stringify!($opcode)), "".into() ));
                                 // p: Payload
-                                members.push(( "p".to_owned(), <[<$name:snake _payloads>]::[<$opcode Payload>]>::register(registry) ));
+                                members.push(( "p".into(), <[<$name:snake _payloads>]::[<$opcode Payload>]>::register(registry), "".into() ));
 
                                 TypeScriptType::interface(members, 0)
                             });
                         )*
 
-                        registry.insert(stringify!($name), TypeScriptType::Union(variants));
+                        registry.insert(stringify!($name), TypeScriptType::Union(variants), concat!("Union of all ", stringify!($name), " messages"));
 
                         TypeScriptType::Named(stringify!($name))
                     }
