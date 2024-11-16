@@ -268,14 +268,18 @@ macro_rules! impl_schema_for_bitflags {
                     // values into bit positions, (1 << 20) becomes 20,
                     // at the cost of excluding combinations of flags
                     if size_of::<Self>() >= 16 {
-                        let name = concat!(stringify!($name), "Bit");
-                        let ty = TypeScriptType::Named(name);
+                        let bits_name = concat!(stringify!($name), "Bit");
 
-                        if registry.contains(name) {
-                            return ty;
+                        if registry.contains(bits_name) {
+                            return TypeScriptType::Named(stringify!($name));
                         }
 
-                        eprintln!("Note: Generating TypeScript for {} as bit positions", stringify!($name));
+                        registry.add_external(stringify!($name));
+
+                        eprintln!(
+                            "Note: Generating TypeScript for {} as bit positions, relying on external type for usage",
+                            stringify!($name)
+                        );
 
                         let mut members = Vec::new();
                         for (name, value) in Self::all().iter_names() {
@@ -290,12 +294,12 @@ macro_rules! impl_schema_for_bitflags {
                         }
 
                         registry.insert(
-                            name,
+                            bits_name,
                             TypeScriptType::ConstEnum(members),
                             concat!("Bit positions for ", stringify!($name)),
                         );
 
-                        return ty;
+                        return TypeScriptType::Named(stringify!($name));
                     }
 
                     // regular enum
@@ -314,6 +318,12 @@ macro_rules! impl_schema_for_bitflags {
                             "".into(),
                         ));
                     }
+
+                    members.push((
+                        "ALL".into(),
+                        Some(Discriminator::BinaryHex(Self::all().bits() as _)),
+                        concat!("All bitflags of ", stringify!($name)).into(),
+                    ));
 
                     registry.insert(
                         name,

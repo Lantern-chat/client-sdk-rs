@@ -1,4 +1,4 @@
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 
 use std::borrow::Cow;
 
@@ -8,6 +8,7 @@ use crate::TypeScriptType;
 pub struct TypeRegistry {
     // use IndexMap to preserve the insertion order
     types: IndexMap<&'static str, (TypeScriptType, Cow<'static, str>)>,
+    external: IndexSet<Cow<'static, str>>,
 }
 
 impl TypeRegistry {
@@ -23,6 +24,14 @@ impl TypeRegistry {
 
     pub fn contains(&self, name: &'static str) -> bool {
         self.types.contains_key(name)
+    }
+
+    pub fn add_external(&mut self, name: impl Into<Cow<'static, str>>) {
+        self.external.insert(name.into());
+    }
+
+    pub fn external(&self) -> &IndexSet<Cow<'static, str>> {
+        &self.external
     }
 }
 

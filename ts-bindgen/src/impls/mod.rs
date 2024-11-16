@@ -5,14 +5,18 @@ mod core_impl;
 mod std_impl;
 
 impl TypeScriptDef for snowflake::Snowflake {
-    fn register(_registry: &mut TypeRegistry) -> TypeScriptType {
-        TypeScriptType::Named("Snowflake") // defined externally
+    fn register(registry: &mut TypeRegistry) -> TypeScriptType {
+        // defined externally
+        registry.add_external("Snowflake");
+        TypeScriptType::Named("Snowflake")
     }
 }
 
 impl TypeScriptDef for timestamp::Timestamp {
-    fn register(_registry: &mut TypeRegistry) -> TypeScriptType {
-        TypeScriptType::Named("Timestamp") // defined externally
+    fn register(registry: &mut TypeRegistry) -> TypeScriptType {
+        // defined externally
+        registry.add_external("Timestamp");
+        TypeScriptType::Named("Timestamp")
     }
 }
 
