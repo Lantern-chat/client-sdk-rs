@@ -14,9 +14,24 @@ pub enum Discriminator {
 
 impl fmt::Display for Discriminator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Discriminator::Simple(i) => write!(f, "{}", i),
-            Discriminator::BinaryHex(i) => write!(f, "0x{:x}", i),
+        // JavaScript can't represent integers larger than or equal to 2^53,
+        // so we need to represent them as strings.
+
+        match *self {
+            Discriminator::Simple(i) => {
+                if i.unsigned_abs() >= (1 << 53) {
+                    write!(f, "\"{}\"", i)
+                } else {
+                    write!(f, "{}", i)
+                }
+            }
+            Discriminator::BinaryHex(i) => {
+                if i >= (1 << 53) {
+                    write!(f, "\"0x{:x}\"", i)
+                } else {
+                    write!(f, "0x{:x}", i)
+                }
+            }
             Discriminator::String(s) => write!(f, "\"{}\"", s),
         }
     }
