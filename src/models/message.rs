@@ -1,7 +1,7 @@
 use super::*;
 
 bitflags::bitflags! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct MessageFlags: i32 {
         /// This message has been deleted
         const DELETED           = 1 << 0;
@@ -75,6 +75,7 @@ pub struct Message {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub content: Option<SmolStr>,
 
+    #[serde(default, skip_serializing_if = "MessageFlags::is_empty")]
     pub flags: MessageFlags,
 
     #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
