@@ -12,21 +12,22 @@ pub enum Discriminator {
     String(&'static str),
 }
 
+// JavaScript can't represent integers larger than or equal to 2^53 -1,
+// so we need to represent them as strings.
+pub const MAX_SAFE_NUMBER: u64 = (1 << 53) - 1;
+
 impl fmt::Display for Discriminator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // JavaScript can't represent integers larger than or equal to 2^53,
-        // so we need to represent them as strings.
-
         match *self {
             Discriminator::Simple(i) => {
-                if i.unsigned_abs() >= (1 << 53) {
+                if i.unsigned_abs() > MAX_SAFE_NUMBER {
                     write!(f, "\"{}\"", i)
                 } else {
                     write!(f, "{}", i)
                 }
             }
             Discriminator::BinaryHex(i) => {
-                if i >= (1 << 53) {
+                if i > MAX_SAFE_NUMBER {
                     write!(f, "\"0x{:x}\"", i)
                 } else {
                     write!(f, "0x{:x}", i)
@@ -57,6 +58,7 @@ pub enum TypeScriptType {
     Enum(Vec<(Name, Option<Discriminator>, Comment)>),
     Tuple(Vec<(TypeScriptType, Comment)>),
     Partial(Box<TypeScriptType>),
+    ReadOnly(Box<TypeScriptType>),
 
     /// [key: K]: T
     Map(Box<TypeScriptType>, Box<TypeScriptType>),
@@ -72,56 +74,62 @@ pub enum TypeScriptType {
 }
 
 impl TypeScriptType {
+    pub fn is_primitive(&self) -> bool {
+        matches!(
+            self,
+            TypeScriptType::Null
+                | TypeScriptType::Undefined
+                | TypeScriptType::Number(_)
+                | TypeScriptType::String(_)
+                | TypeScriptType::Boolean(_)
+        )
+    }
+
+    pub fn is_key_type(&self) -> bool {
+        matches!(
+            self,
+            TypeScriptType::String(_) | TypeScriptType::Number(_) | TypeScriptType::Boolean(_)
+        )
+    }
+
     /// Performs simple cleanup of nested unions and intersections and removes duplicates.
     pub fn unify(&mut self) {
+        let is_union = matches!(self, TypeScriptType::Union(_));
+
         match self {
-            TypeScriptType::Union(types) => loop {
+            // unifying unions and intersections are very similar, but cannot be mixed.
+            TypeScriptType::Union(types) | TypeScriptType::Intersection(types) => loop {
                 let mut new_types = Vec::new();
 
                 for mut ty in types.drain(..) {
                     ty.unify();
 
-                    match ty {
-                        TypeScriptType::Union(inner_types) => {
-                            for ty in inner_types {
-                                if !new_types.contains(&ty) {
-                                    new_types.push(ty);
-                                }
+                    let inner_types = match ty {
+                        TypeScriptType::Union(inner_types) if is_union => inner_types,
+                        TypeScriptType::Intersection(inner_types) if !is_union => inner_types,
+                        ty => {
+                            if !new_types.contains(&ty) {
+                                new_types.push(ty);
                             }
+
+                            continue;
                         }
-                        ty if !new_types.contains(&ty) => new_types.push(ty),
-                        _ => {}
+                    };
+
+                    for ty in inner_types {
+                        if !new_types.contains(&ty) {
+                            new_types.push(ty);
+                        }
                     }
                 }
 
                 *types = new_types;
 
-                if !types.iter().any(|ty| matches!(ty, TypeScriptType::Union(_))) {
-                    break;
-                }
-            },
-            TypeScriptType::Intersection(types) => loop {
-                let mut new_types = Vec::new();
-
-                for mut ty in types.drain(..) {
-                    ty.unify();
-
-                    match ty {
-                        TypeScriptType::Intersection(inner_types) => {
-                            for ty in inner_types {
-                                if !new_types.contains(&ty) {
-                                    new_types.push(ty);
-                                }
-                            }
-                        }
-                        ty if !new_types.contains(&ty) => new_types.push(ty),
-                        _ => {}
-                    }
-                }
-
-                *types = new_types;
-
-                if !types.iter().any(|ty| matches!(ty, TypeScriptType::Intersection(_))) {
+                if !types.iter().any(|ty| match ty {
+                    TypeScriptType::Union(_) if is_union => true,
+                    TypeScriptType::Intersection(_) if !is_union => true,
+                    _ => false,
+                }) {
                     break;
                 }
             },
@@ -139,7 +147,24 @@ impl TypeScriptType {
 
             TypeScriptType::Partial(ty) => {
                 // Partial<T> should also remove the `undefined` type from T if union
-                ty.unify()
+                if let TypeScriptType::Union(types) = &mut **ty {
+                    types.retain_mut(|ty| !ty.is_undefined());
+                }
+
+                ty.unify();
+
+                // remove nested partials
+                if let TypeScriptType::Partial(inner) = &**ty {
+                    *ty = inner.clone();
+                }
+            }
+            TypeScriptType::ReadOnly(ty) => {
+                ty.unify();
+
+                // remove nested readonlys
+                if let TypeScriptType::ReadOnly(inner) = &**ty {
+                    *ty = inner.clone();
+                }
             }
             _ => {}
         }

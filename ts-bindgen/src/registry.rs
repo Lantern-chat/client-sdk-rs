@@ -88,6 +88,7 @@ impl TypeRegistry {
                 | TypeScriptType::Tuple(_)
                 | TypeScriptType::Array(_, _)
                 | TypeScriptType::Partial(_)
+                | TypeScriptType::ReadOnly(_)
                 | TypeScriptType::Named(_) => {
                     writeln!(out, "export type {name} = {ty};")?;
                 }
@@ -100,17 +101,21 @@ impl TypeRegistry {
                 }
 
                 TypeScriptType::Map(key, value) => {
+                    if !key.is_key_type() {
+                        eprintln!("Warning: key type for map {name} is not a key type");
+                    }
+
                     writeln!(out, "export type {name} = {{ [key: {key}]: {value} }};")?;
                 }
 
                 TypeScriptType::Enum(vec) | TypeScriptType::ConstEnum(vec) => {
-                    let is_const = match ty {
-                        TypeScriptType::ConstEnum(_) => " const",
-                        TypeScriptType::Enum(_) => "",
+                    let specifier = match ty {
+                        TypeScriptType::ConstEnum(_) => "const enum",
+                        TypeScriptType::Enum(_) => "enum",
                         _ => unreachable!(),
                     };
 
-                    writeln!(out, "export{is_const} enum {name} {{")?;
+                    writeln!(out, "export {specifier} {name} {{")?;
                     for (name, value, comment) in vec {
                         fmt_comment(comment, &mut out)?;
 
@@ -123,22 +128,25 @@ impl TypeRegistry {
                 }
 
                 TypeScriptType::Interface { members, extends } => {
-                    let mut do_extend = true;
-
-                    for extend in extends {
-                        let extend = match extend {
-                            TypeScriptType::Named(name) => name,
-                            _ => {
-                                do_extend = false;
-                                break;
+                    // no members, just extends, so take an intersection of the extends
+                    if members.is_empty() && !extends.is_empty() {
+                        write!(out, "export type {name} = ")?;
+                        for (i, extend) in extends.iter().enumerate() {
+                            if i != 0 {
+                                out.write_str(" & ")?;
                             }
-                        };
+                            write!(out, "{extend}")?;
+                        }
+                        out.write_str(";")?;
 
-                        do_extend &= match self.get(extend) {
-                            Some(ty) => ty.is_extendible(self),
-                            None => false,
-                        };
+                        continue;
                     }
+
+                    // only use interface extend if all extends are interfaces
+                    let do_extend = extends.iter().all(|extend| match extend {
+                        TypeScriptType::Named(name) => matches!(self.get(name), Some(ty) if ty.is_extendible(self)),
+                        _ => false,
+                    });
 
                     if do_extend {
                         // all extends are interfaces, so we can just extend them
@@ -201,6 +209,8 @@ impl TypeScriptType {
 
             TypeScriptType::Array(inner, _) => write!(f, "Array<{inner}>"),
             TypeScriptType::Partial(inner) => write!(f, "Partial<{inner}>"),
+            TypeScriptType::ReadOnly(inner) => write!(f, "Readonly<{inner}>"),
+
             TypeScriptType::Boolean(value) => match value {
                 Some(value) => write!(f, "{value}"),
                 None => f.write_str("boolean"),
