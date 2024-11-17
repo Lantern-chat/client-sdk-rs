@@ -1,12 +1,17 @@
-/// Similar to `Option`, `Undefined` values can be used when data may exist but is not provided.
+/// Similar to `Option`, `Undefined` can be used when data may exist but is not provided.
 ///
-/// For example, a user biography may not be provided to any random user if they haven't
-/// given permission to non-friends to view their profile, but that does not imply it doesn't exist.
+/// Consider using `Nullable` when you want to distinguish between `None` and `Some(None)`,
+/// as there is a difference between not providing a value and providing a `null` value.
 ///
-/// Similarly, not all gateway events provide all information in objects. Again, user profiles
-/// are notable in that biographies are typically excluded in events to save on bandwidth.
+/// This is commonly used when setting a field or property to `null`/`None` versus
+/// not changing it all, such as in patch requests where you want to update
+/// only certain fields. Additionally, when data is not available to the user due to permissions,
+/// it may also be set to `Undefined`. It may still exist, but its state is not known.
+///
+/// This is not equivalent to three-state boolean logic, and `Undefined` values will
+/// be considered equal to each other.
 #[must_use = "This enum is used to represent nullable values, and should be used as such"]
-#[derive(Default, Debug, Clone, Copy, Hash)]
+#[derive(Default, Debug, Clone, Copy, Hash, Eq)]
 #[repr(u8)]
 pub enum Nullable<T> {
     /// Neither present nor absent, an indeterminant value.

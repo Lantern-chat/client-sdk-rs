@@ -46,7 +46,7 @@ triomphe = "0.1.8"
 rustc-hash = { version = "2.0", default-features = false }
 const-random = "0.1"
 
-bon = { version = "2", optional = true }
+bon = { version = "3", optional = true }
 typed-builder = { version = "0.20", optional = true }
 schemars = { version = "1.0.0-alpha.14", optional = true, features = ["triomphe01", "smol_str03", "thin-vec02"] }
 okapi = { version = "0.7.0-rc.1", optional = true }

@@ -75,7 +75,12 @@ command! { Party;
         pub party_id: PartyId,
     }
 
-    // TODO: Use same command for accepting?
+    /// Transfer ownership of a party to another user.
+    ///
+    /// This command is only available to the current owner, or the person who is accepting ownership.
+    ///
+    /// Confirming ownership is done by the accepting user also sending a `TransferOwnership`
+    /// command with the same parameters.
     +struct TransferOwnership(U) -> One (): PUT("party" / party_id / "owner" / user_id) {
         pub party_id: PartyId,
         pub user_id: UserId,

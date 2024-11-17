@@ -171,15 +171,34 @@ pub use self::{
 };
 
 /// Directional search query
+///
+/// Used for paginated queries to determine the direction of the search, where
+/// "after" is ascending and "before" is descending, starting from the given ID.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[serde(rename_all = "lowercase")]
+#[must_use]
 pub enum Cursor {
+    /// Select item exactly matching the ID.
     Exact(Snowflake),
+    /// Select ascending items starting from the ID.
     After(Snowflake),
+    /// Select descending items starting from the ID.
     Before(Snowflake),
+}
+
+impl Cursor {
+    /// Select ascending items starting from the minimum possible ID.
+    pub const fn after_min() -> Self {
+        Cursor::After(Snowflake::null())
+    }
+
+    /// Select descending items starting from the maximum possible ID.
+    pub const fn before_max() -> Self {
+        Cursor::Before(Snowflake::max_safe_value())
+    }
 }
 
 #[allow(unused)]
