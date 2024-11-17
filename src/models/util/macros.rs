@@ -1,3 +1,142 @@
+macro_rules! bitflags2 {
+    (@DOC #[doc = $doc:literal]) => { concat!($doc, "\n") };
+    (@DOC #[$meta:meta]) => {""};
+
+    (
+        $(#[$outer:meta])*
+        $vis:vis struct $BitFlags:ident: $T:ty {
+            $(
+                $(#[$inner:ident $($args:tt)*])*
+                const $Flag:tt = $value:expr;
+            )*
+        }
+
+        $($t:tt)*
+    ) => {
+        bitflags::bitflags! {
+            $(#[$outer])*
+            $vis struct $BitFlags: $T {
+                $(
+                    $(#[$inner $($args)*])*
+                    const $Flag = $value;
+                )*
+            }
+        }
+
+        #[cfg(feature = "ts")]
+        const _: () = {
+            use ts_bindgen::{Discriminator, TypeScriptDef, TypeScriptType};
+
+            impl TypeScriptDef for $BitFlags {
+                #[allow(clippy::vec_init_then_push, clippy::manual_is_power_of_two)]
+                fn register(registry: &mut ts_bindgen::TypeRegistry) -> TypeScriptType {
+                    // for bitflags with 16 or more bits, we decompose the bitflags
+                    // values into bit positions, (1 << 20) becomes 20,
+                    // at the cost of excluding combinations of flags
+                    if size_of::<Self>() >= 16 {
+                        let bits_name = concat!(stringify!($BitFlags), "Bit");
+
+                        if registry.contains(bits_name) {
+                            return TypeScriptType::Named(stringify!($BitFlags));
+                        }
+
+                        registry.add_external(stringify!($BitFlags));
+
+                        eprintln!(
+                            "Note: Generating TypeScript for {} as bit positions, relying on external type for usage",
+                            stringify!($BitFlags)
+                        );
+
+                        let mut members = Vec::new();
+
+                        let mut combinations = Vec::new();
+
+                        $(
+                            let value = Self::$Flag.bits();
+
+                            // if a power of 2, add to members
+                            if (value & (value - 1)) == 0 {
+                                members.push((
+                                    stringify!($Flag).into(),
+                                    Some(Discriminator::Simple(value.ilog2() as _)),
+                                    concat!($(bitflags2!(@DOC #[$inner $($args)*])),*).trim().into(),
+                                ));
+                            } else {
+                                let mut bits = Vec::new();
+
+                                for (name, v) in Self::$Flag.iter_names() {
+                                    let v = v.bits();
+
+                                    if (v & (v - 1)) == 0 {
+                                        bits.push(TypeScriptType::EnumValue(concat!(stringify!($BitFlags), "Bit"), name));
+                                    }
+                                }
+
+                                if !bits.is_empty() {
+                                    combinations.push((
+                                        concat!(stringify!($BitFlags), "Bit_", stringify!($Flag)),
+                                        TypeScriptType::ArrayLiteral(bits),
+                                        concat!($(bitflags2!(@DOC #[$inner $($args)*])),*).trim(),
+                                    ));
+                                }
+                            }
+                        )*
+
+                        registry.insert(
+                            bits_name,
+                            TypeScriptType::ConstEnum(members),
+                            concat!("Bit positions for ", stringify!($BitFlags)),
+                        );
+
+                        // insert _after_ the bit positions enum
+                        for (name, ty, doc) in combinations {
+                            registry.insert(name, ty, doc);
+                        }
+
+                        return TypeScriptType::Named(stringify!($BitFlags));
+                    }
+
+                    // regular enum
+                    let name = stringify!($BitFlags);
+                    let ty = TypeScriptType::Named(name);
+
+                    if registry.contains(name) {
+                        return ty;
+                    }
+
+                    let mut members = Vec::new();
+
+                    $(
+                        members.push((
+                            stringify!($Flag).into(),
+                            Some(Discriminator::BinaryHex(Self::$Flag.bits() as _)),
+                            concat!($(bitflags2!(@DOC #[$inner $($args)*])),*).trim().into(),
+                        ));
+                    )*
+
+                    members.push((
+                        "ALL".into(),
+                        Some(Discriminator::BinaryHex(Self::all().bits() as _)),
+                        concat!("All bitflags of ", stringify!($BitFlags)).into(),
+                    ));
+
+                    registry.insert(
+                        name,
+                        TypeScriptType::ConstEnum(members),
+                        concat!("Bitflags for ", stringify!($BitFlags)),
+                    );
+
+                    ty
+                }
+            }
+        };
+
+        bitflags2!($($t)*);
+    };
+
+    () => {};
+}
+
 macro_rules! impl_rkyv_for_bitflags {
     ($vis:vis $name:ident: $ty:ty) => {
         #[cfg(feature = "rkyv")]
@@ -258,84 +397,6 @@ macro_rules! impl_sql_for_enum_primitive {
 
 macro_rules! impl_schema_for_bitflags {
     ($name:ident) => {
-        #[cfg(feature = "ts")]
-        const _: () = {
-            use ts_bindgen::{Discriminator, TypeScriptDef, TypeScriptType};
-
-            impl TypeScriptDef for $name {
-                fn register(registry: &mut ts_bindgen::TypeRegistry) -> TypeScriptType {
-                    // for bitflags with 16 or more bits, we decompose the bitflags
-                    // values into bit positions, (1 << 20) becomes 20,
-                    // at the cost of excluding combinations of flags
-                    if size_of::<Self>() >= 16 {
-                        let bits_name = concat!(stringify!($name), "Bit");
-
-                        if registry.contains(bits_name) {
-                            return TypeScriptType::Named(stringify!($name));
-                        }
-
-                        registry.add_external(stringify!($name));
-
-                        eprintln!(
-                            "Note: Generating TypeScript for {} as bit positions, relying on external type for usage",
-                            stringify!($name)
-                        );
-
-                        let mut members = Vec::new();
-                        for (name, value) in Self::all().iter_names() {
-                            let value = value.bits();
-
-                            // if not a power of 2, skip
-                            if (value & (value - 1)) != 0 {
-                                continue;
-                            }
-
-                            members.push((name.into(), Some(Discriminator::Simple(value.ilog2() as _)), "".into()));
-                        }
-
-                        registry.insert(
-                            bits_name,
-                            TypeScriptType::ConstEnum(members),
-                            concat!("Bit positions for ", stringify!($name)),
-                        );
-
-                        return TypeScriptType::Named(stringify!($name));
-                    }
-
-                    // regular enum
-                    let name = stringify!($name);
-                    let ty = TypeScriptType::Named(name);
-
-                    if registry.contains(name) {
-                        return ty;
-                    }
-
-                    let mut members = Vec::new();
-                    for (name, value) in Self::all().iter_names() {
-                        members.push((
-                            name.into(),
-                            Some(Discriminator::BinaryHex(value.bits() as _)),
-                            "".into(),
-                        ));
-                    }
-
-                    members.push((
-                        "ALL".into(),
-                        Some(Discriminator::BinaryHex(Self::all().bits() as _)),
-                        concat!("All bitflags of ", stringify!($name)).into(),
-                    ));
-
-                    registry.insert(
-                        name,
-                        TypeScriptType::ConstEnum(members),
-                        concat!("Bitflags for ", stringify!($name)),
-                    );
-
-                    ty
-                }
-            }
-        };
-
         #[cfg(feature = "schema")]
         const _: () = {
             use schemars::_serde_json::json;

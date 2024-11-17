@@ -11,7 +11,21 @@ pub struct TypeRegistry {
     external: IndexSet<Cow<'static, str>>,
 }
 
+pub struct DisplayRegistry<'a> {
+    registry: &'a TypeRegistry,
+}
+
+impl core::fmt::Display for DisplayRegistry<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.registry.fmt(f)
+    }
+}
+
 impl TypeRegistry {
+    pub fn display(&self) -> DisplayRegistry {
+        DisplayRegistry { registry: self }
+    }
+
     pub fn insert(&mut self, name: &'static str, mut ty: TypeScriptType, comment: impl Into<Cow<'static, str>>) {
         ty.unify();
 
@@ -89,8 +103,13 @@ impl TypeRegistry {
                 | TypeScriptType::Array(_, _)
                 | TypeScriptType::Partial(_)
                 | TypeScriptType::ReadOnly(_)
+                | TypeScriptType::ArrayLiteral(_)
                 | TypeScriptType::Named(_) => {
-                    writeln!(out, "export type {name} = {ty};")?;
+                    if ty.is_literal() {
+                        write!(out, "export const {name} = {ty};")?;
+                    } else {
+                        write!(out, "export type {name} = {ty};")?;
+                    }
                 }
 
                 // make sure these are unwrapped for top-level types
@@ -105,7 +124,7 @@ impl TypeRegistry {
                         eprintln!("Warning: key type for map {name} is not a key type");
                     }
 
-                    writeln!(out, "export type {name} = {{ [key: {key}]: {value} }};")?;
+                    write!(out, "export type {name} = {{ [key: {key}]: {value} }};")?;
                 }
 
                 TypeScriptType::Enum(vec) | TypeScriptType::ConstEnum(vec) => {
@@ -257,7 +276,24 @@ impl TypeScriptType {
 
             TypeScriptType::Array(inner, _) => write!(f, "Array<{inner}>"),
             TypeScriptType::Partial(inner) => write!(f, "Partial<{inner}>"),
-            TypeScriptType::ReadOnly(inner) => write!(f, "Readonly<{inner}>"),
+            TypeScriptType::ReadOnly(inner) => {
+                if inner.is_literal() {
+                    write!(f, "{inner} as const")
+                } else {
+                    write!(f, "Readonly<{inner}>")
+                }
+            }
+
+            TypeScriptType::ArrayLiteral(vec) => {
+                f.write_str("[")?;
+                for (i, ty) in vec.iter().enumerate() {
+                    if i != 0 {
+                        f.write_str(", ")?;
+                    }
+                    ty.fmt_depth(depth + 1, f)?;
+                }
+                f.write_str("]")
+            }
 
             TypeScriptType::Boolean(value) => match value {
                 Some(value) => write!(f, "{value}"),

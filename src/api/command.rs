@@ -9,7 +9,7 @@ pub(crate) mod sealed {
 
 use crate::models::Permissions;
 
-bitflags::bitflags! {
+bitflags2! {
     /// Flags for command functionality.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct CommandFlags: u8 {

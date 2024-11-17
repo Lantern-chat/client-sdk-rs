@@ -1,6 +1,6 @@
 use super::*;
 
-bitflags::bitflags! {
+bitflags2! {
     /// NOTE: These flags are ordered such that larger values take precedence
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserPresenceFlags: i16 {

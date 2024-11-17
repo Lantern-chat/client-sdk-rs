@@ -1,4 +1,4 @@
-bitflags::bitflags! {
+bitflags2! {
     /// NOTE: Formats are as individual bitflags (rather than some integer value) so we can do
     /// simpler queries when matching valid formats. A user can select formats A, B and C, and testing for a match
     /// can be done with a single bitwise-AND operation, rather than many comparisons or an `IN ARRAY` operation.

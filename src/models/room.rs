@@ -16,7 +16,7 @@ pub enum RoomKind {
     // max value cannot exceed 15
 }
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct RoomFlags: i16 {
         const KIND    = 0xF; // first four bits are the kind

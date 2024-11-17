@@ -3,7 +3,7 @@ use super::*;
 mod prefs;
 pub use prefs::*;
 
-bitflags::bitflags! {
+bitflags2! {
     /// NOTE: Remember to clear flag caches when they change
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserFlags: i32 {
@@ -33,6 +33,7 @@ bitflags::bitflags! {
 
         const RESERVED_4            = 1 << 15;
 
+        /// All reserved bits for future use
         const RESERVED = 0
             | Self::RESERVED_1.bits()
             | Self::RESERVED_2.bits()
@@ -119,7 +120,7 @@ impl UserFlags {
     pub const SYSTEM_USER: UserFlags = UserFlags::empty().with_elevation(ElevationLevel::System).union(UserFlags::VERIFIED);
 }
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserProfileBits: i32 {
         const AVATAR_ROUNDNESS = 0x7F; // 127, lower 7 bits

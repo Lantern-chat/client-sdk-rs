@@ -1,6 +1,6 @@
 use super::*;
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct MessageFlags: i32 {
         /// This message has been deleted

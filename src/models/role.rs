@@ -1,6 +1,6 @@
 use super::*;
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct RoleFlags: i16 {
         const HOIST         = 1 << 0;

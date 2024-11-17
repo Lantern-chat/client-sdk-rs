@@ -22,7 +22,7 @@ pub enum EmbedType {
     Article,
 }
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct EmbedFlags: i16 {
         /// This embed contains spoilered content and should be displayed as such

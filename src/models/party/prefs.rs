@@ -2,7 +2,7 @@ use super::*;
 
 use crate::models::Locale;
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PartyPrefsFlags: i32 {
         const DEFAULT_FLAGS = 0;

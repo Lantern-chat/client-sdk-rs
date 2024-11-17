@@ -37,7 +37,7 @@ enum_codes! {
     }
 }
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct UserPrefsFlags: i32 {
         /// Reduce movement and animations in the UI
@@ -89,7 +89,15 @@ bitflags::bitflags! {
         const HIDE_ALL_EMBEDS                   = 1 << 21;
         const HIDE_NSFW_EMBEDS                  = 1 << 22;
 
-        const DEFAULT_FLAGS = 0
+        /// Default user flags for creating a new user:
+        /// - ALLOW_DMS
+        /// - GROUP_LINES
+        /// - ENABLE_SPELLCHECK
+        /// - SHOW_MEDIA_METADATA
+        /// - SHOW_DATE_CHANGE
+        /// - SHOW_GREY_IMAGE_BG
+        /// - SHOW_ATTACHMENT_GRID
+        const DEFAULT = 0
             | Self::ALLOW_DMS.bits()
             | Self::GROUP_LINES.bits()
             | Self::ENABLE_SPELLCHECK.bits()
@@ -113,7 +121,7 @@ impl From<u64> for UserPrefsFlags {
 
 impl Default for UserPrefsFlags {
     fn default() -> Self {
-        Self::DEFAULT_FLAGS
+        Self::DEFAULT
     }
 }
 

@@ -5,7 +5,7 @@ use super::*;
 mod prefs;
 pub use prefs::*;
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PartyFlags: i32 {
         /// Must have a verified email address
@@ -31,6 +31,7 @@ bitflags::bitflags! {
         /// Top 6 bits are a language code
         const LANGUAGE = 0b11_11_11 << (32 - 6);
 
+        /// Combination of all security flags: EMAIL, PHONE, NEW_USER, NEW_MEMBER, MFA_ENABLED
         const SECURITY = 0
             | Self::EMAIL.bits()
             | Self::PHONE.bits()
@@ -117,7 +118,7 @@ impl Deref for ArchivedParty {
     }
 }
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PartyMemberFlags: i16 {
         const BANNED = 1 << 0;
@@ -161,7 +162,7 @@ impl Deref for PartyMember {
     }
 }
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PinFolderFlags: i32 {
         const COLOR = 0x00_FF_FF_FFu32 as i32; // top 24 bits

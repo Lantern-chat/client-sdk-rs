@@ -48,6 +48,9 @@ pub enum TypeScriptType {
 
     Array(Box<TypeScriptType>, Option<usize>),
 
+    /// Array or Tuple literal
+    ArrayLiteral(Vec<TypeScriptType>),
+
     Interface {
         members: Vec<(Name, TypeScriptType, Comment)>,
         extends: Vec<TypeScriptType>,
@@ -105,6 +108,19 @@ impl TypeScriptType {
             self,
             TypeScriptType::String(_) | TypeScriptType::Number(_) | TypeScriptType::Boolean(_)
         )
+    }
+
+    pub fn is_literal(&self) -> bool {
+        match self {
+            TypeScriptType::Number(Some(_))
+            | TypeScriptType::String(Some(_))
+            | TypeScriptType::Boolean(Some(_))
+            | TypeScriptType::EnumValue(_, _)
+            | TypeScriptType::ArrayLiteral(_) => true,
+
+            TypeScriptType::ReadOnly(ty) => ty.is_literal(),
+            _ => false,
+        }
     }
 
     /// Performs simple cleanup of nested unions and intersections and removes duplicates.

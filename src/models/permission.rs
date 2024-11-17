@@ -24,7 +24,7 @@ macro_rules! perms {
     }}
 }
 
-bitflags::bitflags! {
+bitflags2! {
     /// Party/Room Permissions
     ///
     /// This type is 16-byte aligned to ensure consistent alignment
@@ -32,19 +32,6 @@ bitflags::bitflags! {
     #[repr(C, align(16))]
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Permissions: u128 {
-        const DEFAULT = 0
-            | Self::CHANGE_NICKNAME.bits()
-            | Self::VIEW_ROOM.bits()
-            | Self::READ_MESSAGE_HISTORY.bits()
-            | Self::SEND_MESSAGES.bits()
-            | Self::USE_EXTERNAL_EMOTES.bits()
-            | Self::ADD_REACTIONS.bits()
-            | Self::EMBED_LINKS.bits()
-            | Self::ATTACH_FILES.bits()
-            | Self::SEND_TTS_MESSAGES.bits()
-            | Self::CONNECT.bits()
-            | Self::SPEAK.bits();
-
         const ADMINISTRATOR         = 1u128 << 0;
         const CREATE_INVITE         = 1u128 << 1;
         const KICK_MEMBERS          = 1u128 << 2;
@@ -90,10 +77,22 @@ bitflags::bitflags! {
         /// Allows a user to acquire priority speaker
         const PRIORITY_SPEAKER      = 1u128 << 63;
 
-
-        #[cfg(test)]
         /// Just something to fit in the top half for now during tests
         const TEST                  = 1u128 << 127;
+
+        // place aggregate permissions last for iterator reasons
+        const DEFAULT = 0
+            | Self::CHANGE_NICKNAME.bits()
+            | Self::VIEW_ROOM.bits()
+            | Self::READ_MESSAGE_HISTORY.bits()
+            | Self::SEND_MESSAGES.bits()
+            | Self::USE_EXTERNAL_EMOTES.bits()
+            | Self::ADD_REACTIONS.bits()
+            | Self::EMBED_LINKS.bits()
+            | Self::ATTACH_FILES.bits()
+            | Self::SEND_TTS_MESSAGES.bits()
+            | Self::CONNECT.bits()
+            | Self::SPEAK.bits();
     }
 }
 

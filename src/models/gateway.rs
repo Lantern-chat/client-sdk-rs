@@ -2,7 +2,7 @@
 
 use super::*;
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Intent: u32 {
         /// - PARTY_CREATE

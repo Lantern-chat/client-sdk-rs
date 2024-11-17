@@ -1,6 +1,6 @@
 use super::*;
 
-bitflags::bitflags! {
+bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct EmoteFlags: i16 {
         const ANIMATED = 1 << 0;
