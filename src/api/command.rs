@@ -15,7 +15,8 @@ bitflags::bitflags! {
     pub struct CommandFlags: u8 {
         /// Command requires authorization to execute.
         const AUTHORIZED    = 1 << 0;
-        /// Command has a body.
+
+        /// Command has a request body.
         const HAS_BODY      = 1 << 1;
 
         const BOTS_ONLY     = 1 << 2;
@@ -156,6 +157,13 @@ pub trait Command: sealed::Sealed {
     /// Serialize/format the REST path (without query)
     fn format_path<W: fmt::Write>(&self, w: W) -> fmt::Result;
 
+    /// Serialize/format the REST path (without query) and return it as a string
+    fn path(&self) -> Result<String, fmt::Error> {
+        let mut buf = String::new();
+        self.format_path(&mut buf)?;
+        Ok(buf)
+    }
+
     /// Body to be serialized as request body or query parameters (if GET)
     fn body(&self) -> &Self::Body;
 
@@ -221,6 +229,25 @@ macro_rules! static_path_pattern {
 
     ([$($value:literal),*] []) => { concat![$("/", $value),*] };
     ([$value:ident] []) => { concat!["/{", stringify!($value), "}"] };
+}
+
+/// Like `static_path_pattern!`, but for path template strings in TypeScript
+#[cfg(feature = "ts")]
+macro_rules! ts_path {
+    ([$($value:literal),+] [/ $next:literal $(/ $tail:tt)*]) => {
+        ts_path!([$($value,)+ $next] [$(/ $tail)*])
+    };
+
+    ([$($value:literal),+] [/ $next:tt $(/ $tail:tt)*]) => {
+        concat![$("/", $value,)+ ts_path!([$next] [$(/ $tail)*])]
+    };
+
+    ([$value:ident] [/ $next:tt $(/ $tail:tt)*]) => {
+        concat!["/${this.", stringify!($value), "}", ts_path!([$next] [$(/ $tail)*])]
+    };
+
+    ([$($value:literal),*] []) => { concat![$("/", $value),*] };
+    ([$value:ident] []) => { concat!["/${this.", stringify!($value), "}"] };
 }
 
 // Macro to autogenerate most Command trait implementations.
@@ -342,9 +369,7 @@ macro_rules! command {
     #[cfg(feature = "ts")]
     #[allow(unused_variables)]
     pub fn [<register_ $group_name:snake _routes>](registry: &mut ts_bindgen::TypeRegistry) {
-        $(
-            $( <$body_name as ts_bindgen::TypeScriptDef>::register(registry); )?
-        )*
+        $( <$name as ts_bindgen::TypeScriptDef>::register(registry); )*
     }
 
     $(
@@ -549,6 +574,70 @@ macro_rules! command {
                 pub body: $body_name,
             )?
         }
+
+        #[cfg(feature = "ts")]
+        const _: () = {
+            use ts_bindgen::{TypeRegistry, TypeScriptDef, TypeScriptType};
+
+            impl TypeScriptDef for $name {
+                fn register(registry: &mut TypeRegistry) -> TypeScriptType {
+                    use crate::api::Command;
+
+                    if registry.contains(stringify!($name)) {
+                        return TypeScriptType::Named(stringify!($name));
+                    }
+
+                    let TypeScriptType::Named(cmd_flags) = CommandFlags::register(registry) else {
+                        panic!("Failed to register CommandFlags as expected!");
+                    };
+
+                    #[allow(unused_mut, clippy::vec_init_then_push)]
+                    let ty = TypeScriptType::ApiDecl {
+                        command_flags: {
+                            let mut flags = Vec::new();
+
+                            for (name, _) in Self::FLAGS.iter_names() {
+                                flags.push(TypeScriptType::EnumValue(cmd_flags, name));
+                            }
+
+                            flags
+                        },
+                        name: stringify!($name).into(),
+                        method: Self::HTTP_METHOD.as_str().to_owned().into(),
+                        body_type: None $(.or(Some(Box::new($body_name::register(registry)))))?,
+                        return_type: Box::new(<$result>::register(registry)),
+
+                        path: ts_path!([$head] [$(/ $tail)*]),
+
+                        form_type: {
+                            let mut fields = Vec::new();
+
+                            $(
+                                fields.push((
+                                    stringify!($field_name).into(),
+                                    $field_ty::register(registry),
+                                    concat!($(command!(@DOC #[$($field_meta)*])),*).trim().into(),
+                                ));
+                            )*
+
+                            $(
+                                fields.push((
+                                    "body".into(),
+                                    $body_name::register(registry),
+                                    "".into(),
+                                ));
+                            )?
+
+                            Box::new(TypeScriptType::interface(fields, 0))
+                        }
+                    };
+
+                    registry.insert(stringify!($name), ty, concat!($(command!(@DOC #[$($meta)*])),*).trim());
+
+                    TypeScriptType::Named(stringify!($name))
+                }
+            }
+        };
 
         #[cfg(feature = "rkyv")]
         const _: () = {

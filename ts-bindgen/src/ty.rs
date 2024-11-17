@@ -71,6 +71,21 @@ pub enum TypeScriptType {
 
     /// Type that's been registered with the type registry under the given name.
     Named(&'static str),
+
+    ApiDecl {
+        // vec of EnumValue entries
+        command_flags: Vec<TypeScriptType>,
+
+        name: Name,
+        method: Name,
+
+        form_type: Box<TypeScriptType>,
+        return_type: Box<TypeScriptType>,
+        body_type: Option<Box<TypeScriptType>>,
+
+        // if the path contains `${`, it'll be treated as a template string
+        path: &'static str,
+    },
 }
 
 impl TypeScriptType {

@@ -191,6 +191,52 @@ impl TypeRegistry {
                         out.write_str(";")?;
                     }
                 }
+                TypeScriptType::ApiDecl {
+                    command_flags,
+                    name,
+                    method,
+                    form_type,
+                    return_type,
+                    body_type,
+                    path,
+                } => {
+                    let parse_response = **return_type != TypeScriptType::Null;
+
+                    let body_type = match body_type {
+                        Some(ty) => ty,
+                        None => &TypeScriptType::Null,
+                    };
+
+                    writeln!(
+                        out,
+                        "export const {name} = /*#__PURE__*/command.{}<{form_type}, {return_type}, {body_type}>({{",
+                        method.to_lowercase()
+                    )?;
+
+                    if parse_response {
+                        writeln!(out, "    parse: true,")?;
+                    }
+
+                    if path.contains("${") {
+                        writeln!(out, "    path() {{ return `{path}`; }},")?;
+                    } else {
+                        writeln!(out, "    path: \"{path}\",")?;
+                    }
+
+                    if !command_flags.is_empty() {
+                        write!(out, "    flags: ")?;
+                        for (idx, flag) in command_flags.iter().enumerate() {
+                            if idx != 0 {
+                                write!(out, " | ")?;
+                            }
+                            write!(out, "{flag}")?;
+                        }
+
+                        writeln!(out, ",")?;
+                    }
+
+                    out.write_str("});")?;
+                }
             }
         }
 
@@ -202,6 +248,8 @@ impl TypeScriptType {
     fn fmt_depth<W: Write>(&self, depth: usize, f: &mut W) -> std::fmt::Result {
         match self {
             TypeScriptType::Named(name) => f.write_str(name),
+            TypeScriptType::ApiDecl { name, .. } => f.write_str(name),
+
             TypeScriptType::Null => f.write_str("null"),
             TypeScriptType::Undefined => f.write_str("undefined"),
 
