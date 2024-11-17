@@ -6,6 +6,9 @@ pub struct Inner {
 }
 
 #[derive(Default, TypeScriptDef)]
+pub struct TestEmpty();
+
+#[derive(Default, TypeScriptDef)]
 #[serde(tag = "tag", content = "content")]
 pub enum TestEnum {
     A(i32),
@@ -30,6 +33,7 @@ pub struct Test {
     #[serde(skip_serializing)]
     a_small_field: i32,
 
+    /// Bananas?
     bananas: i32,
 
     #[serde(flatten)]

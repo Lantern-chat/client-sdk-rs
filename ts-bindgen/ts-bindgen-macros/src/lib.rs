@@ -32,7 +32,7 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
     let inner = match input.data {
         Data::Enum(data) => derive_enum(data, name.clone(), attrs),
         Data::Struct(data) => derive_struct(data, name.clone(), attrs),
-        Data::Union(_) => unimplemented!(),
+        Data::Union(_) => return compile_error_str("Unions are not supported").into(),
     };
 
     proc_macro::TokenStream::from(quote! {
@@ -91,11 +91,14 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
 
     // tuple structs serialize to a tuple/array
     if let Fields::Unnamed(fields) = input.fields {
-        out.extend(quote! {
-            let mut fields = Vec::new();
-        });
-
         let num_fields = fields.unnamed.len();
+
+        // only the `num_fields == 1` case is special
+        if num_fields != 1 {
+            out.extend(quote! {
+                let mut fields = Vec::new();
+            });
+        }
 
         for (idx, field) in fields.unnamed.into_iter().enumerate() {
             let field_attrs = SerdeField::from_ast(&ctxt, idx, &field, None, attrs.serde.default());
@@ -107,11 +110,6 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
             let field_ty = field.ty;
             let mut ty = quote! { <#field_ty as ts_bindgen::TypeScriptDef>::register(registry) };
 
-            // allow Null for optional fields
-            // if !field_attrs.default().is_none() || !attrs.serde.default().is_none() {
-            //     ty = quote! { #ty.into_nullable() };
-            // }
-
             // allow Optional for fields that are potentially skipped
             if field_attrs.skip_serializing_if().is_some() || field_attrs.skip_serializing() {
                 if field_attrs.default().is_none() && attrs.serde.default().is_none() {
@@ -121,28 +119,29 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
                 ty = quote! { #ty._into_optional_internal(<#field_ty as ts_bindgen::TypeScriptDef>::_IS_OPTION) };
             }
 
-            out.extend(quote! { fields.push((#ty, #field_comment)); });
+            // if there's only one field, we can just use the field directly
+            out.extend(if num_fields == 1 {
+                quote! { let field = (#ty, #field_comment); }
+            } else {
+                quote! { fields.push((#ty, #field_comment)); }
+            });
         }
 
         if num_fields == 1 {
-            out.extend(quote! {
-                let ty = fields.pop().unwrap();
-            });
-
             out.extend(if attrs.inline {
-                quote! { ty }
+                quote! { field }
             } else {
                 quote! {
                     // special case, concat comments
-                    registry.insert(stringify!(#name), ty.0, {
+                    registry.insert(stringify!(#name), field.0, {
                         let mut cmt = #struct_comment.to_owned();
 
                         // add a newline if there is a comment
-                        if !cmt.is_empty() && !ty.1.is_empty() {
+                        if !cmt.is_empty() && !field.1.is_empty() {
                             cmt.push('\n');
                         }
 
-                        cmt.push_str(ty.1);
+                        cmt.push_str(field.1);
 
                         cmt
                     });
@@ -172,11 +171,6 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
 
             let field_ty = field.ty;
             let mut ty = quote! { <#field_ty as ts_bindgen::TypeScriptDef>::register(registry) };
-
-            // allow Null for optional fields
-            // if !field_attrs.default().is_none() || !attrs.serde.default().is_none() {
-            //     ty = quote! { #ty.into_nullable() };
-            // }
 
             // allow Optional for fields that are potentially skipped
             if field_attrs.skip_serializing_if().is_some() || field_attrs.skip_serializing() {
@@ -426,11 +420,14 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
             }
             // tuple fields are just equal to an array
             Fields::Unnamed(fields_unnamed) => {
-                out.extend(quote! {
-                    let mut fields = Vec::new();
-                });
-
                 let num_fields = fields_unnamed.unnamed.len();
+
+                // only the `num_fields == 1` case is special
+                if num_fields != 1 {
+                    out.extend(quote! {
+                        let mut fields = Vec::new();
+                    });
+                }
 
                 for (idx, field) in fields_unnamed.unnamed.into_iter().enumerate() {
                     let field_attrs = SerdeField::from_ast(&ctxt, idx, &field, None, attrs.serde.default());
@@ -450,15 +447,16 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                         ty = quote! { #ty._into_optional_internal(<#field_ty as ts_bindgen::TypeScriptDef>::_IS_OPTION) };
                     }
 
-                    out.extend(quote! { fields.push((#ty, #field_comment)); });
+                    // if there's only one field, we can just use the field directly
+                    out.extend(if num_fields == 1 {
+                        quote! { let field = (#ty, #field_comment); }
+                    } else {
+                        quote! { fields.push((#ty, #field_comment)); }
+                    });
                 }
 
                 // unwrap single field tuple variants
                 if num_fields == 1 {
-                    out.extend(quote! {
-                        let field = fields.pop().unwrap();
-                    });
-
                     // one variant field is just equal to the field
                     out.extend(match attrs.serde.tag() {
                         // { "variant_a": variant_a } | { "variant_b": variant_b } | ...
