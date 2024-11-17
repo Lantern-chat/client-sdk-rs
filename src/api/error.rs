@@ -92,6 +92,7 @@ error_codes! {
         50014 = BincodeError             = StatusCode::INTERNAL_SERVER_ERROR,
         50015 = CborError                = StatusCode::INTERNAL_SERVER_ERROR,
         50016 = RkyvEncodingError        = StatusCode::INTERNAL_SERVER_ERROR,
+        50017 = RpcClientError           = StatusCode::INTERNAL_SERVER_ERROR,
 
         // Client errors
         40001 = AlreadyExists            = StatusCode::CONFLICT,
