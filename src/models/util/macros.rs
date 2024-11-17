@@ -109,14 +109,14 @@ macro_rules! bitflags2 {
                     $(
                         members.push((
                             stringify!($Flag).into(),
-                            Some(Discriminator::BinaryHex(Self::$Flag.bits() as _)),
+                            Some(Discriminator::BinaryHex(Self::$Flag.bits().into())),
                             concat!($(bitflags2!(@DOC #[$inner $($args)*])),*).trim().into(),
                         ));
                     )*
 
                     members.push((
                         "ALL".into(),
-                        Some(Discriminator::BinaryHex(Self::all().bits() as _)),
+                        Some(Discriminator::BinaryHex(Self::all().bits().into())),
                         concat!("All bitflags of ", stringify!($BitFlags)).into(),
                     ));
 

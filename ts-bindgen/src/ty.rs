@@ -6,9 +6,35 @@ type Comment = Cow<'static, str>;
 type Name = Cow<'static, str>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub struct BinaryInteger(pub u128);
+
+macro_rules! impl_binary_integer {
+    ($($ty:ty as $uty:ty),*) => {
+        $(
+            impl From<$ty> for BinaryInteger {
+                #[inline(always)]
+                fn from(value: $ty) -> Self {
+                    BinaryInteger(value as $uty as u128)
+                }
+            }
+
+            impl From<$uty> for BinaryInteger {
+                #[inline(always)]
+                fn from(value: $uty) -> Self {
+                    BinaryInteger(value as u128)
+                }
+            }
+        )*
+    };
+}
+
+impl_binary_integer!(i8 as u8, i16 as u16, i32 as u32, i64 as u64, i128 as u128);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Discriminator {
     Simple(i64),
-    BinaryHex(u64),
+    BinaryHex(BinaryInteger),
     String(&'static str),
 }
 
@@ -27,7 +53,9 @@ impl fmt::Display for Discriminator {
                 }
             }
             Discriminator::BinaryHex(i) => {
-                if i > MAX_SAFE_NUMBER {
+                let i = i.0;
+
+                if i > (MAX_SAFE_NUMBER as u128) {
                     write!(f, "\"0x{:x}\"", i)
                 } else {
                     write!(f, "0x{:x}", i)
