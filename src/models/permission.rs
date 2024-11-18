@@ -32,7 +32,9 @@ bitflags2! {
     #[repr(C, align(16))]
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Permissions: u128 {
+        /// Grants all permissions.
         const ADMINISTRATOR         = 1u128 << 0;
+        /// Allows a user to create invites for a party.
         const CREATE_INVITE         = 1u128 << 1;
         const KICK_MEMBERS          = 1u128 << 2;
         const BAN_MEMBERS           = 1u128 << 3;
@@ -52,8 +54,9 @@ bitflags2! {
         const DEFAULT_ONLY          = 1u128 << 20;
 
         const VIEW_ROOM             = 1u128 << 30;
-        const READ_MESSAGE_HISTORY  = 1u128 << 31 | Self::VIEW_ROOM.bits();
-        const SEND_MESSAGES         = 1u128 << 32 | Self::VIEW_ROOM.bits();
+        const READ_MESSAGE_HISTORY  = 1u128 << 31;
+        const SEND_MESSAGES         = 1u128 << 32;
+        /// Allows a user to manage messages in a room, including reactions.
         const MANAGE_MESSAGES       = 1u128 << 33;
         const MUTE_MEMBERS          = 1u128 << 34;
         const DEAFEN_MEMBERS        = 1u128 << 35;
