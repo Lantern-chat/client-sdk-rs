@@ -7,7 +7,7 @@ type Name = Cow<'static, str>;
 
 /// Integer that'll be printed as a hexadecimal number in TypeScript.
 ///
-/// This utility type ensures that values won't be zero-extending when converted
+/// This utility type ensures that values won't be sign-extended when converted
 /// to TypeScript integers, even if negative signed integers are used. All values
 /// are treated as unsigned integers for printing.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
