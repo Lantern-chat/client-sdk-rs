@@ -11,7 +11,7 @@ enum_codes! {
 
 enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
-    #[ts(non_const)]
+    #[cfg_attr(feature = "ts", ts(non_const))]
     pub enum Font: u16 = SansSerif {
         #[default]
         0 = SansSerif,
