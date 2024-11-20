@@ -1,5 +1,6 @@
 extern crate alloc;
 
+use alloc::borrow::Cow;
 use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::string::String;
@@ -41,5 +42,15 @@ impl<T: TypeScriptDef> TypeScriptDef for Vec<T> {
 impl<T: TypeScriptDef> TypeScriptDef for VecDeque<T> {
     fn register(registry: &mut TypeRegistry) -> TypeScriptType {
         T::register(registry).into_array()
+    }
+}
+
+impl<'a, T: TypeScriptDef> TypeScriptDef for Cow<'a, T>
+where
+    T: ?Sized + 'a,
+    T: ToOwned,
+{
+    fn register(registry: &mut TypeRegistry) -> TypeScriptType {
+        T::register(registry)
     }
 }

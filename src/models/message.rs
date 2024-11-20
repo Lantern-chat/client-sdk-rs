@@ -42,6 +42,7 @@ decl_enum! {
     #[derive(Default)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     #[derive(enum_primitive_derive::Primitive)]
     pub enum MessageKind: i16 {
         #[default]

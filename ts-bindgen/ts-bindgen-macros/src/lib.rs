@@ -21,6 +21,8 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
         non_const: false,
         includes: Vec::new(),
         max: false,
+        tags: Vec::new(),
+        rename: None,
         comment: extract_doc_comments(&input.attrs),
     };
 
@@ -32,12 +34,18 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
         return e.into_compile_error().into();
     }
 
-    let name = input.ident;
+    let name = Ident::new(
+        match attrs.rename {
+            Some(ref name) => name,
+            None => attrs.serde.name().serialize_name(),
+        },
+        input.ident.span(),
+    );
 
-    let includes = &attrs.includes;
-    let includes = quote! {
-        #( #includes::register(registry); )*
-    };
+    let rust_name = input.ident;
+
+    let includes = std::mem::take(&mut attrs.includes);
+    let tags = std::mem::take(&mut attrs.tags);
 
     let inner = match input.data {
         Data::Enum(data) => derive_enum(data, name.clone(), attrs),
@@ -46,15 +54,19 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
     };
 
     proc_macro::TokenStream::from(quote! {
-        impl ts_bindgen::TypeScriptDef for #name {
+        impl ts_bindgen::TypeScriptDef for #rust_name {
             fn register(registry: &mut ts_bindgen::TypeRegistry) -> ts_bindgen::TypeScriptType {
                 if registry.contains(stringify!(#name)) {
                     return ts_bindgen::TypeScriptType::Named(stringify!(#name));
                 }
 
-                #includes
+                #( #includes::register(registry); )*
+
+                #( registry.tag(stringify!(#name), #tags); )*
 
                 #inner
+
+                ts_bindgen::TypeScriptType::Named(stringify!(#name))
             }
         }
     })
@@ -77,6 +89,12 @@ struct ItemAttributes {
 
     /// Include other types in the generated register function.
     includes: Vec<Ident>,
+
+    /// Tags to give the type in the registry
+    tags: Vec<String>,
+
+    /// Only rename the TypeScript type, not the serde type.
+    rename: Option<String>,
 }
 
 impl ItemAttributes {
@@ -107,6 +125,18 @@ impl ItemAttributes {
                     })?;
                 }
 
+                if meta.path.is_ident("tag") {
+                    let tag: syn::LitStr = meta.value()?.parse()?;
+
+                    self.tags.push(tag.value());
+                }
+
+                if meta.path.is_ident("rename") {
+                    let rename: syn::LitStr = meta.value()?.parse()?;
+
+                    self.rename = Some(rename.value());
+                }
+
                 Ok(())
             })?;
         }
@@ -123,12 +153,9 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
     // unit types are just null
     if let Fields::Unit = input.fields {
         out.extend(if attrs.inline {
-            quote! { ts_bindgen::TypeScriptType::Null }
+            quote! { return ts_bindgen::TypeScriptType::Null; }
         } else {
-            quote! {
-                registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Null, #struct_comment);
-                ts_bindgen::TypeScriptType::Named(stringify!(#name))
-            }
+            quote! { registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Null, #struct_comment); }
         });
 
         return out;
@@ -192,16 +219,13 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
 
                         cmt
                     });
-
-                    ts_bindgen::TypeScriptType::Named(stringify!(#name))
                 }
             }
         } else if attrs.inline {
-            quote! { ts_bindgen::TypeScriptType::Tuple(fields) }
+            quote! { return ts_bindgen::TypeScriptType::Tuple(fields); }
         } else {
             quote! {
                 registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Tuple(fields), #struct_comment);
-                ts_bindgen::TypeScriptType::Named(stringify!(#name))
             }
         });
     } else {
@@ -248,14 +272,12 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
         let num_extends = flattened.len();
 
         out.extend(if attrs.inline {
-            quote! { ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*; }
+            quote! { return ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*; }
         } else {
             quote! {
                 let ty = ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*;
 
                 registry.insert(stringify!(#name), ty, #struct_comment);
-
-                ts_bindgen::TypeScriptType::Named(stringify!(#name))
             }
         });
     }
@@ -358,11 +380,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
             out.extend(quote! { let ty = ts_bindgen::TypeScriptType::#ty(variants); });
         }
 
-        out.extend(quote! {
-            registry.insert(stringify!(#name), ty, #enum_comment);
-
-            ts_bindgen::TypeScriptType::Named(stringify!(#name))
-        });
+        out.extend(quote! { registry.insert(stringify!(#name), ty, #enum_comment); });
 
         return out;
     }
@@ -607,10 +625,7 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
     }
 
     out.extend(quote! {
-        let ty = ts_bindgen::TypeScriptType::Union(variants);
-        registry.insert(stringify!(#name), ty, #enum_comment);
-
-        ts_bindgen::TypeScriptType::Named(stringify!(#name))
+        registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Union(variants), #enum_comment);
     });
 
     out

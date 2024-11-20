@@ -4,7 +4,7 @@ use super::*;
 
 bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-    pub struct Intent: u32 {
+    pub struct Intent: u32 where "gateway" {
         /// - PARTY_CREATE
         /// - PARTY_UPDATE
         /// - PARTY_DELETE
@@ -93,7 +93,7 @@ pub mod commands {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct Identify {
         pub auth: AuthToken,
         pub intent: Intent,
@@ -102,7 +102,7 @@ pub mod commands {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct SetPresence {
         #[serde(flatten)]
         pub presence: UserPresence,
@@ -115,7 +115,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct Hello {
         /// Number of milliseconds between heartbeats
         pub heartbeat_interval: u32,
@@ -132,7 +132,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct ReadyParty {
         pub party: Party,
 
@@ -166,7 +166,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct Ready {
         pub user: User,
 
@@ -183,7 +183,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct TypingStart {
         pub room_id: RoomId,
         pub party_id: PartyId,
@@ -198,7 +198,7 @@ pub mod events {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct PartyPositionUpdate {
         pub id: PartyId,
         pub position: i16,
@@ -207,7 +207,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct UserPresenceEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<PartyId>,
@@ -218,7 +218,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct MessageDeleteEvent {
         pub id: MessageId,
         pub room_id: RoomId,
@@ -228,7 +228,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct RoleDeleteEvent {
         pub id: RoleId,
         pub party_id: PartyId,
@@ -237,7 +237,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct RoomDeleteEvent {
         pub id: RoomId,
 
@@ -249,7 +249,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct PartyMemberEvent {
         pub party_id: PartyId,
 
@@ -260,7 +260,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     #[serde(untagged)]
     pub enum PartyUpdateEvent {
         Position(PartyPositionUpdate),
@@ -270,7 +270,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct UserReactionEvent {
         pub user_id: UserId,
         pub room_id: RoomId,
@@ -285,7 +285,7 @@ pub mod events {
     #[derive(Debug, Serialize, Deserialize)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
     pub struct ProfileUpdateEvent {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub party_id: Option<PartyId>,
@@ -330,7 +330,7 @@ pub mod message {
             #[doc = "OpCodes for [`" $name "`]"]
             #[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema_repr))]
-            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
             #[repr(u8)]
             pub enum [<$name Opcode>] {
                 $($opcode = $code,)*
@@ -346,7 +346,7 @@ pub mod message {
                     #[derive(Debug, Serialize, Deserialize)]
                     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
                     #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-                    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+                    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "gateway"))]
                     $(#[derive($Default, PartialEq, Eq)])?
                     pub struct [<$opcode Payload>] {
                         $($(#[$field_meta])* pub $field : $ty,)*
@@ -561,6 +561,8 @@ pub mod message {
                         )*
 
                         registry.insert(stringify!($name), TypeScriptType::Union(variants), concat!("Union of all ", stringify!($name), " messages"));
+
+                        registry.tag(stringify!($name), "gateway");
 
                         TypeScriptType::Named(stringify!($name))
                     }

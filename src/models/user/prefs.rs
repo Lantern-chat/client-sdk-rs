@@ -2,6 +2,7 @@ use super::*;
 
 enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     #[allow(non_camel_case_types)]
     pub enum Locale: u16 = enUS {
         #[default]
@@ -11,6 +12,7 @@ enum_codes! {
 
 enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     #[cfg_attr(feature = "ts", ts(non_const))]
     pub enum Font: u16 = SansSerif {
         #[default]
@@ -28,6 +30,7 @@ enum_codes! {
 
 enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
     pub enum FriendAddability: u8 = None {
         #[default]
         0  = None,

@@ -27,7 +27,8 @@ const MAX_LENGTH: usize = {
 #[derive(Debug, Clone, Copy, Serialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+// rename the exported TypeScript to "RawAuthToken" since it's just a string
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(rename = "RawAuthToken"))]
 #[serde(untagged)]
 pub enum AuthToken {
     /// Bearer token for users, has a fixed length of 28 bytes.

@@ -12,16 +12,18 @@ use crate::models::Permissions;
 bitflags2! {
     /// Flags for command functionality.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-    pub struct CommandFlags: u8 {
+    pub struct CommandFlags: u8 where "command" {
         /// Command requires authorization to execute.
         const AUTHORIZED    = 1 << 0;
 
         /// Command has a request body.
         const HAS_BODY      = 1 << 1;
+        const HAS_RESPONSE  = 1 << 2;
+        const STREAMING     = 1 << 3;
 
-        const BOTS_ONLY     = 1 << 2;
-        const USERS_ONLY    = 1 << 3;
-        const ADMIN_ONLY    = 1 << 4;
+        const BOTS_ONLY     = 1 << 5;
+        const USERS_ONLY    = 1 << 6;
+        const ADMIN_ONLY    = 1 << 7;
     }
 }
 
@@ -120,9 +122,6 @@ impl core::error::Error for MissingItemError {}
 ///
 /// For the case of `GET`/`OPTIONS` commands, the body becomes query parameters.
 pub trait Command: sealed::Sealed {
-    /// Whether the command returns one or many items
-    const STREAM: bool;
-
     /// Whether the command has a query string or sends a body
     const IS_QUERY: bool;
 
@@ -275,9 +274,9 @@ macro_rules! command {
     (@GET TRACE $c:block) => {$c};
     (@GET $other:ident $c:block) => {};
 
-    (@IS_STREAM One) => { false };
-    (@IS_STREAM Many) => { true };
-    (@IS_STREAM $other:ident) => { compile_error!("Must use One or Many for Command result") };
+    (@STREAMING One) => { CommandFlags::empty() };
+    (@STREAMING Many) => { CommandFlags::STREAMING };
+    (@STREAMING $other:ident) => { compile_error!("Must use One or Many for Command result") };
 
     (@AGGREGATE One $ty:ty) => { $ty };
     (@AGGREGATE Many $ty:ty) => { Vec<$ty> };
@@ -378,8 +377,6 @@ macro_rules! command {
 
         impl $crate::api::command::sealed::Sealed for $name {}
         impl $crate::api::command::Command for $name {
-            const STREAM: bool = command!(@IS_STREAM $count);
-
             const IS_QUERY: bool = matches!(
                 http::Method::$method,
                 http::Method::GET | http::Method::OPTIONS | http::Method::HEAD | http::Method::CONNECT | http::Method::TRACE
@@ -393,7 +390,14 @@ macro_rules! command {
 
             const HTTP_METHOD: http::Method = http::Method::$method;
 
-            const FLAGS: CommandFlags = CommandFlags::empty()
+            const FLAGS: CommandFlags = CommandFlags::empty().union(command!(@STREAMING $count))
+                .union(const {
+                    if size_of::<$result>() != 0 {
+                        CommandFlags::HAS_RESPONSE
+                    } else {
+                        CommandFlags::empty()
+                    }
+                })
                 $(.union((stringify!($body_name), CommandFlags::HAS_BODY).1))?
                 $(.union((stringify!($auth_struct), CommandFlags::AUTHORIZED).1))?
                 $( $(.union(CommandFlags::$flag))* )?
@@ -634,6 +638,8 @@ macro_rules! command {
 
                     registry.insert(stringify!($name), ty, concat!($(command!(@DOC #[$($meta)*])),*).trim());
 
+                    registry.tag(stringify!($name), "command");
+
                     TypeScriptType::Named(stringify!($name))
                 }
             }
@@ -649,7 +655,7 @@ macro_rules! command {
             #[derive(Debug, Serialize, Deserialize)]
             #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
             #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "command"))]
             $(#[$body_meta])*
             pub struct $body_name {
                 $( $(#[$($body_field_meta)*])* $body_field_vis $body_field_name: $body_field_ty ),*
@@ -750,9 +756,7 @@ macro_rules! command_module {
 
         #[cfg(feature = "ts")]
         pub fn register_routes(registry: &mut ts_bindgen::TypeRegistry) {
-            $(
-                paste::paste! { $mod::[<register_ $mod _routes>](registry); }
-            )*
+            paste::paste! { $( $mod::[<register_ $mod _routes>](registry); )* }
         }
 
         // TODO: Collect schemas from each object

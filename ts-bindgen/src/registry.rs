@@ -1,6 +1,6 @@
 use indexmap::{IndexMap, IndexSet};
 
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::HashMap};
 
 use crate::TypeScriptType;
 
@@ -8,6 +8,7 @@ use crate::TypeScriptType;
 pub struct TypeRegistry {
     // use IndexMap to preserve the insertion order
     types: IndexMap<&'static str, (TypeScriptType, Cow<'static, str>)>,
+    tags: HashMap<&'static str, Vec<&'static str>>,
     external: IndexSet<Cow<'static, str>>,
 }
 
@@ -34,6 +35,30 @@ impl TypeRegistry {
         ty.unify();
 
         self.types.insert(name, (ty, comment.into()));
+    }
+
+    /// Adds an arbitrary string tag to a named type
+    pub fn tag(&mut self, name: &'static str, tag: &'static str) {
+        self.tags.entry(tag).or_default().push(name);
+    }
+
+    /// Returns all tags for the given type
+    pub fn get_tags(&self, tag: &'static str) -> Option<&[&'static str]> {
+        self.tags.get(tag).map(|v| &v[..])
+    }
+
+    /// Returns true if the type has the given tag
+    pub fn has_tag(&self, name: &'static str, tag: &'static str) -> bool {
+        self.tags.get(tag).map_or(false, |v| v.contains(&name))
+    }
+
+    /// Returns all types with the given tag
+    pub fn tagged_types(&self, tag: &'static str) -> impl Iterator<Item = (&'static str, &TypeScriptType)> {
+        self.tags.get(tag).into_iter().flat_map(move |v| v.iter().map(move |&name| (name, &self.types[name].0)))
+    }
+
+    pub fn type_tags(&self, ty: &'static str) -> impl Iterator<Item = &'static str> + '_ {
+        self.tags.iter().filter_map(move |(tag, names)| if names.contains(&ty) { Some(*tag) } else { None })
     }
 
     pub fn get(&self, name: &'static str) -> Option<&TypeScriptType> {
@@ -223,8 +248,6 @@ impl TypeRegistry {
                     body_type,
                     path,
                 } => {
-                    let parse_response = **return_type != TypeScriptType::Null;
-
                     let body_type = match body_type {
                         Some(ty) => ty,
                         None => &TypeScriptType::Null,
@@ -235,10 +258,6 @@ impl TypeRegistry {
                         "export const {name} = /*#__PURE__*/command.{}<{form_type}, {return_type}, {body_type}>({{",
                         method.to_lowercase()
                     )?;
-
-                    if parse_response {
-                        writeln!(out, "    parse: true,")?;
-                    }
 
                     if path.contains("${") {
                         writeln!(out, "    path() {{ return `{path}`; }},")?;

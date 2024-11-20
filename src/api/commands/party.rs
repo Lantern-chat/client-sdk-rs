@@ -268,6 +268,7 @@ command! { Party;
 
 decl_enum! {
     #[derive(Default, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "command"))]
     pub enum CreateRoomKind: u8 {
         #[default]
         0 = Text,
@@ -280,7 +281,7 @@ decl_enum! {
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "command"))]
 pub struct PartySettings {
     pub flags: PartyFlags,
     pub prefs: PartyPreferences,

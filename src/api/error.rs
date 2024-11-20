@@ -8,6 +8,11 @@ use http::StatusCode;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
+#[cfg_attr(
+    feature = "ts",
+    derive(ts_bindgen::TypeScriptDef),
+    ts(tag = "command", rename = "RawApiError") // we use a separate ApiError class in TypeScript
+)]
 pub struct ApiError {
     /// Error code
     pub code: ApiErrorCode,
@@ -73,6 +78,7 @@ error_codes! {
     /// Standard API error codes.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
     #[cfg_attr(feature = "schema", derive(schemars::JsonSchema_repr))]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "command", non_const))]
     #[derive(enum_primitive_derive::Primitive)]
     pub enum ApiErrorCode: u16 = Unknown {
         // Server errors

@@ -4,7 +4,7 @@ macro_rules! bitflags2 {
 
     (
         $(#[$outer:meta])*
-        $vis:vis struct $BitFlags:ident: $T:ty {
+        $vis:vis struct $BitFlags:ident: $T:ty $(where $tag:literal)? {
             $(
                 $(#[$inner:ident $($args:tt)*])*
                 const $Flag:tt = $value:expr;
@@ -141,6 +141,8 @@ macro_rules! bitflags2 {
                         concat!("Bitflags for ", stringify!($BitFlags)),
                     );
 
+                    $( registry.tag(name, $tag); )?
+
                     ty
                 }
             }
@@ -168,7 +170,6 @@ macro_rules! enum_codes {
         }
     ) => {
         rkyv_rpc::enum_codes! {
-            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
             $(#[$meta])*
             $vis enum $name: $archived_vis $repr $(= $unknown)? {
                 $($(#[$variant_meta])* $code = $variant,)*
@@ -185,7 +186,6 @@ macro_rules! enum_codes {
             $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
         }
     ) => {
-        #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
         $(#[$meta])*
         #[repr($repr)]
         $vis enum $name {
@@ -206,7 +206,6 @@ macro_rules! decl_enum {
     ) => {
         rkyv_rpc::unit_enum! {
             $(#[$meta])*
-            #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
             $vis enum $name: $repr {
                 $($(#[$variant_meta])* $code = $variant,)*
             }
@@ -225,7 +224,6 @@ macro_rules! decl_enum {
         $(#[$meta])*
         #[repr($repr)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
         $vis enum $name {
             $($(#[$variant_meta])* $variant = $code,)*
         }

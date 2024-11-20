@@ -226,6 +226,7 @@ impl From<UserPreferences> for UpdateUserPrefsBody {
 
 decl_enum! {
     #[derive(Default, serde_repr::Deserialize_repr, serde_repr::Serialize_repr)]
+    #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "command"))]
     pub enum BannerAlign: u8 {
         #[default]
         0 = Top,
@@ -236,9 +237,9 @@ decl_enum! {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "command"))]
 pub struct Added2FA {
-    /// URL to be display as a QR code and added to an authenticator app
+    /// URL to be displayed as a QR code and added to an authenticator app
     pub url: String,
     /// Backup codes to be stored in a safe place
     pub backup: Vec<String>,
