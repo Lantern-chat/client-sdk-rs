@@ -30,9 +30,9 @@ const MAX_LENGTH: usize = {
 #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 #[serde(untagged)]
 pub enum AuthToken {
-    /// Bearer token for users
+    /// Bearer token for users, has a fixed length of 28 bytes.
     Bearer(BearerToken),
-    /// Bot token for bots
+    /// Bot token for bots, has a fixed length of 48 bytes.
     Bot(BotToken),
 }
 

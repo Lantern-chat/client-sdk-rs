@@ -35,20 +35,20 @@ macro_rules! bitflags2 {
                     // at the cost of excluding combinations of flags
                     if size_of::<Self>() >= 16 {
                         let bits_name = concat!(stringify!($BitFlags), "Bit");
+                        let raw_name = concat!("Raw", stringify!($BitFlags));
 
                         if registry.contains(bits_name) {
-                            return TypeScriptType::Named(stringify!($BitFlags));
+                            return TypeScriptType::Named(raw_name);
                         }
 
-                        registry.add_external(stringify!($BitFlags));
+                        registry.add_external(raw_name);
 
                         eprintln!(
-                            "Note: Generating TypeScript for {} as bit positions, relying on external type for usage",
+                            "Note: Generating TypeScript type for {} as bit positions, relying on external type {raw_name} for usage",
                             stringify!($BitFlags)
                         );
 
                         let mut members = Vec::new();
-
                         let mut combinations = Vec::new();
 
                         $(
@@ -93,7 +93,22 @@ macro_rules! bitflags2 {
                             registry.insert(name, ty, doc);
                         }
 
-                        return TypeScriptType::Named(stringify!($BitFlags));
+                        // export const $BitFlagsBit_ALL = [...$BitFlagsBit.values()];
+                        registry.insert(concat!(stringify!($BitFlags), "Bit_ALL"), {
+                            let mut bits = Vec::new();
+
+                            for (name, value) in Self::all().iter_names() {
+                                let v = value.bits();
+
+                                if (v & (v - 1)) == 0 {
+                                    bits.push(TypeScriptType::EnumValue(concat!(stringify!($BitFlags), "Bit"), name));
+                                }
+                            }
+
+                            TypeScriptType::ArrayLiteral(bits)
+                        }, concat!("All bit positions of ", stringify!($BitFlags)));
+
+                        return TypeScriptType::Named(raw_name);
                     }
 
                     // regular enum
@@ -153,8 +168,8 @@ macro_rules! enum_codes {
         }
     ) => {
         rkyv_rpc::enum_codes! {
-            $(#[$meta])*
             #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+            $(#[$meta])*
             $vis enum $name: $archived_vis $repr $(= $unknown)? {
                 $($(#[$variant_meta])* $code = $variant,)*
             }
@@ -170,8 +185,8 @@ macro_rules! enum_codes {
             $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
         }
     ) => {
-        $(#[$meta])*
         #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+        $(#[$meta])*
         #[repr($repr)]
         $vis enum $name {
             $($(#[$variant_meta])* $variant = $code,)*

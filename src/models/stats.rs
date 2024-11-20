@@ -15,6 +15,7 @@ pub struct Statistics {
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct RoomStatistics {
+    /// Total number of messages sent
     pub messages: u64,
 
     /// Total number of attachment files sent

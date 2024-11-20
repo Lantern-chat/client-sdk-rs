@@ -11,6 +11,7 @@ enum_codes! {
 
 enum_codes! {
     #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+    #[ts(non_const)]
     pub enum Font: u16 = SansSerif {
         #[default]
         0 = SansSerif,
@@ -21,7 +22,6 @@ enum_codes! {
 
         // third-party fonts
         30 = OpenDyslexic,
-
         31 = AtkinsonHyperlegible,
     }
 }
@@ -127,35 +127,67 @@ impl Default for UserPrefsFlags {
 
 pub mod preferences {
     decl_newtype_prefs! {
+        /// Color temperature in Kelvin
         Temperature: u16 = 7500u16,
+
+        /// Font size in points
         FontSize: f32 = 16.0f32,
+
+        /// Tab size in spaces
         TabSize: u8 = 4u8,
+
+        /// Message padding in pixels
         Padding: u8 = 16u8,
     }
 }
 
+/// User preferences
+///
+/// Field names are shortened to reduce message size
+/// when stored in a database or sent over the network.
+/// However, fields can still be deserialized using the
+/// provided aliases, documented for each field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct UserPreferences {
+    /// User locale (alias `locale`)
     #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
     pub l: Locale,
+
+    /// User preferences flags (alias `flags`)
     #[serde(default, skip_serializing_if = "is_default", alias = "flags")]
     pub f: UserPrefsFlags,
+
+    /// Who can add you as a friend (alias `friend_add`)
     #[serde(default, skip_serializing_if = "is_default", alias = "friend_add")]
-    pub friend: FriendAddability,
+    pub fr: FriendAddability,
+
+    /// Color temperature in Kelvin (alias `temperature`)
     #[serde(default, skip_serializing_if = "is_default", alias = "temperature")]
     pub temp: preferences::Temperature,
+
+    /// Chat font (alias `chat_font`)
     #[serde(default, skip_serializing_if = "is_default", alias = "chat_font")]
     pub cf: Font,
+
+    /// UI font (alias `ui_font`)
     #[serde(default, skip_serializing_if = "is_default", alias = "ui_font")]
     pub uf: Font,
+
+    /// Chat font size in points (alias `chat_font_size`)
     #[serde(default, skip_serializing_if = "is_default", alias = "chat_font_size")]
     pub cfs: preferences::FontSize,
+
+    /// UI font size in points (alias `ui_font_size`)
     #[serde(default, skip_serializing_if = "is_default", alias = "ui_font_size")]
     pub ufs: preferences::FontSize,
+
+    /// message padding in pixels (alias `padding`)
     #[serde(default, skip_serializing_if = "is_default", alias = "padding")]
     pub pad: preferences::Padding,
+
+    /// tab size in spaces (alias `tab_size`)
     #[serde(default, skip_serializing_if = "is_default", alias = "tab_size")]
     pub tab: preferences::TabSize,
 }

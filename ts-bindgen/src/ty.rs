@@ -156,6 +156,17 @@ impl TypeScriptType {
         }
     }
 
+    pub fn is_value(&self) -> bool {
+        if self.is_literal() {
+            return true;
+        }
+
+        matches!(
+            self,
+            TypeScriptType::ConstEnum(_) | TypeScriptType::Enum(_) | TypeScriptType::ApiDecl { .. }
+        )
+    }
+
     /// Performs simple cleanup of nested unions and intersections and removes duplicates.
     pub fn unify(&mut self) {
         let is_union = matches!(self, TypeScriptType::Union(_));

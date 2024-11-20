@@ -5,7 +5,7 @@ use crate::models::Locale;
 bitflags2! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct PartyPrefsFlags: i32 {
-        const DEFAULT_FLAGS = 0;
+        const DEFAULT = 0;
     }
 }
 
@@ -22,7 +22,7 @@ impl From<u64> for PartyPrefsFlags {
 
 impl Default for PartyPrefsFlags {
     fn default() -> Self {
-        Self::DEFAULT_FLAGS
+        Self::DEFAULT
     }
 }
 
@@ -34,8 +34,11 @@ mod preferences {
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct PartyPreferences {
+    /// Party locale (alias `locale`)
     #[serde(default, skip_serializing_if = "is_default", alias = "locale")]
     pub l: Locale,
+
+    /// Party preferences flags (alias `flags`)
     #[serde(default, skip_serializing_if = "is_default", alias = "flags")]
     pub f: PartyPrefsFlags,
 }

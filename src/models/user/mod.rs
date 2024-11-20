@@ -210,7 +210,7 @@ impl UserProfile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(include(ElevationLevel)))] // include ElevationLevel for UserFlags
 pub struct User {
     pub id: UserId,
     pub username: SmolStr,

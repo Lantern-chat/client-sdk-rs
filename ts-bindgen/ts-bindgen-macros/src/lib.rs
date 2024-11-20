@@ -18,6 +18,9 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
     let mut attrs = ItemAttributes {
         serde: SerdeContainer::from_ast(&ctxt, &input),
         inline: false,
+        non_const: false,
+        includes: Vec::new(),
+        max: false,
         comment: extract_doc_comments(&input.attrs),
     };
 
@@ -25,9 +28,16 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
         return e.into_compile_error().into();
     }
 
-    attrs.parse_ts(&input.attrs);
+    if let Err(e) = attrs.parse_ts(&input.attrs) {
+        return e.into_compile_error().into();
+    }
 
     let name = input.ident;
+
+    let includes = &attrs.includes;
+    let includes = quote! {
+        #( #includes::register(registry); )*
+    };
 
     let inner = match input.data {
         Data::Enum(data) => derive_enum(data, name.clone(), attrs),
@@ -42,6 +52,8 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
                     return ts_bindgen::TypeScriptType::Named(stringify!(#name));
                 }
 
+                #includes
+
                 #inner
             }
         }
@@ -51,20 +63,55 @@ pub fn derive_typescript_def(input: proc_macro::TokenStream) -> proc_macro::Toke
 struct ItemAttributes {
     serde: SerdeContainer,
 
+    /// Item comment
     comment: String,
 
     /// Put interface definitions directly in unions, rather than as a named type.
     inline: bool,
+
+    /// Prefer a regular enum for enums with explicit discriminants.
+    non_const: bool,
+
+    /// Emit a __MAX discriminator for enums with explicit discriminants.
+    max: bool,
+
+    /// Include other types in the generated register function.
+    includes: Vec<Ident>,
 }
 
 impl ItemAttributes {
-    pub fn parse_ts(&mut self, attrs: &[syn::Attribute]) {
+    pub fn parse_ts(&mut self, attrs: &[syn::Attribute]) -> syn::Result<()> {
         for attr in attrs {
-            if attr.path().is_ident("ts") {
-                // TODO: parse ts attributes
+            if !attr.path().is_ident("ts") {
                 continue;
             }
+
+            attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("inline") {
+                    self.inline = true;
+                }
+
+                if meta.path.is_ident("max") {
+                    self.max = true;
+                }
+
+                if meta.path.is_ident("non_const") {
+                    self.non_const = true;
+                }
+
+                if meta.path.is_ident("include") {
+                    meta.parse_nested_meta(|meta| {
+                        self.includes.push(meta.path.get_ident().unwrap().clone());
+
+                        Ok(())
+                    })?;
+                }
+
+                Ok(())
+            })?;
         }
+
+        Ok(())
     }
 }
 
@@ -127,8 +174,8 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
             });
         }
 
-        if num_fields == 1 {
-            out.extend(if attrs.inline {
+        out.extend(if num_fields == 1 {
+            if attrs.inline {
                 quote! { field }
             } else {
                 quote! {
@@ -148,13 +195,15 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
 
                     ts_bindgen::TypeScriptType::Named(stringify!(#name))
                 }
-            });
+            }
+        } else if attrs.inline {
+            quote! { ts_bindgen::TypeScriptType::Tuple(fields) }
         } else {
-            out.extend(quote! {
+            quote! {
                 registry.insert(stringify!(#name), ts_bindgen::TypeScriptType::Tuple(fields), #struct_comment);
                 ts_bindgen::TypeScriptType::Named(stringify!(#name))
-            });
-        }
+            }
+        });
     } else {
         let Fields::Named(fields) = input.fields else { unreachable!() };
 
@@ -198,12 +247,16 @@ fn derive_struct(input: syn::DataStruct, name: Ident, attrs: ItemAttributes) -> 
 
         let num_extends = flattened.len();
 
-        out.extend(quote! {
-            let ty = ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*;
+        out.extend(if attrs.inline {
+            quote! { ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*; }
+        } else {
+            quote! {
+                let ty = ts_bindgen::TypeScriptType::interface(members, #num_extends) #(.flatten(#flattened))*;
 
-            registry.insert(stringify!(#name), ty, #struct_comment);
+                registry.insert(stringify!(#name), ty, #struct_comment);
 
-            ts_bindgen::TypeScriptType::Named(stringify!(#name))
+                ts_bindgen::TypeScriptType::Named(stringify!(#name))
+            }
         });
     }
 
@@ -286,7 +339,23 @@ fn derive_enum(input: syn::DataEnum, name: Ident, attrs: ItemAttributes) -> Toke
                 });
             }
 
-            out.extend(quote! { let ty = ts_bindgen::TypeScriptType::ConstEnum(variants); });
+            if attrs.max {
+                out.extend(quote! {
+                    variants.push((
+                        "__MAX".into(),
+                        None,
+                        "Max value for the enum".into(),
+                    ));
+                });
+            }
+
+            let ty = if attrs.non_const {
+                quote! { Enum }
+            } else {
+                quote! { ConstEnum }
+            };
+
+            out.extend(quote! { let ty = ts_bindgen::TypeScriptType::#ty(variants); });
         }
 
         out.extend(quote! {

@@ -22,6 +22,10 @@ impl core::fmt::Display for DisplayRegistry<'_> {
 }
 
 impl TypeRegistry {
+    pub fn iter(&self) -> impl Iterator<Item = (&'static str, &TypeScriptType)> {
+        self.types.iter().map(|(&name, (ty, _))| (name, ty))
+    }
+
     pub fn display(&self) -> DisplayRegistry {
         DisplayRegistry { registry: self }
     }
@@ -81,7 +85,7 @@ impl TypeRegistry {
 
             first = false;
 
-            fmt_comment(item_comment, &mut out)?;
+            fmt_comment(item_comment, &mut out, "")?;
 
             match ty {
                 // values are just exported as constants
@@ -136,7 +140,7 @@ impl TypeRegistry {
 
                     writeln!(out, "export {specifier} {name} {{")?;
                     for (name, value, comment) in vec {
-                        fmt_comment(comment, &mut out)?;
+                        fmt_comment(comment, &mut out, "    ")?;
 
                         match value {
                             Some(value) => writeln!(out, "    {name} = {value},")?,
@@ -198,7 +202,7 @@ impl TypeRegistry {
                             Err(ty) => ("", ty),
                         };
 
-                        fmt_comment(member_comment, &mut out)?;
+                        fmt_comment(member_comment, &mut out, "    ")?;
 
                         write!(out, "    {name}{opt}: ")?;
                         ty.fmt_depth(0, &mut out)?;
@@ -286,12 +290,26 @@ impl TypeScriptType {
 
             TypeScriptType::ArrayLiteral(vec) => {
                 f.write_str("[")?;
+
+                if vec.len() > 5 {
+                    f.write_str("\n    ")?;
+                }
+
                 for (i, ty) in vec.iter().enumerate() {
                     if i != 0 {
-                        f.write_str(", ")?;
+                        if i % 5 == 0 {
+                            f.write_str(",\n    ")?;
+                        } else {
+                            f.write_str(", ")?;
+                        }
                     }
                     ty.fmt_depth(depth + 1, f)?;
                 }
+
+                if vec.len() > 5 {
+                    f.write_str("\n")?;
+                }
+
                 f.write_str("]")
             }
 
@@ -350,7 +368,7 @@ impl TypeScriptType {
                         f.write_str(", ")?;
                     }
 
-                    fmt_comment(element_comment, f)?;
+                    fmt_comment(element_comment, f, "")?;
 
                     ty.fmt_depth(depth + 1, f)?;
                 }
@@ -371,7 +389,7 @@ impl TypeScriptType {
                         Err(ty) => ("", ty),
                     };
 
-                    fmt_comment(member_comment, f)?;
+                    fmt_comment(member_comment, f, "")?;
 
                     write!(f, "{name}{opt}: ")?;
                     ty.fmt_depth(0, f)?;
@@ -396,20 +414,20 @@ impl Display for TypeScriptType {
     }
 }
 
-fn fmt_comment<W: Write>(comment: &str, out: &mut W) -> std::fmt::Result {
+fn fmt_comment<W: Write>(comment: &str, out: &mut W, p: &str) -> std::fmt::Result {
     if comment.is_empty() {
         return Ok(());
     }
 
     if !comment.contains('\n') {
-        return writeln!(out, "/** {} */", comment.trim());
+        return writeln!(out, "{p}/** {} */", comment.trim());
     }
 
-    out.write_str("/**\n")?;
+    writeln!(out, "{p}/**")?;
 
     for line in comment.lines() {
-        writeln!(out, " * {}", line.trim())?;
+        writeln!(out, "{p} * {}", line.trim())?;
     }
 
-    out.write_str(" */\n")
+    writeln!(out, "{p} */")
 }
