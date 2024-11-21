@@ -171,6 +171,62 @@ mod impl_serde {
     }
 }
 
+#[cfg(feature = "borsh")]
+mod borsh_impl {
+    // NOTE: This is manually implemented to maintain a level of compatibility with `Option`,
+    // which uses 0 and 1 for `None` and `Some`, respectively. Send an Option to be deserialized
+    // as Nullable using Borsh is therefore valid here. Probably pointless, but still.
+
+    use borsh::{de::EnumExt, BorshDeserialize, BorshSerialize};
+
+    use super::Nullable;
+
+    impl<T> BorshSerialize for Nullable<T>
+    where
+        T: BorshSerialize,
+    {
+        #[inline]
+        fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+            match self {
+                Nullable::Undefined => 2u8.serialize(writer),
+                Nullable::Null => 0u8.serialize(writer),
+                Nullable::Some(value) => {
+                    1u8.serialize(writer)?;
+                    value.serialize(writer)
+                }
+            }
+        }
+    }
+
+    impl<T> BorshDeserialize for Nullable<T>
+    where
+        T: BorshDeserialize,
+    {
+        #[inline]
+        fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+            let tag: u8 = BorshDeserialize::deserialize_reader(reader)?;
+            Self::deserialize_variant(reader, tag)
+        }
+    }
+
+    impl<T> EnumExt for Nullable<T>
+    where
+        T: BorshDeserialize,
+    {
+        fn deserialize_variant<R: std::io::Read>(reader: &mut R, tag: u8) -> std::io::Result<Self> {
+            match tag {
+                0 => Ok(Nullable::Null),
+                1 => Ok(Nullable::Some(T::deserialize_reader(reader)?)),
+                2 => Ok(Nullable::Undefined),
+                _ => Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Invalid tag: {tag}"),
+                )),
+            }
+        }
+    }
+}
+
 #[cfg(feature = "rusqlite")]
 mod rusqlite_impl {
     use super::Nullable;

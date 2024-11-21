@@ -51,10 +51,9 @@ typed-builder = { version = "0.20", optional = true }
 schemars = { version = "1.0.0-alpha.14", optional = true, features = ["triomphe01", "smol_str03", "thin-vec02"] }
 okapi = { version = "0.7.0-rc.1", optional = true }
 
-# Maybe?
-# typescript-definitions = { git = "https://github.com/storyscript/typescript-definitions" }
-
 serde_json = { version = "1", optional = true }
+
+borsh = { version = "1", optional = true }
 
 postgres-types = { version = "0.2.1", optional = true }
 bytes = { version = "1", optional = true }
@@ -91,6 +90,8 @@ _internal_common = ["thiserror"]
 std = ["rkyv?/std", "timestamp/std", "thiserror/std"]
 
 rkyv = ["dep:rkyv", "timestamp/rkyv_08", "snowflake/rkyv", "rkyv_rpc"]
+
+borsh = ["dep:borsh", "snowflake/borsh", "timestamp/borsh"]
 
 schema = ["std", "schemars", "okapi", "timestamp/schema"]
 
@@ -132,3 +133,6 @@ rand = "0.8.5"
 
 [profile.dev]
 debug = 1
+
+[examples.generate_ts_sdk]
+required-features = ["ts"]

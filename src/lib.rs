@@ -12,6 +12,10 @@ compile_error!("'typed-builder' and 'bon' features are mutually exclusive");
 #[macro_use]
 extern crate serde;
 
+#[cfg(feature = "borsh")]
+#[macro_use]
+extern crate borsh;
+
 #[macro_use]
 extern crate bitflags_serde_shim;
 

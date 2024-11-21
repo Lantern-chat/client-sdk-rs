@@ -23,6 +23,25 @@ macro_rules! bitflags2 {
             }
         }
 
+        #[cfg(feature = "borsh")]
+        const _: () = {
+            use borsh::{BorshDeserialize, BorshSerialize};
+
+            impl BorshSerialize for $BitFlags {
+                #[inline(always)]
+                fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+                    self.bits().serialize(writer)
+                }
+            }
+
+            impl BorshDeserialize for $BitFlags {
+                #[inline(always)]
+                fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+                    Ok(Self::from_bits_truncate(<$T as BorshDeserialize>::deserialize_reader(reader)?))
+                }
+            }
+        };
+
         #[cfg(feature = "ts")]
         const _: () = {
             use ts_bindgen::{Discriminator, TypeScriptDef, TypeScriptType};
@@ -161,6 +180,44 @@ macro_rules! impl_rkyv_for_bitflags {
     }
 }
 
+macro_rules! borsh_enum {
+    (
+        $(#[$meta:meta])*
+        $vis:vis enum $name:ident: $repr:ty $(= $unknown:ident)? {
+            $($(#[$variant_meta:meta])* $code:literal = $variant:ident,)*
+        }
+    ) => {
+        const _: () = {
+            use borsh::{BorshDeserialize, BorshSerialize};
+
+            impl BorshSerialize for $name {
+                #[inline(always)]
+                fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+                    (*self as $repr).serialize(writer)
+                }
+            }
+
+            impl BorshDeserialize for $name {
+                #[inline(always)]
+                fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+                    let code = <$repr as BorshDeserialize>::deserialize_reader(reader)?;
+
+                    match code {
+                        $($code => Ok($name::$variant),)*
+                        $(_     => Ok($name::$unknown),)?
+
+                        #[allow(unreachable_patterns)]
+                        _ => Err(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("invalid enum code: {code}")
+                        )),
+                    }
+                }
+            }
+        };
+    };
+}
+
 #[cfg(feature = "rkyv")]
 macro_rules! enum_codes {
     (
@@ -172,6 +229,14 @@ macro_rules! enum_codes {
         rkyv_rpc::enum_codes! {
             $(#[$meta])*
             $vis enum $name: $archived_vis $repr $(= $unknown)? {
+                $($(#[$variant_meta])* $code = $variant,)*
+            }
+        }
+
+        #[cfg(feature = "borsh")]
+        borsh_enum! {
+            $(#[$meta])*
+            $vis enum $name: $repr $(= $unknown)? {
                 $($(#[$variant_meta])* $code = $variant,)*
             }
         }
@@ -191,6 +256,14 @@ macro_rules! enum_codes {
         $vis enum $name {
             $($(#[$variant_meta])* $variant = $code,)*
         }
+
+        #[cfg(feature = "borsh")]
+        borsh_enum! {
+            $(#[$meta])*
+            $vis enum $name: $repr $(= $unknown)? {
+                $($(#[$variant_meta])* $code = $variant,)*
+            }
+        }
     };
 }
 
@@ -205,6 +278,14 @@ macro_rules! decl_enum {
         }
     ) => {
         rkyv_rpc::unit_enum! {
+            $(#[$meta])*
+            $vis enum $name: $repr {
+                $($(#[$variant_meta])* $code = $variant,)*
+            }
+        }
+
+        #[cfg(feature = "borsh")]
+        borsh_enum! {
             $(#[$meta])*
             $vis enum $name: $repr {
                 $($(#[$variant_meta])* $code = $variant,)*
@@ -226,6 +307,14 @@ macro_rules! decl_enum {
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         $vis enum $name {
             $($(#[$variant_meta])* $variant = $code,)*
+        }
+
+        #[cfg(feature = "borsh")]
+        borsh_enum! {
+            $(#[$meta])*
+            $vis enum $name: $repr {
+                $($(#[$variant_meta])* $code = $variant,)*
+            }
         }
     };
 }
