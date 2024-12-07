@@ -1,8 +1,16 @@
+// This file is dual-licensed under either the MIT or Apache 2.0 license.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
+// You may choose either license to govern your use of this file.
+// Any types re-exported from this file also fall under the same license.
+
+//! Message Embed Structures, dual licensed under MIT or Apache 2.0
+
 use super::*;
 
 /// Default type returned by the embed server
 ///
-/// You probably want to deserialise the payloads with this type alias
+/// You probably want to deserialize the payloads with this type alias
 pub type EmbedWithExpire = (timestamp::Timestamp, Embed);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
