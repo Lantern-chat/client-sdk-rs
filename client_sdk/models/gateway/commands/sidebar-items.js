@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ArchivedIdentify","ArchivedSetPresence","Identify","IdentifyResolver","SetPresence","SetPresenceResolver"]};
