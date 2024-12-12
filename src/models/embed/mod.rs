@@ -15,13 +15,14 @@ pub type EmbedWithExpire = (timestamp::Timestamp, Embed);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
+#[must_use]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
-#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
+#[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef), ts(tag = "embed"))]
 #[serde(tag = "v")]
 pub enum Embed {
     #[serde(rename = "1")]
-    V1(EmbedV1),
+    V1(v1::EmbedV1),
 }
 
 pub mod v1;
@@ -31,7 +32,29 @@ impl Embed {
     #[must_use]
     pub fn url(&self) -> Option<&str> {
         match self {
-            Embed::V1(embed) => embed.url.as_ref().map(|x| x as _),
+            Embed::V1(embed) => embed.url.as_deref(),
+        }
+    }
+}
+
+trait IsNoneOrEmpty {
+    fn is_none_or_empty(&self) -> bool;
+}
+
+impl IsNoneOrEmpty for Option<SmolStr> {
+    fn is_none_or_empty(&self) -> bool {
+        match self {
+            Some(ref value) => value.is_empty(),
+            None => true,
+        }
+    }
+}
+
+impl IsNoneOrEmpty for Option<ThinString> {
+    fn is_none_or_empty(&self) -> bool {
+        match self {
+            Some(ref value) => value.is_empty(),
+            None => true,
         }
     }
 }

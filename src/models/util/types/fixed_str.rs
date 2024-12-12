@@ -1,3 +1,9 @@
+// This file is dual-licensed under either the MIT or Apache 2.0 license.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//
+// You may choose either license to govern your use of this file.
+// Any types re-exported from this file also fall under the same license.
+
 //! Small fixed-size string type that can only be a given length, no more or less, exactly `N` bytes.
 
 use core::fmt;

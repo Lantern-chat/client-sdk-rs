@@ -40,6 +40,11 @@ bitflags2! {
         ///
         /// NOTE: This is not always accurate, and is provided on a best-effort basis
         const ADULT     = 1 << 1;
+
+        /// This embed contains graphics content such as violence or gore
+        ///
+        /// NOTE: This is not always accurate, and is provided on a best-effort basis
+        const GRAPHIC  = 1 << 2;
     }
 }
 
@@ -48,38 +53,17 @@ impl_serde_for_bitflags!(EmbedFlags);
 impl_schema_for_bitflags!(EmbedFlags);
 impl_sql_for_bitflags!(EmbedFlags);
 
-trait IsNoneOrEmpty {
-    fn is_none_or_empty(&self) -> bool;
-}
-
-impl IsNoneOrEmpty for Option<SmolStr> {
-    fn is_none_or_empty(&self) -> bool {
-        match self {
-            Some(ref value) => value.is_empty(),
-            None => true,
-        }
-    }
-}
-
-impl IsNoneOrEmpty for Option<ThinString> {
-    fn is_none_or_empty(&self) -> bool {
-        match self {
-            Some(ref value) => value.is_empty(),
-            None => true,
-        }
-    }
-}
-
 /// An embed is metadata taken from a given URL by loading said URL, parsing any meta tags, and fetching
 /// extra information from oEmbed sources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[must_use]
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "typed-builder", derive(typed_builder::TypedBuilder))]
 #[cfg_attr(feature = "bon", derive(bon::Builder))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize))]
 #[cfg_attr(feature = "ts", derive(ts_bindgen::TypeScriptDef))]
 pub struct EmbedV1 {
-    /// Timestamp when the embed was retreived
+    /// Timestamp when the embed was retrieved
     #[cfg_attr(feature = "typed-builder", builder(default = Timestamp::now_utc()))]
     #[cfg_attr(feature = "bon", builder(default = Timestamp::now_utc()))]
     pub ts: Timestamp,
@@ -163,11 +147,20 @@ pub struct EmbedV1 {
     #[cfg_attr(feature = "bon", builder(into))]
     #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub obj: Option<Box<EmbedMedia>>,
-    #[serde(default, skip_serializing_if = "EmbedMedia::is_empty", alias = "image")]
+
+    /// Contains images for the embed
+    #[serde(
+        default,
+        skip_serializing_if = "ThinVec::is_empty",
+        deserialize_with = "de::de_one_or_many",
+        alias = "image",
+        alias = "img",
+        alias = "images"
+    )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     #[cfg_attr(feature = "bon", builder(into))]
-    #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
-    pub img: Option<Box<EmbedMedia>>,
+    pub imgs: ThinVec<EmbedMedia>,
+
     #[serde(default, skip_serializing_if = "EmbedMedia::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     #[cfg_attr(feature = "bon", builder(into))]
@@ -184,9 +177,9 @@ pub struct EmbedV1 {
     #[cfg_attr(feature = "rkyv", rkyv(with = rkyv::with::Niche))]
     pub thumb: Option<Box<EmbedMedia>>,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "ThinVec::is_empty")]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
-    pub fields: Vec<EmbedField>,
+    pub fields: ThinVec<EmbedField>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "typed-builder", builder(default))]
@@ -197,7 +190,7 @@ impl EmbedV1 {
     #[must_use]
     pub fn has_fullsize_media(&self) -> bool {
         !EmbedMedia::is_empty(&self.obj)
-            || !EmbedMedia::is_empty(&self.img)
+            || !self.imgs.iter().any(|img| img.url.is_empty())
             || !EmbedMedia::is_empty(&self.audio)
             || !EmbedMedia::is_empty(&self.video)
     }
@@ -269,8 +262,11 @@ impl EmbedV1 {
             }
         }
 
+        for img in &mut self.imgs {
+            f(img);
+        }
+
         visit_opt(&mut self.obj, &mut f);
-        visit_opt(&mut self.img, &mut f);
         visit_opt(&mut self.audio, &mut f);
         visit_opt(&mut self.video, &mut f);
         visit_opt(&mut self.thumb, &mut f);
@@ -415,12 +411,12 @@ pub struct EmbedMedia {
         alias = "alts",
         alias = "alt",
         default,
-        skip_serializing_if = "Vec::is_empty",
+        skip_serializing_if = "ThinVec::is_empty",
         deserialize_with = "de::de_one_or_many"
     )]
     #[cfg_attr(feature = "typed-builder", builder(default, setter(into)))]
     #[cfg_attr(feature = "bon", builder(into))]
-    pub alts: Vec<BasicEmbedMedia>,
+    pub alts: ThinVec<BasicEmbedMedia>,
 }
 
 impl VisitMedia for EmbedMedia {
@@ -434,24 +430,29 @@ impl VisitMedia for EmbedMedia {
 }
 
 mod de {
-    use super::BasicEmbedMedia;
+    use super::ThinVec;
 
     use serde::de::{Deserialize, Deserializer};
 
-    pub fn de_one_or_many<'de, D>(deserializer: D) -> Result<Vec<BasicEmbedMedia>, D::Error>
+    pub fn de_one_or_many<'de, T, D>(deserializer: D) -> Result<ThinVec<T>, D::Error>
     where
+        T: Deserialize<'de>,
         D: Deserializer<'de>,
     {
         #[derive(Deserialize)]
         #[serde(untagged)]
         pub enum OneOrMany<T> {
-            Many(Vec<T>),
+            Many(ThinVec<T>),
             One(T),
         }
 
         OneOrMany::deserialize(deserializer).map(|v| match v {
             OneOrMany::Many(alts) => alts,
-            OneOrMany::One(alt) => vec![alt],
+            OneOrMany::One(alt) => {
+                let mut v = ThinVec::with_capacity(1);
+                v.push(alt);
+                v
+            }
         })
     }
 }
@@ -685,12 +686,12 @@ impl Default for EmbedV1 {
             color: None,
             author: None,
             provider: EmbedProvider::default(),
-            img: None,
+            imgs: ThinVec::new(),
             audio: None,
             video: None,
             thumb: None,
             obj: None,
-            fields: Vec::new(),
+            fields: ThinVec::new(),
             footer: None,
         }
     }
