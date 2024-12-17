@@ -62,6 +62,8 @@ rusqlite = { version = "0.32.0", optional = true }
 crc32fast = { version = "1", optional = true }
 ciborium = { version = "0.2", optional = true }
 
+mime_guess = { version = "2", optional = true }
+
 url = { version = "2", optional = true }
 thiserror = { version = "2", optional = true, default-features = false }
 mime = { version = "0.3", optional = true }

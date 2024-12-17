@@ -323,6 +323,10 @@ pub trait BoxedEmbedMediaExt {
     fn with_dims(self, width: i32, height: i32) -> Self;
     fn with_mime(self, mime: impl Into<SmolStr>) -> Self;
     fn with_description(self, description: impl Into<ThinString>) -> Self;
+
+    /// Guess the mime type based on the URL extension
+    #[cfg(feature = "mime_guess")]
+    fn guess_mime(self) -> Self;
 }
 
 impl BoxedEmbedMediaExt for Box<EmbedMedia> {
@@ -353,6 +357,21 @@ impl BoxedEmbedMediaExt for Box<EmbedMedia> {
     #[inline]
     fn with_description(mut self, description: impl Into<ThinString>) -> Self {
         self.description = Some(description.into());
+        self
+    }
+
+    #[cfg(feature = "mime_guess")]
+    fn guess_mime(mut self) -> Self {
+        use smol_str::ToSmolStr;
+
+        if self.mime.is_none() {
+            if let Some((_, ext)) = self.url.rsplit_once('.') {
+                if let Some(mime) = mime_guess::from_ext(ext).first() {
+                    self.mime = Some(ToSmolStr::to_smolstr(&mime));
+                }
+            }
+        }
+
         self
     }
 }
