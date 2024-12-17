@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ArchivedRole","ArchivedRoleFlags","Role","RoleFlags","RoleResolver"]};

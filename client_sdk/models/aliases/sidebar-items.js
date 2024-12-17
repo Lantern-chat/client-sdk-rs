@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":["ArchivedEmoteId","ArchivedFileId","ArchivedFolderId","ArchivedInviteId","ArchivedMessageId","ArchivedPartyId","ArchivedRoleId","ArchivedRoomId","ArchivedThreadId","ArchivedUserId","EmoteId","FileId","FolderId","InviteId","MessageId","PartyId","RoleId","RoomId","ThreadId","UserId"]};

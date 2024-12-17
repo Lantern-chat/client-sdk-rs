@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["perms"],"mod":["api","client","driver","framework","framework_utils","gateway","models"],"struct":["Snowflake"]};

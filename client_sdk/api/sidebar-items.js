@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["asset","commands","error","gateway"],"struct":["CommandFlags","MissingItemError","RateLimit"],"trait":["Command","CommandBody","CommandResult"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["commands","events","message"],"struct":["ArchivedIntent","Intent"]};

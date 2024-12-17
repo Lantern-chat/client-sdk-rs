@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["fixed_str","thin_str"]};

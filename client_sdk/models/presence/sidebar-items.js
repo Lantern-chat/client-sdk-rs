@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AnyActivity","AnyActivityResolver","ArchivedAnyActivity"],"struct":["Activity","ActivityResolver","ArchivedActivity","ArchivedUserPresence","ArchivedUserPresenceFlags","UserPresence","UserPresenceFlags","UserPresenceResolver"]};
